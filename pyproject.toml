@@ -1,0 +1,31 @@
+# 它不是虚拟环境配置，而是告诉 Python：我的项目是一个标准 Python package，源码在 src/ 里面
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uav-dynamic-task-allocation"
+version = "0.1.0"
+description = "A modular research engineering framework for UAV swarm dynamic task allocation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Cai Cai" }
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pyyaml",
+    "scikit-learn",
+    "tqdm",
+    "tensorboard"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
