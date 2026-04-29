@@ -1,0 +1,54 @@
+project:
+  name: uav_dynamic_task_allocation
+  version: 0.1.0
+  description: UAV swarm dynamic task allocation research framework
+
+experiment:
+  name: debug_experiment
+  seed: 42
+  device: auto
+
+paths:
+  data_dir: data
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  log_dir: logs
+  output_dir: outputs
+  checkpoint_dir: checkpoints
+  experiment_dir: experiments
+
+data:
+  uav_file: data/raw/UAV.csv
+  target_file: data/raw/Target.csv
+  battlefield_file: data/raw/battlefield_target_data.csv
+  normalize: true
+
+env:
+  name: drone_battle
+  map_width: 100.0
+  map_height: 100.0
+  max_steps: 500
+  enable_dynamic_events: false
+
+algorithm:
+  name: dqn
+  gamma: 0.99
+  learning_rate: 0.001
+  batch_size: 64
+  hidden_dim: 128
+
+training:
+  episodes: 1000
+  eval_interval: 50
+  save_interval: 100
+  log_interval: 10
+
+logging:
+  level: INFO
+  use_tensorboard: true
+  save_log_file: true
+
+output:
+  save_metrics: true
+  save_figures: true
+  save_assignments: true
