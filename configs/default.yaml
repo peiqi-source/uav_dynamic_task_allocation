@@ -25,10 +25,254 @@ data:
 
 env:
   name: drone_battle
-  map_width: 100.0
-  map_height: 100.0
-  max_steps: 500
+
+  # 坐标模式说明：
+  # toy：对应原始 drone_battle_env.py 中 0~100 的简化强化学习环境；
+  # battlefield：对应 main.py 和论文中的真实战场仿真数据。
+  coordinate_mode: battlefield
+  coordinate_unit: m
+
+  # 战场边界设置。
+  # 注意：这里不是强行裁剪数据，而是给环境提供边界参考。
+  # 如果 auto_infer_bounds_from_data 为 true，环境会根据 UAV 和 Target 数据自动扩展边界。
+  x_min: -2000.0
+  x_max: 40000.0
+  y_min: -170000.0
+  y_max: 2000.0
+  auto_infer_bounds_from_data: true
+  boundary_margin_ratio: 0.05
+
+  # 时间推进参数。
+  # 对应原始 main.py 中的 t、v、update_interval 和 while t < 2200。
+  max_time: 2200.0
+  time_step: 30.0
+  uav_speed: 70.0
+
+  # 基地位置。
+  # 原始 main.py 中使用 base_location = [0, -16000]。
+  base_x: 0.0
+  base_y: -16000.0
+
+  # 攻击无人机载荷。
+  # 原始 main.py 中 attack_payload_per_uav = 6；
+  # 论文仿真参数表中攻击无人机载弹量也是 6。
+  attack_payload_per_uav: 6.0
+
+  # 通信假设。
+  # 论文中假设通信无人机覆盖战场范围，这里先记录为环境假设，
+  # 后面做通信约束时再进一步使用。
+  communication_covers_battlefield: true
+
+  # 是否启用动态事件。
+  # 当前环境先读取这些参数，但正式动态事件处理会在 events/ 模块中单独实现。
   enable_dynamic_events: false
+
+  # 确定性动态事件时间表。
+  # 这些值主要参考原始 main.py 的事件触发时间。
+  event_schedule:
+    target_disappear_times: [300.0]
+    target_appear_times: [600.0, 1920.0]
+    attack_uav_destroyed_times: [2010.0]
+    guide_uav_destroyed_times: [2100.0]
+
+  # 随机动态事件概率。
+  # 这些值主要对应原始 drone_battle_env.py 的简化随机事件设定。
+  random_event_probabilities:
+    target_appear: 0.10
+    target_disappear: 0.05
+    uav_destroyed: 0.05
+
+observation:
+  # 固定最大 UAV 数量。
+  # 用于构造神经网络固定长度输入。真实 UAV 数量不足时会 padding。
+  max_uavs: 50
+
+  # 固定最大 Target 数量。
+  # 动态场景中可能新增目标，因此这里要比初始目标数量更宽松。
+  max_targets: 120
+
+  # 是否在 observation 中加入 UAV-Target 距离矩阵特征。
+  # 该特征会显著增加输入维度，但对打击次序决策很有用。
+  include_distance_matrix: true
+
+  # 是否返回 feature_names，方便调试每一维代表什么。
+  # 训练时可以关闭，调试时建议开启。
+  include_feature_names: true
+
+  # 数值归一化时使用的最大距离。
+  # auto 表示根据战场边界对角线自动计算。
+  distance_normalizer: auto
+
+reward:
+  # 奖励函数模式。
+  # paper 表示优先复现论文中的距离奖励、重复打击惩罚、优先级奖励结构。
+  mode: paper
+
+  # 是否使用归一化距离。
+  # 论文中距离项是负距离奖励，但真实战场坐标尺度较大，
+  # 直接使用原始距离会导致距离项绝对值过大，压制目标优先级奖励。
+  # 因此工程实现中默认使用归一化距离。
+  use_normalized_distance: true
+  distance_normalizer: auto
+  distance_weight: 1.0
+
+  # 重复打击惩罚。
+  # 对应论文中的 R_rep，高惩罚用于避免重复访问或重复打击同一目标。
+  repetition_penalty: -10.0
+
+  # 优先级奖励权重。
+  # 当前使用 target.significance 作为 target.value_score。
+  priority_weight: 1.0
+  target_value_normalizer: 100.0
+
+  # 非法动作惩罚。
+  # 这些不是论文奖励公式的核心项，而是工程环境中必须处理的异常动作反馈。
+  invalid_action_penalty: -10.0
+  inactive_uav_penalty: -5.0
+  inactive_target_penalty: -10.0
+  non_attack_uav_penalty: -2.0
+  out_of_range_penalty: -1.0
+  out_of_bounds_penalty: -2.0
+
+  # 工程扩展项。
+  # 为了不脱离论文，默认设为 0。
+  # 后面需要强化“摧毁目标”或“削弱防御”的学习信号时再打开。
+  destroy_bonus: 0.0
+  damage_reward_weight: 0.0
+
+action_space:
+  # 固定动作空间模式。
+  # fixed_slot 表示使用 uav_slot × target_slot 的固定编号方式。
+  mode: fixed_slot
+
+  # 固定最大 UAV 和 Target 数量。
+  # 默认与 observation.max_uavs / observation.max_targets 保持一致。
+  max_uavs: 50
+  max_targets: 120
+
+  # 是否只允许攻击无人机参与打击动作。
+  # 当前任务是对地目标打击，所以默认为 true。
+  attack_uav_only: true
+
+  # 是否要求 UAV 能够覆盖目标。
+  # 如果为 true，超出工作距离的动作会被 mask 掉。
+  require_reachable: false
+
+  # 如果当前没有任何合法动作，是否允许 fallback 到非法动作。
+  # 训练 DQN 时建议 false，避免智能体学习无意义动作。
+  allow_noop_when_no_valid_action: false
+
+dqn:
+  network:
+    # 当前先采用论文中 DQN 的 MLP 思路：
+    # 输入状态特征，经过全连接隐藏层，输出每个动作的 Q 值。
+    hidden_dims: [256, 256]
+
+    # ReLU 对应论文中常用的非线性激活。
+    activation: relu
+
+    # 当前默认不使用 dropout。
+    # 强化学习中 dropout 不一定总是有利，因此先保留配置入口。
+    dropout: 0.0
+
+    # 是否在隐藏层后使用 LayerNorm。
+    # 这是工程上的稳定性增强项，不是论文核心结构，默认关闭。
+    use_layer_norm: false
+
+  agent:
+    # 折扣因子 gamma，对应 DQN 目标值 y = r + gamma * max Q(s', a')。
+    gamma: 0.99
+
+    # 学习率。
+    learning_rate: 0.0005
+
+    # 每次从 ReplayBuffer 采样多少条经验用于一次网络更新。
+    batch_size: 32
+
+    # 目标网络同步间隔。
+    # DQN 通常使用 policy network 和 target network 两套网络，
+    # target network 周期性从 policy network 复制参数，用于稳定训练。
+    target_update_interval: 100
+
+    # epsilon-greedy 探索参数。
+    # 训练初期 epsilon 高，鼓励随机探索；后期 epsilon 降低，更多利用当前 Q 网络。
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 5000
+
+    # 梯度裁剪，避免 Q 网络更新时梯度爆炸。
+    gradient_clip_norm: 10.0
+
+    # 当前先使用 Adam。
+    optimizer: adam
+
+  trainer:
+    # 训练 episode 数。
+    # 当前先用较小值测试训练流程，正式训练时可以改大。
+    num_episodes: 5
+
+    # 每个 episode 最多执行多少步。
+    # 如果为空或 auto，默认使用 env_config.max_steps。
+    max_steps_per_episode: auto
+
+    # replay buffer 容量。
+    replay_buffer_capacity: 10000
+
+    # 预热步数。
+    # 在 buffer 中至少积累一定样本后再开始更新网络。
+    warmup_steps: 32
+
+    # 每隔多少环境步更新一次 DQN。
+    train_every_steps: 1
+
+    # 每次环境 step 后执行几次网络更新。
+    updates_per_train_step: 1
+
+    # 每隔多少个 episode 输出一次详细日志。
+    log_interval: 1
+
+    # 当前测试阶段先不保存 checkpoint。
+    save_checkpoint: true
+
+  checkpoint:
+    # 是否启用 checkpoint 保存。
+    enabled: true
+
+    # DQN 模型保存目录。
+    checkpoint_dir: checkpoints/dqn
+
+    # 最近一次模型文件名。
+    latest_filename: latest.pt
+
+    # 最优模型文件名。
+    best_filename: best.pt
+
+    # 是否保存 optimizer 状态。
+    # 如果想继续训练，必须保存 optimizer；如果只做评估，可以不需要。
+    save_optimizer: true
+
+    # 是否保存 replay buffer。
+    # 当前先不保存 replay buffer，后面训练规模变大后再单独做。
+    save_replay_buffer: false
+
+  metrics:
+    # 是否保存 DQN 训练指标。
+    enabled: true
+
+    # 指标保存目录。
+    metrics_dir: outputs/metrics
+
+    # episode 级训练指标 CSV 文件。
+    metrics_filename: dqn_training_metrics.csv
+
+    # 每次运行是否覆盖旧指标文件。
+    # 调试阶段建议 true；正式长训练时可以改成 false。
+    overwrite: true
+
+    # 是否额外保存 jsonl 文件。
+    # jsonl 比 CSV 更适合保存嵌套信息，后面调试会方便。
+    save_jsonl: true
+    jsonl_filename: dqn_training_metrics.jsonl
 
 algorithm:
   name: dqn
