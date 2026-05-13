@@ -3,20 +3,26 @@ Destroy Target Random Forest Report
 
 label_source: kmeans_bootstrap
 feature_names: ['score', 'normalized_distance', 'angle', 'adjusted_defense', 'adjusted_significance']
-label_counts: {1: 6, 0: 14}
+label_counts: {1: 62, 0: 138}
 use_holdout_split: True
+train_size: 150
+test_size: 50
+class_weight: balanced
+max_depth: None
+n_estimators: 200
+random_seed: 42
 
 classification_report:
               precision    recall  f1-score   support
 
-           0     1.0000    0.7500    0.8571         4
-           1     0.5000    1.0000    0.6667         1
+           0     0.9459    1.0000    0.9722        35
+           1     1.0000    0.8667    0.9286        15
 
-    accuracy                         0.8000         5
-   macro avg     0.7500    0.8750    0.7619         5
-weighted avg     0.9000    0.8000    0.8190         5
+    accuracy                         0.9600        50
+   macro avg     0.9730    0.9333    0.9504        50
+weighted avg     0.9622    0.9600    0.9591        50
 
 
 confusion_matrix:
-[[3 1]
- [0 1]]
+[[35  0]
+ [ 2 13]]

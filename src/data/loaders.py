@@ -7,7 +7,6 @@ from typing import Iterable
 import pandas as pd
 
 from uav_dynamic_task_allocation.data.schemas import (
-    BATTLEFIELD_TARGET_SCHEMA,
     TARGET_SCHEMA,
     UAV_SCHEMA,
     DataSchema,
@@ -138,24 +137,6 @@ def load_target_data(file_path: str | Path) -> pd.DataFrame:
     return df
 
 
-def load_battlefield_target_data(file_path: str | Path) -> pd.DataFrame:
-    """
-    Load, standardize, and validate battlefield target data.
-
-    This file usually contains more target samples and may include display_type.
-    """
-    df = read_csv_with_auto_encoding(file_path)
-    df = standardize_columns(df, BATTLEFIELD_TARGET_SCHEMA)
-    df = convert_numeric_columns(
-        df,
-        BATTLEFIELD_TARGET_SCHEMA.numeric_columns + ["display_type"],
-    )
-
-    validate_target_data(df, data_name="Battlefield target data")
-
-    return df
-
-
 def load_all_data(config: dict) -> dict[str, pd.DataFrame]:
     """
     Load all core data files based on project config.
@@ -177,14 +158,8 @@ def load_all_data(config: dict) -> dict[str, pd.DataFrame]:
     uav_data = load_uav_data(uav_file)
     target_data = load_target_data(target_file)
 
-    # battlefield_target_data: 可选的扩展目标样本；缺失时复用主目标表。
-    if battlefield_file.exists():
-        battlefield_target_data = load_battlefield_target_data(battlefield_file)
-    else:
-        battlefield_target_data = target_data.copy()
 
     return {
         "uav": uav_data,
         "target": target_data,
-        "battlefield_target": battlefield_target_data,
     }

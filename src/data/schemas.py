@@ -44,6 +44,8 @@ UAV_SCHEMA = DataSchema(
         "序号": "uav_id",
         "x": "x",
         "y": "y",
+        "type": "uav_type",
+        "无人机类型": "uav_type",
         "无人机类型（1导引、2通信、3攻击）": "uav_type",
         "工作距离": "work_range",
         "攻击能力": "attack_power",
@@ -81,35 +83,6 @@ TARGET_SCHEMA = DataSchema(
         "defense": "defense",
         "防御力defense": "defense",
         "significance": "significance",
-        "重要性significance": "significance",
-        "图显类型type": "display_type",
-    },
-)
-
-
-BATTLEFIELD_TARGET_SCHEMA = DataSchema(
-    required_columns=[
-        "target_id",
-        "x",
-        "y",
-        "target_type",
-        "defense",
-        "significance",
-    ],
-    numeric_columns=[
-        "target_id",
-        "x",
-        "y",
-        "target_type",
-        "defense",
-        "significance",
-    ],
-    column_aliases={
-        "序号": "target_id",
-        "位置x": "x",
-        "位置y": "y",
-        "类型type": "target_type",
-        "防御力defense": "defense",
         "重要性significance": "significance",
         "图显类型type": "display_type",
     },

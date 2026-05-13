@@ -39,11 +39,6 @@ def main() -> None:
 
     print_dataframe_summary("UAV data", data["uav"], logger)
     print_dataframe_summary("Target data", data["target"], logger)
-    print_dataframe_summary(
-        "Battlefield target data",
-        data["battlefield_target"],
-        logger,
-    )
 
     logger.info("Data validation finished successfully.")
 
