@@ -1,3 +1,4 @@
+﻿"""资源分配模块中的目标clustering实现。"""
 from __future__ import annotations
 
 import csv
@@ -48,32 +49,54 @@ class TargetClusteringConfig:
     并保持输出 TargetClusterSet 不变，后续资源分配和 DQN 排序无需修改。
     """
 
+    # method: method 数据。
     method: str = "kmeans"
+    # num_clusters: num目标簇集合。
     num_clusters: int = 3
+    # auto_adjust_num_clusters: autoadjustnum目标簇集合。
     auto_adjust_num_clusters: bool = True
+    # feature_names: featurenames。
     feature_names: tuple[str, ...] = ("x", "y")
 
     # KMeans
+    # kmeans_max_iter: KMeans 算法最大值iter。
     kmeans_max_iter: int = 300
+    # kmeans_tolerance: KMeans 算法tolerance。
     kmeans_tolerance: float = 0.0004
+    # kmeans_random_seed: KMeans 算法随机随机种子。
     kmeans_random_seed: int = 42
 
     # PSO
+    # pso_num_particles: PSO 算法numparticles。
     pso_num_particles: int = 30
+    # pso_max_iter: PSO 算法最大值iter。
     pso_max_iter: int = 100
+    # pso_inertia_weight: PSO 算法inertia权重。
     pso_inertia_weight: float = 0.7
+    # pso_cognitive_weight: PSO 算法cognitive权重。
     pso_cognitive_weight: float = 1.5
+    # pso_social_weight: PSO 算法social权重。
     pso_social_weight: float = 1.5
+    # pso_compactness_weight: PSO 算法compactness权重。
     pso_compactness_weight: float = 1.0
+    # pso_balance_weight: PSO 算法balance权重。
     pso_balance_weight: float = 0.1
+    # pso_value_weight: PSO 算法数值权重。
     pso_value_weight: float = 0.2
+    # pso_defense_weight: PSO 算法防御能力权重。
     pso_defense_weight: float = 0.2
+    # pso_convergence_threshold: PSO 算法convergencethreshold。
     pso_convergence_threshold: float = 1e-6
+    # pso_initialize_with_high_value_targets: PSO 算法initializewithhigh数值目标集合。
     pso_initialize_with_high_value_targets: bool = True
+    # pso_random_seed: PSO 算法随机随机种子。
     pso_random_seed: int = 42
+    # ppo_checkpoint_dir: PPO 算法检查点dir。
     ppo_checkpoint_dir: str = "checkpoints/ppo_clusterer"
+    # ppo_fallback_method: PPO 算法fallbackmethod。
     ppo_fallback_method: str = "pso"
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/target_clustering.csv"
 
     def validate(self) -> None:
@@ -113,10 +136,15 @@ class TargetClusteringRecord:
     用于 debug CSV 和后续分析。
     """
 
+    # target: 目标。
     target: Target
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # feature_vector: featurevector。
     feature_vector: list[float]
+    # distance_to_cluster_center: distanceto目标簇center。
     distance_to_cluster_center: float
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -135,9 +163,13 @@ class TargetClusteringResult:
         保存算法迭代次数、目标函数值等调试信息。
     """
 
+    # source_screened_set: source筛选结果set。
     source_screened_set: ScreenedTargetSet
+    # cluster_set: 目标簇set。
     cluster_set: TargetClusterSet
+    # records: records 数据。
     records: list[TargetClusteringRecord]
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -156,7 +188,16 @@ class TargetClusterer:
     """
 
     def __init__(self, config: TargetClusteringConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 TargetClusteringConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def cluster(

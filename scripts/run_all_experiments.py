@@ -1,3 +1,4 @@
+﻿"""runallexperiments脚本，封装可直接运行的实验、检查或可视化流程。"""
 from __future__ import annotations
 
 import csv
@@ -19,6 +20,14 @@ SCENARIO_SCRIPTS = {
 
 
 def main() -> int:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        int，表示该函数计算或构建得到的结果。
+    """
     project_root = get_project_root()
     rows = []
     for scenario_name, script_path in SCENARIO_SCRIPTS.items():

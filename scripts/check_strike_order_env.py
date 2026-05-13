@@ -1,3 +1,4 @@
+﻿"""check打击顺序环境脚本，封装可直接运行的实验、检查或可视化流程。"""
 from uav_dynamic_task_allocation.core.contracts import TargetCluster
 from uav_dynamic_task_allocation.core.entities import Position, build_battlefield_state
 from uav_dynamic_task_allocation.data.loaders import load_all_data
@@ -70,6 +71,14 @@ def select_nearest_valid_action(env: StrikeOrderEnv) -> int:
 
 
 def main() -> None:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+    """
     project_root = get_project_root()
     config_path = project_root / "configs" / "default.yaml"
 

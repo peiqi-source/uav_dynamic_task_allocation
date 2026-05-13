@@ -1,3 +1,4 @@
+﻿"""历史版本中的动态事件appear脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import random
 import Target_Screen
@@ -10,6 +11,17 @@ base_location = np.array([0, -16000])
 
 def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payload_per_uav=6):
 
+    """处理adjust资源分配相关业务逻辑。
+
+    参数：
+        allocation_result: 资源分配结果。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        attack_payload_per_uav: 攻击payloadper无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     new_cluster_defense_sums = {}
     for cluster_id, targets in clustered_data.items():
         defense_sum = np.sum(targets[:, 4])
@@ -20,7 +32,7 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
         required_attack_uavs = np.ceil(new_cluster_defense_sums[cluster_num] / attack_payload_per_uav).astype(int)
         current_attack_uavs = allocation_result[cluster_num]["attack_uav_num"]
         if required_attack_uavs > current_attack_uavs:
-            
+
             surplus_clusters = []
             for other_cluster_num in allocation_result:
                 if other_cluster_num!= cluster_num:
@@ -31,7 +43,7 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
                                                  other_required_attack_uavs))
 
             if surplus_clusters:
-                
+
                 min_distance = float('inf')
                 closest_surplus_cluster = None
                 target_center = clustered_data[cluster_num][0, 1:3]
@@ -71,6 +83,18 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
     return transfer_info, allocation_result
 
 def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, data_UAV, allocation_result):
+    """处理handle动态事件集合相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        destroy_target_array: destroy目标array。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        allocation_result: 资源分配结果。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     data2 = Target_Screen.Target_Screen(data_Target)
     new_data_Target = []
     data2_dict = {int(row[0]): row for row in data2}
@@ -84,7 +108,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
     print("战场态势发生变化，出现新目标!")
 
     new_appeared_targets = [66, 166, 117, 97, 148]
-    
+
     num_selected_targets = random.randint(1, 4)
 
     if num_selected_targets > len(new_appeared_targets):
@@ -101,7 +125,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                     matched_rows_array = np.array([row])
                 else:
                     matched_rows_array = np.append(matched_rows_array, [row], axis=0)
-    
+
     start_label = 201
     new_matched_rows_array = []
     for index, row in enumerate(matched_rows_array):
@@ -109,7 +133,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
         new_row[0] = start_label + index
         new_matched_rows_array.append(new_row)
     new_matched_rows_array = np.array(new_matched_rows_array)
-    
+
     plot_figure.plot_targets_appe_no_judge(destroy_target_array, new_matched_rows_array)
 
     prediction_data = []
@@ -154,7 +178,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
     destroy_target_array = np.vstack([destroy_target_array, new_destroy_targets])
 
     if new_destroy_targets.size > 0:
-        
+
         cluster_centers = {}
         for cluster_num, target_info_list in clustered_data.items():
             positions = target_info_list[:, 1:3].astype(float)
@@ -163,7 +187,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             center_y = np.mean(positions[:, 1])
             cluster_centers[cluster_num] = (center_x, center_y)
 
-        for target_info in new_destroy_targets[:, :7]:  
+        for target_info in new_destroy_targets[:, :7]:
             target_x = target_info[1]
             target_y = target_info[2]
             min_distance = float('inf')
@@ -171,7 +195,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             for cluster_num, center in cluster_centers.items():
                 center_x = center[0]
                 center_y = center[1]
-                distance = np.sqrt((target_x - center_x) ** 2 + (target_y - center_y) ** 2)  
+                distance = np.sqrt((target_x - center_x) ** 2 + (target_y - center_y) ** 2)
                 if distance < min_distance:
                     min_distance = distance
                     closest_cluster = cluster_num
@@ -189,7 +213,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
         if len(target_info_list) > 0:
             target_info_list[:, 1:3] /= 10
             clustered_data[cluster_num] = target_info_list
-    
+
     cluster_centers = plot_figure.plot_cluster_data_apper_ppo(clustered_data)
     for cluster_num in allocation_result:
         if cluster_num in cluster_centers:
@@ -203,6 +227,18 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
     return destroy_target_array, cluster_centers, clustered_data, allocation_result
 
 def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, data_UAV, allocation_result):
+    """处理handle动态事件集合2相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        destroy_target_array: destroy目标array。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        allocation_result: 资源分配结果。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     data2 = Target_Screen.Target_Screen(data_Target)
     new_data_Target = []
     data2_dict = {int(row[0]): row for row in data2}
@@ -216,7 +252,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
     print("战场态势发生变化，出现新目标!")
 
     new_appeared_targets = [72, 186, 142]
-    
+
     num_selected_targets = random.randint(1, 3)
     if num_selected_targets > len(new_appeared_targets):
         num_selected_targets = len(new_appeared_targets)
@@ -231,7 +267,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
                     matched_rows_array = np.array([row])
                 else:
                     matched_rows_array = np.append(matched_rows_array, [row], axis=0)
-    
+
     start_label = 301
     new_matched_rows_array = []
     for index, row in enumerate(matched_rows_array):
@@ -239,7 +275,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
         new_row[0] = start_label + index
         new_matched_rows_array.append(new_row)
     new_matched_rows_array = np.array(new_matched_rows_array)
-    
+
     plot_figure.plot_targets_appe_no_judge(destroy_target_array, new_matched_rows_array)
 
     prediction_data = []
@@ -284,7 +320,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
     destroy_target_array = np.vstack([destroy_target_array, new_destroy_targets])
 
     if new_destroy_targets.size > 0:
-        
+
         cluster_centers = {}
         for cluster_num, target_info_list in clustered_data.items():
             positions = target_info_list[:, 1:3].astype(float)
@@ -293,7 +329,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
             center_y = np.mean(positions[:, 1])
             cluster_centers[cluster_num] = (center_x, center_y)
 
-        for target_info in new_destroy_targets[:, :7]:  
+        for target_info in new_destroy_targets[:, :7]:
             target_x = target_info[1]
             target_y = target_info[2]
             min_distance = float('inf')
@@ -301,7 +337,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
             for cluster_num, center in cluster_centers.items():
                 center_x = center[0]
                 center_y = center[1]
-                distance = np.sqrt((target_x - center_x) ** 2 + (target_y - center_y) ** 2)  
+                distance = np.sqrt((target_x - center_x) ** 2 + (target_y - center_y) ** 2)
                 if distance < min_distance:
                     min_distance = distance
                     closest_cluster = cluster_num
@@ -319,7 +355,7 @@ def handle_dynamic_events_2(data_Target, destroy_target_array, clustered_data, d
         if len(target_info_list) > 0:
             target_info_list[:, 1:3] /= 10
             clustered_data[cluster_num] = target_info_list
-    
+
     cluster_centers = plot_figure.plot_cluster_data(clustered_data)
     for cluster_num in allocation_result:
         if cluster_num in cluster_centers:

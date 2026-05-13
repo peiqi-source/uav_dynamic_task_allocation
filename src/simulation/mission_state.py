@@ -1,3 +1,4 @@
+﻿"""仿真模块中的任务状态实现。"""
 from __future__ import annotations
 
 import math
@@ -34,15 +35,29 @@ class TargetRuntimeState:
         而是在运行时状态层记录目标是否仍然可用、是否已经被摧毁。
     """
 
+    # target: 目标。
     target: Target
+    # status: 状态。
     status: str = "active"
+    # assigned_cluster_id: assigned目标簇编号。
     assigned_cluster_id: int | None = None
+    # disappeared_time: disappeared时间。
     disappeared_time: float | None = None
+    # destroyed_time: 毁伤状态时间。
     destroyed_time: float | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def target_id(self) -> int:
+        """处理目标编号相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            int，表示该函数计算或构建得到的结果。
+        """
         return int(self.target.target_id)
 
     @property
@@ -54,10 +69,26 @@ class TargetRuntimeState:
 
     @property
     def is_disappeared(self) -> bool:
+        """处理isdisappeared相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         return self.status == "disappeared"
 
     @property
     def is_destroyed(self) -> bool:
+        """处理is毁伤状态相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         return self.status == "destroyed"
 
     def assign_to_cluster(self, cluster_id: int | None) -> None:
@@ -125,13 +156,21 @@ class UAVRuntimeState:
     下一步会把 UAV 小组运动真正改成基于 UAVRuntimeState 更新。
     """
 
+    # uav: 无人机。
     uav: UAV
+    # current_position: 当前位置坐标。
     current_position: Position
+    # status: 状态。
     status: str = "available"
+    # assigned_cluster_id: assigned目标簇编号。
     assigned_cluster_id: int | None = None
+    # damaged_time: damaged时间。
     damaged_time: float | None = None
+    # remaining_payload: remainingpayload。
     remaining_payload: float | None = None
+    # last_update_time: lastupdate时间。
     last_update_time: float = 0.0
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -175,6 +214,14 @@ class UAVRuntimeState:
 
     @property
     def uav_id(self) -> int:
+        """处理无人机编号相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            int，表示该函数计算或构建得到的结果。
+        """
         return int(self.uav.uav_id)
 
     @property
@@ -190,6 +237,14 @@ class UAVRuntimeState:
 
     @property
     def is_damaged(self) -> bool:
+        """处理isdamaged相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         return self.status == "damaged"
 
     def get_speed(self, default_speed: float) -> float:
@@ -312,22 +367,33 @@ class MissionRuntimeState:
     为主。
     """
 
+    # current_time: 当前时间。
     current_time: float
+    # mission_plan: 标准任务规划方案。
     mission_plan: MissionPlan
 
+    # active_targets: 可用状态目标集合。
     active_targets: dict[int, Target]
+    # active_uavs: 可用状态uavs。
     active_uavs: dict[int, UAV]
 
+    # target_runtime_states: 目标运行时states。
     target_runtime_states: dict[int, TargetRuntimeState] = field(
         default_factory=dict
     )
+    # uav_runtime_states: 无人机运行时states。
     uav_runtime_states: dict[int, UAVRuntimeState] = field(default_factory=dict)
 
+    # disappeared_target_ids: disappeared目标编号集合。
     disappeared_target_ids: set[int] = field(default_factory=set)
+    # destroyed_target_ids: 毁伤状态目标编号集合。
     destroyed_target_ids: set[int] = field(default_factory=set)
+    # damaged_uav_ids: damaged无人机编号集合。
     damaged_uav_ids: set[int] = field(default_factory=set)
 
+    # triggered_events: triggered事件集合。
     triggered_events: list[MissionEvent] = field(default_factory=list)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod

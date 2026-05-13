@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的神经网络实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -42,12 +43,19 @@ class DQNNetworkConfig:
         是否在隐藏层后使用 LayerNorm。它是工程增强项，用于改善特征尺度差异较大时的训练稳定性。
     """
 
+    # input_dim: 输入dim。
     input_dim: int
+    # action_dim: 动作dim。
     action_dim: int
+    # hidden_dims: hiddendims。
     hidden_dims: tuple[int, ...] = (256, 256)
+    # activation: activation 数据。
     activation: str = "relu"
+    # dropout: dropout 数据。
     dropout: float = 0.0
+    # use_layer_norm: uselayernorm。
     use_layer_norm: bool = False
+    # network_type: 神经网络类型。
     network_type: str = "dqn"
 
     def validate(self) -> None:
@@ -99,9 +107,18 @@ class DQNNetwork(nn.Module):
     """
 
     def __init__(self, config: DQNNetworkConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 DQNNetworkConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super().__init__()
 
         config.validate()
+        # config: 配置。
         self.config = config
 
         layers: list[nn.Module] = []
@@ -128,6 +145,7 @@ class DQNNetwork(nn.Module):
         # Q 值可以是正数，也可以是负数，不能被 ReLU 等激活函数截断。
         layers.append(nn.Linear(previous_dim, config.action_dim))
 
+        # model: 模型。
         self.model = nn.Sequential(*layers)
 
         self._initialize_weights()

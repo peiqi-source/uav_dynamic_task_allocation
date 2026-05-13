@@ -1,16 +1,25 @@
+﻿"""历史版本中的绘图图表脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
 def plot_targets(data_Target):
-    
+
+    """读取指标数据并生成可视化图表，处理目标集合相关数据。
+
+    参数：
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        1: ('o', 'r'),  
-        2: ('s', 'g'),  
-        3: ('^', 'b'),  
-        4: ('p', 'm'),  
-        5: ('D', 'y')  
+        1: ('o', 'r'),
+        2: ('s', 'g'),
+        3: ('^', 'b'),
+        4: ('p', 'm'),
+        5: ('D', 'y')
     }
     plt.figure(figsize=(10, 8))
     for data in data_Target:
@@ -18,7 +27,7 @@ def plot_targets(data_Target):
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
 
@@ -26,7 +35,7 @@ def plot_targets(data_Target):
     for i in range(1, 6):
         plt.scatter([], [], marker=marker_dict[i][0], c=marker_dict[i][1], label=legend_labels[i - 1])
     plt.legend(loc='upper right')
-    
+
     plt.xlabel('X轴')
     plt.ylabel('Y轴')
     plt.title('战场目标一览图')
@@ -35,12 +44,20 @@ def plot_targets(data_Target):
 
 
 def plot_uav_counts(data_UAV):
-    
+
+    """读取指标数据并生成可视化图表，处理无人机counts相关数据。
+
+    参数：
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     type_mapping = {1: "通信无人机", 2: "导引无人机", 3: "攻击无人机"}
     type_count = {}
     for data in data_UAV:
         uav_type = int(data[3])
-        type_name = type_mapping.get(uav_type, f"未知类型{uav_type}")  
+        type_name = type_mapping.get(uav_type, f"未知类型{uav_type}")
         type_count[type_name] = type_count.get(type_name, 0) + 1
 
     types = list(type_count.keys())
@@ -63,13 +80,21 @@ def plot_uav_counts(data_UAV):
 
 
 def plot_Destroy_targets(data_Target):
-    
+
+    """读取指标数据并生成可视化图表，处理destroy目标集合相关数据。
+
+    参数：
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        1: ('o', 'r'),  
-        2: ('s', 'g'),  
-        3: ('^', 'b'),  
-        4: ('p', 'm'),  
-        5: ('D', 'y')  
+        1: ('o', 'r'),
+        2: ('s', 'g'),
+        3: ('^', 'b'),
+        4: ('p', 'm'),
+        5: ('D', 'y')
     }
     plt.figure(figsize=(10, 8))
     for data in data_Target:
@@ -77,7 +102,7 @@ def plot_Destroy_targets(data_Target):
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
 
@@ -85,7 +110,7 @@ def plot_Destroy_targets(data_Target):
     for i in range(1, 6):
         plt.scatter([], [], marker=marker_dict[i][0], c=marker_dict[i][1], label=legend_labels[i - 1])
     plt.legend(loc='upper right')
-    
+
     plt.xlabel('X轴')
     plt.ylabel('Y轴')
     plt.title('摧毁目标集决策')
@@ -94,13 +119,22 @@ def plot_Destroy_targets(data_Target):
 
 
 def plot_targets_dis(destroy_target_array, removed_target_labels):
+    """读取指标数据并生成可视化图表，处理目标集合dis相关数据。
+
+    参数：
+        destroy_target_array: destroy目标array。
+        removed_target_labels: removed目标labels。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     int_removed_target_labels = list(map(int, removed_target_labels))
     marker_dict = {
-            1: ('o', 'r'),  
-            2: ('s', 'g'),  
-            3: ('^', 'b'),  
-            4: ('p', 'm'),  
-            5: ('D', 'y')  
+            1: ('o', 'r'),
+            2: ('s', 'g'),
+            3: ('^', 'b'),
+            4: ('p', 'm'),
+            5: ('D', 'y')
         }
 
     plt.figure(figsize=(10, 8))
@@ -109,13 +143,13 @@ def plot_targets_dis(destroy_target_array, removed_target_labels):
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        
+
         if index in int_removed_target_labels:
             marker_style = marker_dict.get(target_type, ('o', 'k'))[0]
             edge_color = 'gray'
             face_color = 'gray'
             linestyle = '--'
-            
+
             plt.scatter(x, y, marker=marker_style, c=face_color, edgecolors=edge_color, linewidths=0.1, linestyle=linestyle)
             plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
             circle = plt.Circle((x, y), radius=700, fill=False, edgecolor='gray', linestyle='--', linewidth=1.0)
@@ -138,6 +172,14 @@ def plot_targets_dis(destroy_target_array, removed_target_labels):
 
 def plot_cluster_data(clustered_data):
 
+    """读取指标数据并生成可视化图表，处理目标簇数据相关数据。
+
+    参数：
+        clustered_data: clustered数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     color_map = {
         1: 'r',
         2: 'g',
@@ -149,11 +191,11 @@ def plot_cluster_data(clustered_data):
         8: 'purple'
     }
     marker_dict = {
-        1: ('o'),  
-        2: ('s'),  
-        3: ('^'),  
-        4: ('p'),  
-        5: ('D')  
+        1: ('o'),
+        2: ('s'),
+        3: ('^'),
+        4: ('p'),
+        5: ('D')
     }
 
     plt.figure(figsize=(10, 8))
@@ -165,13 +207,13 @@ def plot_cluster_data(clustered_data):
     cluster_centers = {}
     for cluster_num, target_info_list in clustered_data.items():
         cluster_color = color_map.get(cluster_num, 'k')
-        
+
         positions = target_info_list[:, 1:3].astype(float)
         positions *= 10
         center_x = np.mean(positions[:, 0])
         center_y = np.mean(positions[:, 1])
         cluster_centers[cluster_num] = (center_x, center_y)
-        
+
         plt.plot(center_x, center_y, marker='x', color='black', markersize=10)
         for target_info in target_info_list:
             target_type = int(target_info[6])
@@ -180,7 +222,7 @@ def plot_cluster_data(clustered_data):
             x *= 10
             y *= 10
             plt.scatter(x, y, marker=marker_style, c=cluster_color)
-            
+
             target_label = int(target_info[0])
             plt.text(x, y, str(target_label), fontsize=8, ha='center', va='bottom', color='black')
 
@@ -194,6 +236,14 @@ def plot_cluster_data(clustered_data):
 
 def plot_cluster_data_apper_ppo(clustered_data):
 
+    """读取指标数据并生成可视化图表，处理目标簇数据apperPPO 算法相关数据。
+
+    参数：
+        clustered_data: clustered数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     color_map = {
         1: 'r',
         2: 'g',
@@ -205,11 +255,11 @@ def plot_cluster_data_apper_ppo(clustered_data):
         8: 'purple'
     }
     marker_dict = {
-        1: ('o'),  
-        2: ('s'),  
-        3: ('^'),  
-        4: ('p'),  
-        5: ('D')  
+        1: ('o'),
+        2: ('s'),
+        3: ('^'),
+        4: ('p'),
+        5: ('D')
     }
 
     plt.figure(figsize=(10, 8))
@@ -221,13 +271,13 @@ def plot_cluster_data_apper_ppo(clustered_data):
     cluster_centers = {}
     for cluster_num, target_info_list in clustered_data.items():
         cluster_color = color_map.get(cluster_num, 'k')
-        
+
         positions = target_info_list[:, 1:3].astype(float)
         positions *= 10
         center_x = np.mean(positions[:, 0])
         center_y = np.mean(positions[:, 1])
         cluster_centers[cluster_num] = (center_x, center_y)
-        
+
         plt.plot(center_x, center_y, marker='x', color='black', markersize=10)
         for target_info in target_info_list:
             target_type = int(target_info[6])
@@ -236,7 +286,7 @@ def plot_cluster_data_apper_ppo(clustered_data):
             x *= 10
             y *= 10
             plt.scatter(x, y, marker=marker_style, c=cluster_color)
-            
+
             target_label = int(target_info[0])
             plt.text(x, y, str(target_label), fontsize=8, ha='center', va='bottom', color='black')
 
@@ -249,31 +299,40 @@ def plot_cluster_data_apper_ppo(clustered_data):
 
 
 def plot_targets_appe(destroy_target_array, new_destroy_targets):
+    """读取指标数据并生成可视化图表，处理目标集合appe相关数据。
+
+    参数：
+        destroy_target_array: destroy目标array。
+        new_destroy_targets: newdestroy目标集合。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        1: ('o', 'r'),  
-        2: ('s', 'g'),  
-        3: ('^', 'b'),  
-        4: ('p', 'm'),  
-        5: ('D', 'y')  
+        1: ('o', 'r'),
+        2: ('s', 'g'),
+        3: ('^', 'b'),
+        4: ('p', 'm'),
+        5: ('D', 'y')
     }
     plt.figure(figsize=(10, 8))
-    
+
     for data in destroy_target_array:
         index = int(data[0])
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
 
-    
+
     for data in new_destroy_targets:
         index = int(data[0])
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
         circle = plt.Circle((x, y), radius=700, fill=False, edgecolor='r', linestyle='--', linewidth=1.0)
@@ -292,32 +351,41 @@ def plot_targets_appe(destroy_target_array, new_destroy_targets):
 
 
 def plot_targets_appe_no_judge(destroy_target_array, new_destroy_targets):
+    """读取指标数据并生成可视化图表，处理目标集合appenojudge相关数据。
+
+    参数：
+        destroy_target_array: destroy目标array。
+        new_destroy_targets: newdestroy目标集合。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        1: ('o', 'r'),  
-        2: ('s', 'g'),  
-        3: ('^', 'b'),  
-        4: ('p', 'm'),  
-        5: ('D', 'y')  
+        1: ('o', 'r'),
+        2: ('s', 'g'),
+        3: ('^', 'b'),
+        4: ('p', 'm'),
+        5: ('D', 'y')
     }
     plt.figure(figsize=(10, 8))
 
-    
+
     for data in destroy_target_array:
         index = int(data[0])
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
 
-    
+
     for data in new_destroy_targets:
         index = int(data[0])
         x = data[1] * 10
         y = data[2] * 10
         target_type = int(data[6])
-        marker, color = marker_dict.get(target_type, ('o', 'k'))  
+        marker, color = marker_dict.get(target_type, ('o', 'k'))
         plt.scatter(x, y, marker=marker, c=color)
         plt.text(x, y, str(index), fontsize=10, ha='center', va='bottom')
         circle = plt.Circle((x, y), radius=700, fill=False, edgecolor='b', linestyle='--', linewidth=1.0)
@@ -335,47 +403,56 @@ def plot_targets_appe_no_judge(destroy_target_array, new_destroy_targets):
 
 
 def plot_drones(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理drones 数据相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.5
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
         """
@@ -386,9 +463,9 @@ def plot_drones(allocation_result, data_UAV):
             offset_y = 1000 * np.sin(angle_rad) * 0.06
             x = center_x + offset_x
             y = center_y + offset_y
-            
+
             plt.scatter(x, y, marker='.', c=cluster_color, alpha=0.5)
-            
+
             circle_x = []
             circle_y = []
             for angle in angles:
@@ -399,16 +476,16 @@ def plot_drones(allocation_result, data_UAV):
                 y = center_y + offset_y
                 circle_x.append(x)
                 circle_y.append(y)
-            circle_x.append(circle_x[0])  
+            circle_x.append(circle_x[0])
             circle_y.append(circle_y[0])
             plt.plot(circle_x, circle_y, linestyle='dashed', color=cluster_color)
 
-            
+
             plt.text(center_x + 1000 * np.cos(np.deg2rad(30)), center_y + 1000 * np.sin(np.deg2rad(30)),
                      str(cluster_num), fontsize=8, ha='center', va='bottom', color=cluster_color)
         """
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -423,57 +500,68 @@ def plot_drones(allocation_result, data_UAV):
 
 
 def plot_drones_dis(allocation_result, data_UAV, destroyed_cluster_num=None, destroyed_label=None):
+    """读取指标数据并生成可视化图表，处理dronesdis相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+        destroyed_cluster_num: 毁伤状态目标簇num。
+        destroyed_label: 毁伤状态label。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.5
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-                
+
                 if cluster_num == destroyed_cluster_num and current_label == destroyed_label:
                     plt.scatter(x, y, marker=marker, c='gray')
                     rect = plt.Rectangle((x - 400, y - 200), 800, 400, fill=False, color='gray', linestyle='dashed')
                     plt.gca().add_patch(rect)
 
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机", "被摧毁攻击无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0], marker_dict["attack"][0]]
     for i in range(len(legend_labels)):
@@ -489,71 +577,81 @@ def plot_drones_dis(allocation_result, data_UAV, destroyed_cluster_num=None, des
 
 def plot_drones_aid(allocation_result, data_UAV, transfer_info):
 
+    """读取指标数据并生成可视化图表，处理dronesaid相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+        transfer_info: transferinfo。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if not transfer_info:
         return
 
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
-    
+
     attack_uav_positions = {}
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.06
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
-                
+
                 if cluster_num not in attack_uav_positions:
                     attack_uav_positions[cluster_num] = {}
                 attack_uav_positions[cluster_num][current_label] = (x, y)
 
-    
+
     for info in transfer_info:
         from_cluster, drone_label, to_cluster = info
-        from_cluster_color = color_list[(from_cluster - 1) % 8]  
-        
+        from_cluster_color = color_list[(from_cluster - 1) % 8]
+
         if to_cluster in attack_uav_positions and drone_label in attack_uav_positions[to_cluster]:
             x, y = attack_uav_positions[to_cluster][drone_label]
             plt.scatter(x, y, marker=marker, c=from_cluster_color)
-            
+
             plt.text(x, y, f"from {from_cluster}", fontsize=8, ha='center', va='bottom',
                      color=from_cluster_color)
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -575,15 +673,15 @@ def plot_drones_and_cluster_data(allocation_result, data_UAV, clustered_data):
     data_UAV (numpy.ndarray): 包含无人机资源数据的二维数组，用于获取无人机类型等相关信息。
     clustered_data (dict): 包含目标簇相关信息的字典，其中键为目标群的群号，值为该目标群内所有目标的属性信息列表。
     """
-    
+
     marker_dict_drones = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    
+
     color_list_drones = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
 
-    
+
     color_map_targets = {
         1: 'r',
         2: 'g',
@@ -594,18 +692,18 @@ def plot_drones_and_cluster_data(allocation_result, data_UAV, clustered_data):
         7: 'orange',
         8: 'purple'
     }
-    
+
     marker_dict_targets = {
-        1: ('o'),  
-        2: ('s'),  
-        3: ('^'),  
-        4: ('p'),  
-        5: ('D')  
+        1: ('o'),
+        2: ('s'),
+        3: ('^'),
+        4: ('p'),
+        5: ('D')
     }
 
     plt.figure(figsize=(10, 8))
 
-    
+
     legend_labels_targets = ["地面装甲", "防御阵地", "雷达监测站", "通信枢纽", "指挥部"]
     for i in range(1, 6):
         plt.scatter([], [], marker=marker_dict_targets[i][0], color='gray', label=legend_labels_targets[i - 1])
@@ -614,63 +712,63 @@ def plot_drones_and_cluster_data(allocation_result, data_UAV, clustered_data):
     cluster_centers = {}
     for cluster_num, target_info_list in clustered_data.items():
         cluster_color = color_map_targets.get(cluster_num, 'k')
-        
+
         positions = target_info_list[:, 1:3].astype(float)
-        
+
         center_x = np.mean(positions[:, 0])
         center_y = np.mean(positions[:, 1])
         cluster_centers[cluster_num] = (center_x, center_y)
-        
+
         plt.plot(center_x, center_y, marker='x', color='black', markersize=10)
         for target_info in target_info_list:
             target_type = int(target_info[6])
             marker_style = marker_dict_targets.get(target_type, ('o'))
             x, y = target_info[1:3].astype(float)
-            
-            
+
+
             plt.scatter(x, y, marker=marker_style, c=cluster_color)
-            
+
             target_label = int(target_info[0])
             plt.text(x, y, str(target_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list_drones[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict_drones["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.06
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict_drones["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["地面装甲", "防御阵地", "雷达监测站", "通信枢纽", "指挥部", "攻击无人机", "导引无人机"]
     legend_markers = [marker_dict_targets[i][0] for i in range(1, 6)] + [marker_dict_drones["attack"][0],
                                                                        marker_dict_drones["guide"][0]]
@@ -686,84 +784,95 @@ def plot_drones_and_cluster_data(allocation_result, data_UAV, clustered_data):
 
 
 def plot_drones_guidis(allocation_result, data_UAV, destroyed_cluster_num=None, destroyed_label=None):
+    """读取指标数据并生成可视化图表，处理dronesguidis相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+        destroyed_cluster_num: 毁伤状态目标簇num。
+        destroyed_label: 毁伤状态label。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         """
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 if cluster_num == destroyed_cluster_num and label == destroyed_label:
-                    
+
                     plt.scatter(center_x, center_y, marker=marker, c='gray')
-                    
-                    
-                    
+
+
+
                     rect = plt.Rectangle((center_x - 400, center_y - 20), 800, 40, fill=False, color='gray', linestyle='dashed')
                     plt.gca().add_patch(rect)
                 else:
                     plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
         """
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-                
+
                 if cluster_num in destroyed_cluster_num and label in destroyed_label:
                     plt.scatter(center_x, center_y, marker=marker, c='gray')
                     rect = plt.Rectangle((center_x - 400, center_y - 200), 800, 400, fill=False, color='gray', linestyle='dashed')
                     plt.gca().add_patch(rect)
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.7
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
                 """
-                
+
                 if cluster_num == destroyed_cluster_num and current_label == destroyed_label:
                     plt.scatter(x, y, marker=marker, c='gray')
                     rect = plt.Rectangle((x - 400, y - 20), 800, 40, fill=False, color='gray', linestyle='dashed')
                     plt.gca().add_patch(rect)
                 """
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机", "被摧毁攻击无人机", "被摧毁导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0], marker_dict["attack"][0], 'x']
     legend_colors = ['gray', 'gray', 'gray', 'gray']
@@ -779,50 +888,59 @@ def plot_drones_guidis(allocation_result, data_UAV, destroyed_cluster_num=None, 
 
 
 def plot_drones_gui(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesgui相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.7
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -836,50 +954,59 @@ def plot_drones_gui(allocation_result, data_UAV):
 
 
 def plot_drones_gui_fenpei1(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesguifenpei1相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.7
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
                 plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -894,50 +1021,59 @@ def plot_drones_gui_fenpei1(allocation_result, data_UAV):
 
 
 def plot_drones_gui_fenpei_color(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesguifenpeicolor相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
-    
+
     color_index_6 = 0
     target_clusters = [3, 4, 2, 5, 6]
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.55
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
-                
+
                 if cluster_num == 6:
                     target_cluster_index = target_clusters[color_index_6 % len(target_clusters)]
                     target_cluster_color = color_list[(target_cluster_index % 8) - 1]
@@ -945,10 +1081,10 @@ def plot_drones_gui_fenpei_color(allocation_result, data_UAV):
                     color_index_6 += 1
                 else:
                     plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -962,50 +1098,59 @@ def plot_drones_gui_fenpei_color(allocation_result, data_UAV):
 
 
 def plot_drones_gui_fenpei_color_3(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesguifenpeicolor3相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
-    
+
     color_index_6 = 0
     target_clusters = [6, 4, 2, 5]
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.55
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
-                
+
                 if cluster_num == 3:
                     target_cluster_index = target_clusters[color_index_6 % len(target_clusters)]
                     target_cluster_color = color_list[(target_cluster_index % 8) - 1]
@@ -1013,10 +1158,10 @@ def plot_drones_gui_fenpei_color_3(allocation_result, data_UAV):
                     color_index_6 += 1
                 else:
                     plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -1030,14 +1175,23 @@ def plot_drones_gui_fenpei_color_3(allocation_result, data_UAV):
 
 
 def plot_drones_gui2_fenpei_color_1(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesgui2fenpeicolor1相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
-    
+
     color_index_6 = 0
     target_clusters = [6, 5, 4]
 
@@ -1045,38 +1199,38 @@ def plot_drones_gui2_fenpei_color_1(allocation_result, data_UAV):
     target_clusters_2 = [8, 4, 1]
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.55
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
-                
+
                 if cluster_num == 3:
                     target_cluster_index = target_clusters[color_index_6 % len(target_clusters)]
                     target_cluster_color = color_list[(target_cluster_index % 8) - 1]
@@ -1089,10 +1243,10 @@ def plot_drones_gui2_fenpei_color_1(allocation_result, data_UAV):
                     color_index_2 += 1
                 else:
                     plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):
@@ -1106,14 +1260,23 @@ def plot_drones_gui2_fenpei_color_1(allocation_result, data_UAV):
 
 
 def plot_drones_gui2_fenpei_color_2(allocation_result, data_UAV):
+    """读取指标数据并生成可视化图表，处理dronesgui2fenpeicolor2相关数据。
+
+    参数：
+        allocation_result: 资源分配结果。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     marker_dict = {
-        "attack": ("o", ""),  
-        "guide": ("s", "")  
+        "attack": ("o", ""),
+        "guide": ("s", "")
     }
-    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]  
+    color_list = ["r", "g", "b", "m", "y", "c", "orange", "purple"]
     plt.figure(figsize=(10, 8))
 
-    
+
     color_index_6 = 0
     target_clusters = [3, 5, 4]
 
@@ -1121,38 +1284,38 @@ def plot_drones_gui2_fenpei_color_2(allocation_result, data_UAV):
     target_clusters_2 = [8, 4, 1]
 
     for cluster_index, (cluster_num, cluster_info) in enumerate(allocation_result.items()):
-        
+
         center_x, center_y = cluster_info["real_time_position"]
-        
+
         attack_uav_labels = cluster_info["attack_uav_labels"]
         guide_uav_labels = cluster_info["guide_uav_labels"]
 
-        
+
         cluster_color = color_list[cluster_index % 8]
 
-        
+
         for label in guide_uav_labels:
             drone_rows = [row for row in data_UAV if int(row[0]) == label]
             if drone_rows:
                 marker, _ = marker_dict["guide"]
                 plt.scatter(center_x, center_y, marker=marker, c=cluster_color)
-                
+
                 plt.text(center_x, center_y, str(label), fontsize=8, ha='center', va='bottom', color='black')
 
-        
+
         num_attack_drones = len(attack_uav_labels)
         if num_attack_drones > 0:
-            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)  
+            angles = np.linspace(0, 2 * np.pi, num_attack_drones, endpoint=False)
             for i in range(num_attack_drones):
                 angle = angles[i]
-                offset_x = 800 * np.cos(angle)  
+                offset_x = 800 * np.cos(angle)
                 offset_y = 800 * np.sin(angle) * 0.7
                 x = center_x + offset_x
                 y = center_y + offset_y
-                
+
                 current_label = attack_uav_labels[i]
                 marker, _ = marker_dict["attack"]
-                
+
                 if cluster_num == 6:
                     target_cluster_index = target_clusters[color_index_6 % len(target_clusters)]
                     target_cluster_color = color_list[(target_cluster_index % 8) - 1]
@@ -1165,10 +1328,10 @@ def plot_drones_gui2_fenpei_color_2(allocation_result, data_UAV):
                     color_index_2 += 1
                 else:
                     plt.scatter(x, y, marker=marker, c=cluster_color)
-                
+
                 plt.text(x, y, str(current_label), fontsize=8, ha='center', va='bottom', color='black')
 
-    
+
     legend_labels = ["攻击无人机", "导引无人机"]
     legend_markers = [marker_dict["attack"][0], marker_dict["guide"][0]]
     for i in range(len(legend_labels)):

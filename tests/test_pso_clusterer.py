@@ -1,3 +1,4 @@
+﻿"""testPSO 算法clusterer测试模块，用于验证对应业务模块的关键行为。"""
 import numpy as np
 
 from uav_dynamic_task_allocation.allocation.pso_clusterer import (
@@ -7,6 +8,14 @@ from uav_dynamic_task_allocation.allocation.pso_clusterer import (
 
 
 def test_pso_clusterer_returns_expected_shapes():
+    """处理testPSO 算法clustererreturnsexpectedshapes相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     features = np.asarray(
         [[0.0, 0.0], [0.1, 0.0], [0.9, 1.0], [1.0, 0.9]],
         dtype=float,

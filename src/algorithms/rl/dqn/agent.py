@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的智能体实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -50,16 +51,25 @@ class DQNAgentConfig:
         梯度裁剪阈值，用于提高训练稳定性。
     """
 
+    # gamma: 折扣因子。
     gamma: float = 0.99
+    # learning_rate: 学习率。
     learning_rate: float = 5e-4
+    # batch_size: 批量样本size。
     batch_size: int = 32
+    # target_update_interval: 目标updateinterval。
     target_update_interval: int = 100
 
+    # epsilon_start: 探索率start。
     epsilon_start: float = 1.0
+    # epsilon_end: 探索率end。
     epsilon_end: float = 0.05
+    # epsilon_decay_steps: 探索率decay步数。
     epsilon_decay_steps: int = 5000
 
+    # gradient_clip_norm: gradientclipnorm。
     gradient_clip_norm: float = 10.0
+    # optimizer: optimizer 数据。
     optimizer: str = "adam"
 
     def validate(self) -> None:
@@ -109,9 +119,13 @@ class ActionSelection:
     模型到底是在探索，还是在利用当前 Q 网络。
     """
 
+    # action_id: 动作编号。
     action_id: int
+    # epsilon: 探索率。
     epsilon: float
+    # is_random: 是否由随机探索产生。
     is_random: bool
+    # q_value: 动作对应的 Q 值。
     q_value: float | None = None
 
     def to_dict(self) -> dict[str, float | int | bool | None]:
@@ -138,9 +152,13 @@ class DQNUpdateResult:
     后续写 trainer.py 时，这些信息会进入训练日志和 metrics.csv。
     """
 
+    # loss: 损失值。
     loss: float
+    # mean_current_q: 当前 Q 值均值。
     mean_current_q: float
+    # mean_target_q: 目标 Q 值均值。
     mean_target_q: float
+    # target_network_updated: 目标网络是否完成同步。
     target_network_updated: bool
 
     def to_dict(self) -> dict[str, float | bool]:
@@ -176,24 +194,45 @@ class DQNAgent:
         device: torch.device,
         seed: int | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            network_config: 网络结构配置，类型为 DQNNetworkConfig。
+            agent_config: 智能体训练配置，类型为 DQNAgentConfig。
+            device: 计算设备，类型为 torch.device。
+            seed: 随机种子，类型为 int | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         agent_config.validate()
 
+        # network_config: 神经网络配置。
         self.network_config = network_config
+        # agent_config: 智能体配置。
         self.agent_config = agent_config
+        # device: 计算设备。
         self.device = device
 
+        # policy_network: 策略神经网络。
         self.policy_network = self._build_network(network_config).to(self.device)
+        # target_network: 目标神经网络。
         self.target_network = self._build_network(network_config).to(self.device)
 
         # target network 初始时与 policy network 完全一致。
         self.sync_target_network()
 
+        # optimizer: optimizer 数据。
         self.optimizer = self._build_optimizer()
+        # loss_fn: 损失值fn。
         self.loss_fn = nn.MSELoss()
 
+        # _rng: rng 数据。
         self._rng = np.random.default_rng(seed)
 
+        # total_action_steps: total动作步数。
         self.total_action_steps = 0
+        # total_update_steps: totalupdate步数。
         self.total_update_steps = 0
 
     def select_action(

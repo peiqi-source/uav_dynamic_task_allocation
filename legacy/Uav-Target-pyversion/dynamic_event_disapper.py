@@ -1,3 +1,4 @@
+﻿"""历史版本中的动态事件disapper脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import random
 import Target_Screen
@@ -8,6 +9,17 @@ base_location = np.array([0, -16000])
 
 def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payload_per_uav=6):
 
+    """处理adjust资源分配相关业务逻辑。
+
+    参数：
+        allocation_result: 资源分配结果。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        attack_payload_per_uav: 攻击payloadper无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     new_cluster_defense_sums = {}
     for cluster_id, targets in clustered_data.items():
         defense_sum = np.sum(targets[:, 4])
@@ -18,7 +30,7 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
         required_attack_uavs = np.ceil(new_cluster_defense_sums[cluster_num] / attack_payload_per_uav).astype(int)
         current_attack_uavs = allocation_result[cluster_num]["attack_uav_num"]
         if required_attack_uavs > current_attack_uavs:
-            
+
             surplus_clusters = []
             for other_cluster_num in allocation_result:
                 if other_cluster_num!= cluster_num:
@@ -29,7 +41,7 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
                                                  other_required_attack_uavs))
 
             if surplus_clusters:
-                
+
                 min_distance = float('inf')
                 closest_surplus_cluster = None
                 target_center = clustered_data[cluster_num][0, 1:3]
@@ -71,6 +83,19 @@ def adjust_allocation(allocation_result, clustered_data, data_UAV, attack_payloa
 
 def handle_dynamic_events(t, data_Target, destroy_target_array, clustered_data, data_UAV, allocation_result):
 
+    """处理handle动态事件集合相关业务逻辑。
+
+    参数：
+        t: t 数据。
+        data_Target: 数据目标。
+        destroy_target_array: destroy目标array。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        allocation_result: 资源分配结果。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     resource_sufficient = None
     cluster_centers = {}
     removed_target_labels = []
@@ -98,10 +123,10 @@ def handle_dynamic_events(t, data_Target, destroy_target_array, clustered_data, 
         print(f"作战资源是否充足：{resource_sufficient}")
 
         data2 = Target_Screen.Target_Screen(data_Target)
-        
+
         if resource_sufficient:
             supplement_target_labels = [110, 191, 199]
-            
+
             for _ in range(len(removed_target_labels)):
                 target_label = supplement_target_labels.pop(0)
                 target_row_from_data_Target = None
@@ -147,6 +172,19 @@ def handle_dynamic_events(t, data_Target, destroy_target_array, clustered_data, 
 
 def handle_dynamic_events_2(t, data_Target, destroy_target_array, clustered_data, data_UAV, allocation_result):
 
+    """处理handle动态事件集合2相关业务逻辑。
+
+    参数：
+        t: t 数据。
+        data_Target: 数据目标。
+        destroy_target_array: destroy目标array。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        allocation_result: 资源分配结果。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     resource_sufficient = None
     cluster_centers = {}
 
@@ -166,14 +204,14 @@ def handle_dynamic_events_2(t, data_Target, destroy_target_array, clustered_data
     plot_figure.plot_targets_dis(copied_array, removed_target_labels)
 
     """
-    
+
     uav_payload_sum = np.sum(data_UAV[:, 5])
     target_attribute_sum = np.sum(destroy_target_array[:, 4])
     resource_sufficient = uav_payload_sum > target_attribute_sum
     print(f"作战资源是否充足：{resource_sufficient}")
 
     data2 = Target_Screen.Target_Screen(data_Target)
-    
+
     if resource_sufficient:
         supplement_target_labels = [110, 191, 199]
         new_target_data = []
@@ -203,10 +241,10 @@ def handle_dynamic_events_2(t, data_Target, destroy_target_array, clustered_data
 
         if new_target_data:
             destroy_target_array = np.vstack([destroy_target_array, np.array(new_target_data)])
-            
+
     """
 
-    
+
     env = grouping_ppo.TargetGroupingEnv()
 
     for cluster_id in list(clustered_data.keys()):
@@ -218,16 +256,16 @@ def handle_dynamic_events_2(t, data_Target, destroy_target_array, clustered_data
                 mask[row_index] = False
         clustered_data[cluster_id] = target_matrix[mask]
 
-        
+
         current_target_matrix = clustered_data[cluster_id]
         if len(current_target_matrix) > 0:
-            
+
             position_columns = current_target_matrix[:, 1:3]
             current_target_matrix[:, 1:3] = position_columns / 10
-            
+
             clustered_data[cluster_id] = current_target_matrix
 
-    
+
     cluster_centers = plot_figure.plot_cluster_data(clustered_data)
 
     transfer_info, allocation_result = adjust_allocation(allocation_result, clustered_data, data_UAV)

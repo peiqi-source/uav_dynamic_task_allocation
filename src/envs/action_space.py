@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的动作space实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -29,7 +30,9 @@ class ActionValidationResult:
     如果没有清楚的 reason，后面很难判断 reward 异常到底是环境问题还是策略问题。
     """
 
+    # is_valid: isvalid。
     is_valid: bool
+    # reason: reason 数据。
     reason: str = "valid"
 
 
@@ -49,12 +52,19 @@ class UAVTargetAction:
     源群-目标-新归属分群三层动作空间，会在后续 clustering/ppo 模块单独实现。
     """
 
+    # action_id: 动作编号。
     action_id: int
+    # uav_id: 无人机编号。
     uav_id: int
+    # target_id: 目标编号。
     target_id: int
+    # distance: distance 数据。
     distance: float
+    # target_value: 目标数值。
     target_value: float
+    # is_valid: isvalid。
     is_valid: bool
+    # invalid_reason: invalidreason。
     invalid_reason: str = "valid"
 
     def to_env_action(self) -> dict[str, int]:
@@ -104,20 +114,23 @@ class UAVTargetActionSpace:
         env_config: EnvConfig,
         include_invalid_actions: bool = False,
     ) -> None:
-        """
-        初始化动作空间。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
 
-        Args:
-            env_config: 环境配置对象，用于读取战场边界等信息。
-            include_invalid_actions:
-                如果为 False，只保留合法动作；
-                如果为 True，保留所有候选动作，并在动作中标记合法性。
-                训练 DQN 时通常使用 False，调试环境时可以使用 True。
+        参数：
+            env_config: env_config 参数，类型为 EnvConfig。
+            include_invalid_actions: include_invalid_actions 参数，类型为 bool。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
         """
+        # env_config: 环境配置。
         self.env_config = env_config
+        # include_invalid_actions: includeinvalid动作集合。
         self.include_invalid_actions = include_invalid_actions
 
+        # actions: 动作集合。
         self.actions: list[UAVTargetAction] = []
+        # _action_id_to_action: 动作编号to动作。
         self._action_id_to_action: dict[int, UAVTargetAction] = {}
 
     def build(self, state: BattlefieldState) -> list[UAVTargetAction]:
@@ -324,11 +337,17 @@ class ActionSpaceConfig:
     这样可以保证 observation 编码、action 编码和 action mask 使用同一套索引体系。
     """
 
+    # mode: mode 数据。
     mode: str = "fixed_slot"
+    # max_uavs: 最大值uavs。
     max_uavs: int = 50
+    # max_targets: 最大值目标集合。
     max_targets: int = 120
+    # attack_uav_only: 攻击无人机only。
     attack_uav_only: bool = True
+    # require_reachable: requirereachable。
     require_reachable: bool = True
+    # allow_noop_when_no_valid_action: allownoopwhennovalid动作。
     allow_noop_when_no_valid_action: bool = False
 
     def validate(self) -> None:
@@ -363,14 +382,23 @@ class FixedActionDecodeResult:
     这样训练和调试时就可以清楚知道，DQN 选择的动作到底是什么意思。
     """
 
+    # action_id: 动作编号。
     action_id: int
+    # uav_slot: 无人机slot。
     uav_slot: int
+    # target_slot: 目标slot。
     target_slot: int
+    # uav_id: 无人机编号。
     uav_id: int | None
+    # target_id: 目标编号。
     target_id: int | None
+    # is_valid: isvalid。
     is_valid: bool
+    # invalid_reason: invalidreason。
     invalid_reason: str = "valid"
+    # distance: distance 数据。
     distance: float | None = None
+    # target_value: 目标数值。
     target_value: float | None = None
 
     def to_env_action(self) -> dict[str, int]:
@@ -433,7 +461,18 @@ class FixedUAVTargetActionSpace:
         env_config: EnvConfig,
         action_space_config: ActionSpaceConfig,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            env_config: env_config 参数，类型为 EnvConfig。
+            action_space_config: action_space_config 参数，类型为 ActionSpaceConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # env_config: 环境配置。
         self.env_config = env_config
+        # config: 配置。
         self.config = action_space_config
         self.config.validate()
 

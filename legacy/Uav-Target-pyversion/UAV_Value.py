@@ -1,11 +1,31 @@
+﻿"""历史版本中的无人机数值脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 
 def Length1(x1=None, y1=None, x2=None, y2=None):
+    """处理Length1 数据相关业务逻辑。
+
+    参数：
+        x1: 横坐标1。
+        y1: 纵坐标1。
+        x2: 横坐标2。
+        y2: 纵坐标2。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     Length = np.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1))
     return Length
 
 def min_max_normalization(data):
+    """处理最小值最大值normalization相关业务逻辑。
+
+    参数：
+        data: 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     min_value = min(data)
     max_value = max(data)
     normalized_data = [(value - min_value) / (max_value - min_value) for value in data]
@@ -13,10 +33,20 @@ def min_max_normalization(data):
 
 def UAV_Value(data_UAV = None, m = None, n = None ):
 
+    """处理无人机数值相关业务逻辑。
+
+    参数：
+        data_UAV: 数据无人机。
+        m: m 数据。
+        n: n 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     d = 0   # 导引机数量
-    
+
     t = 0   # 攻击机数量
-    
+
     z = 0   # 通信机数量
 
     mid = data_UAV[:, 3].astype(int)
@@ -137,6 +167,14 @@ def UAV_Value(data_UAV = None, m = None, n = None ):
     '''
 
     def min_max_normalization(data):
+        """处理最小值最大值normalization相关业务逻辑。
+
+        参数：
+            data: 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         min_value = min(data)
         max_value = max(data)
         normalized_data = [(value - min_value) / (max_value - min_value) for value in data]

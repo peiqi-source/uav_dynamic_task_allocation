@@ -1,3 +1,4 @@
+"""run目标addedscenario脚本，封装可直接运行的实验、检查或可视化流程。"""
 from run_scenario_common import run_scenario
 
 

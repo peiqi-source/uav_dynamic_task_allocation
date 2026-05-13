@@ -1,3 +1,4 @@
+"""历史版本中的训练脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 from drone_battle_env import DroneBattleEnv
 from dqn_model import DQNAgent

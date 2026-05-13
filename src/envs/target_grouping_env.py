@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的目标grouping环境实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,16 +11,32 @@ import numpy as np
 class TargetGroupingEnvConfig:
     """Configuration for the dynamic target regrouping PPO environment."""
 
+    # num_clusters: num目标簇集合。
     num_clusters: int = 3
+    # max_steps: 最大值步数。
     max_steps: int = 30
+    # max_targets_per_cluster: 最大值目标集合per目标簇。
     max_targets_per_cluster: int = 32
+    # illegal_action_penalty: illegal动作penalty。
     illegal_action_penalty: float = -1.0
+    # count_balance_weight: countbalance权重。
     count_balance_weight: float = 1.0
+    # compactness_weight: compactness权重。
     compactness_weight: float = 1.0
+    # workload_balance_weight: workloadbalance权重。
     workload_balance_weight: float = 1.0
+    # dynamic_event_bonus: 动态事件bonus。
     dynamic_event_bonus: float = 0.05
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.num_clusters <= 0:
             raise ValueError("num_clusters must be positive.")
         if self.max_steps <= 0:
@@ -29,18 +46,16 @@ class TargetGroupingEnvConfig:
 
 
 class TargetGroupingEnv:
-    """
-    Lightweight dynamic target regrouping environment.
+    """TargetGroupingEnv 类，封装目标grouping环境相关的数据结构与业务行为。
 
-    State rows describe every target group using statistics required by the
-    paper-style dynamic regrouping task:
-    target count, center, position standard deviation, average intra-group
-    distance, value sum, defense sum, and value/defense ratio.
-
-    The action is represented either as a triple
-    ``(source_cluster, source_slot, destination_cluster)`` or as a flattened
-    discrete action id. Legal-action masks prevent empty-source moves,
-    same-cluster moves, and out-of-range target slots.
+    属性：
+        features: features 数据。
+        initial_labels: initiallabels。
+        values: values 数据。
+        defenses: defenses 数据。
+        config: 配置。
+        labels: labels 数据。
+        current_step: 当前步数。
     """
 
     observation_features_per_cluster = 8
@@ -53,20 +68,36 @@ class TargetGroupingEnv:
         target_values: np.ndarray | None = None,
         target_defenses: np.ndarray | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            features: features 参数，类型为 np.ndarray。
+            labels: labels 参数，类型为 np.ndarray。
+            config: 配置对象，类型为 TargetGroupingEnvConfig。
+            target_values: target_values 参数，类型为 np.ndarray | None。
+            target_defenses: target_defenses 参数，类型为 np.ndarray | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # features: features 数据。
         self.features = np.asarray(features, dtype=np.float64)
         if self.features.ndim != 2 or self.features.shape[1] < 2:
             raise ValueError("features must be a 2D array with at least x/y columns.")
 
+        # initial_labels: initiallabels。
         self.initial_labels = np.asarray(labels, dtype=np.int64)
         if self.initial_labels.ndim != 1 or len(self.initial_labels) != len(self.features):
             raise ValueError("labels must be a 1D array with one label per target.")
 
+        # values: values 数据。
         self.values = (
             np.asarray(target_values, dtype=np.float64)
             if target_values is not None
             else np.ones(len(self.features), dtype=np.float64)
         )
+        # defenses: defenses 数据。
         self.defenses = (
             np.asarray(target_defenses, dtype=np.float64)
             if target_defenses is not None
@@ -75,8 +106,11 @@ class TargetGroupingEnv:
         if len(self.values) != len(self.features) or len(self.defenses) != len(self.features):
             raise ValueError("target_values and target_defenses must match feature length.")
 
+        # config: 配置。
         self.config = config
+        # labels: labels 数据。
         self.labels = self.initial_labels.copy()
+        # current_step: 当前步数。
         self.current_step = 0
 
     @property
@@ -94,6 +128,14 @@ class TargetGroupingEnv:
         return self.config.num_clusters * self.observation_features_per_cluster
 
     def reset(self) -> np.ndarray:
+        """重置对象状态，为新的回合或流程做准备。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         self.labels = self.initial_labels.copy()
         self.current_step = 0
         return self._observation()
@@ -145,6 +187,14 @@ class TargetGroupingEnv:
         return self.step(self.decode_action(int(action_id)))
 
     def step(self, action: tuple[int, int, int]):
+        """推进环境或仿真流程的一个时间步。
+
+        参数：
+            action: 动作，类型为 tuple[int, int, int]。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         source_cluster, source_slot, destination_cluster = action
         before_score = self._score()
         info: dict[str, Any] = {"legal_action": False}
@@ -196,6 +246,16 @@ class TargetGroupingEnv:
         source_slot: int,
         destination_cluster: int,
     ) -> bool:
+        """处理islegal动作相关业务逻辑。
+
+        参数：
+            source_cluster: source目标簇，类型为 int。
+            source_slot: sourceslot，类型为 int。
+            destination_cluster: destination目标簇，类型为 int。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         if source_cluster == destination_cluster:
             return False
         if source_cluster < 0 or destination_cluster < 0:
@@ -210,6 +270,14 @@ class TargetGroupingEnv:
         return source_slot < source_count
 
     def _observation(self) -> np.ndarray:
+        """处理观测向量相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         rows = []
         coordinates = self.features[:, :2]
         for cluster_id in range(self.config.num_clusters):
@@ -238,6 +306,14 @@ class TargetGroupingEnv:
         return np.asarray(rows, dtype=np.float32).reshape(-1)
 
     def _score(self) -> float:
+        """处理评分相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         metrics = self._score_components()
         return float(
             self.config.count_balance_weight * metrics["count_balance"]
@@ -246,6 +322,14 @@ class TargetGroupingEnv:
         )
 
     def _score_components(self) -> dict[str, float]:
+        """处理评分components相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            dict[str, float]，表示该函数计算或构建得到的结果。
+        """
         counts = self._cluster_counts()
         workloads = self._cluster_workloads()
         mean_distance = self._mean_intra_cluster_distance()
@@ -256,12 +340,28 @@ class TargetGroupingEnv:
         }
 
     def _cluster_counts(self) -> np.ndarray:
+        """处理目标簇counts相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         return np.asarray(
             [np.sum(self.labels == cluster_id) for cluster_id in range(self.config.num_clusters)],
             dtype=np.float64,
         )
 
     def _cluster_workloads(self) -> np.ndarray:
+        """处理目标簇workloads相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         workloads = []
         for cluster_id in range(self.config.num_clusters):
             member_indices = np.where(self.labels == cluster_id)[0]
@@ -274,6 +374,14 @@ class TargetGroupingEnv:
         return np.asarray(workloads, dtype=np.float64)
 
     def _mean_intra_cluster_distance(self) -> float:
+        """处理均值intra目标簇distance相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         coordinates = self.features[:, :2]
         distances: list[float] = []
         for cluster_id in range(self.config.num_clusters):

@@ -1,3 +1,4 @@
+"""core 数据模块中的contracts 数据实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -20,13 +21,21 @@ class PipelineStage(str, Enum):
     后面都可以在日志、metrics 和 event 中统一引用。
     """
 
+    # DATA_INITIALIZATION: 数据initialization。
     DATA_INITIALIZATION = "data_initialization"
+    # TARGET_SCREENING: 目标screening。
     TARGET_SCREENING = "target_screening"
+    # TARGET_CLUSTERING: 目标clustering。
     TARGET_CLUSTERING = "target_clustering"
+    # RESOURCE_ALLOCATION: 资源资源分配。
     RESOURCE_ALLOCATION = "resource_allocation"
+    # STRIKE_ORDER_PLANNING: 打击顺序planning。
     STRIKE_ORDER_PLANNING = "strike_order_planning"
+    # MISSION_SIMULATION: 任务仿真。
     MISSION_SIMULATION = "mission_simulation"
+    # DYNAMIC_REPLANNING: 动态重规划。
     DYNAMIC_REPLANNING = "dynamic_replanning"
+    # EVALUATION: 评估。
     EVALUATION = "evaluation"
 
 
@@ -39,13 +48,21 @@ class MissionEventType(str, Enum):
     后续 simulation/dynamic_events.py 会使用这些事件类型来触发重规划。
     """
 
+    # TARGET_APPEARED: 目标appeared。
     TARGET_APPEARED = "target_appeared"
+    # TARGET_DISAPPEARED: 目标disappeared。
     TARGET_DISAPPEARED = "target_disappeared"
+    # ATTACK_UAV_DESTROYED: 攻击无人机毁伤状态。
     ATTACK_UAV_DESTROYED = "attack_uav_destroyed"
+    # GUIDE_UAV_DESTROYED: 导引无人机毁伤状态。
     GUIDE_UAV_DESTROYED = "guide_uav_destroyed"
+    # COMMUNICATION_UAV_DESTROYED: 通信无人机毁伤状态。
     COMMUNICATION_UAV_DESTROYED = "communication_uav_destroyed"
+    # RESOURCE_SHORTAGE: 资源shortage。
     RESOURCE_SHORTAGE = "resource_shortage"
+    # REPLANNING_TRIGGERED: 重规划triggered。
     REPLANNING_TRIGGERED = "replanning_triggered"
+    # CUSTOM: CUSTOM 数据。
     CUSTOM = "custom"
 
 
@@ -61,12 +78,19 @@ class AlgorithmMetadata:
     这样后续做实验对比时，不需要猜某个结果来自哪个算法。
     """
 
+    # algorithm_name: algorithm名称。
     algorithm_name: str
+    # algorithm_type: algorithm类型。
     algorithm_type: str
+    # version: version 数据。
     version: str = "v1"
+    # stage: 阶段。
     stage: PipelineStage | None = None
+    # config: 配置。
     config: dict[str, Any] = field(default_factory=dict)
+    # runtime_seconds: 运行时秒数。
     runtime_seconds: float | None = None
+    # notes: notes 数据。
     notes: str = ""
 
 
@@ -93,9 +117,13 @@ class TargetScore:
     后面的目标分群和资源分配模块就不用改。
     """
 
+    # target_id: 目标编号。
     target_id: int
+    # score: 评分。
     score: float
+    # components: components 数据。
     components: dict[str, float] = field(default_factory=dict)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -122,11 +150,17 @@ class ScreenedTargetSet:
         保存筛选算法、阈值、筛选原因等扩展信息。
     """
 
+    # all_targets: all目标集合。
     all_targets: list[Target]
+    # candidate_targets: candidate目标集合。
     candidate_targets: list[Target]
+    # selected_targets: 已选择目标集合。
     selected_targets: list[Target]
+    # target_scores: 目标评分集合。
     target_scores: dict[int, TargetScore] = field(default_factory=dict)
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> None:
@@ -168,12 +202,19 @@ class TargetCluster:
         群内紧凑度，可用于评价分群质量。没有计算时可以为 None。
     """
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # targets: 目标集合。
     targets: list[Target]
+    # center: center 数据。
     center: Position
+    # defense_sum: 防御能力sum。
     defense_sum: float
+    # significance_sum: 重要程度sum。
     significance_sum: float
+    # compactness: compactness 数据。
     compactness: float | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -204,8 +245,11 @@ class TargetClusterSet:
     但这里将其包装成统一结构，便于后续资源分配、DQN 打击排序和任务仿真调用。
     """
 
+    # clusters: 目标簇集合。
     clusters: list[TargetCluster]
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -265,11 +309,17 @@ class ResourceStatus:
     都可以更新这个对象。
     """
 
+    # all_uavs: alluavs。
     all_uavs: list[UAV]
+    # available_guide_uavs: available导引uavs。
     available_guide_uavs: list[UAV] = field(default_factory=list)
+    # available_attack_uavs: available攻击uavs。
     available_attack_uavs: list[UAV] = field(default_factory=list)
+    # available_communication_uavs: available通信uavs。
     available_communication_uavs: list[UAV] = field(default_factory=list)
+    # damaged_uavs: damageduavs。
     damaged_uavs: list[UAV] = field(default_factory=list)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -303,19 +353,30 @@ class ClusterAssignment:
         仿真时间推进过程中的实时位置。MissionSimulator 会更新它。
     """
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # target_cluster: 目标目标簇。
     target_cluster: TargetCluster
+    # assigned_attack_uavs: assigned攻击uavs。
     assigned_attack_uavs: list[UAV]
+    # assigned_guide_uavs: assigned导引uavs。
     assigned_guide_uavs: list[UAV] = field(default_factory=list)
+    # assigned_communication_uavs: assigned通信uavs。
     assigned_communication_uavs: list[UAV] = field(default_factory=list)
 
+    # required_attack_uav_count: required攻击无人机count。
     required_attack_uav_count: int = 0
+    # assigned_attack_uav_count: assigned攻击无人机count。
     assigned_attack_uav_count: int = 0
 
+    # start_position: start位置坐标。
     start_position: Position | None = None
+    # real_time_position: real时间位置坐标。
     real_time_position: Position | None = None
+    # target_center: 目标center。
     target_center: Position | None = None
 
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -350,9 +411,13 @@ class AllocationPlan:
     后续 MissionSimulator 会根据它知道每个 UAV 小组要飞向哪个目标群。
     """
 
+    # assignments: assignments 数据。
     assignments: list[ClusterAssignment]
+    # resource_status: 资源状态。
     resource_status: ResourceStatus | None = None
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -388,13 +453,21 @@ class StrikeOrderPlan:
     后续可以由 DQN、Greedy、ACO、TSP、Rule-based 等不同算法生成。
     """
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # ordered_target_ids: ordered目标编号集合。
     ordered_target_ids: list[int]
+    # path_positions: 路径positions。
     path_positions: list[Position] = field(default_factory=list)
+    # total_path_distance: total路径distance。
     total_path_distance: float | None = None
+    # expected_reward: expected奖励。
     expected_reward: float | None = None
+    # repeated_target_count: repeated目标count。
     repeated_target_count: int = 0
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> None:
@@ -418,11 +491,17 @@ class MissionPlan:
     而是直接读取 MissionPlan 推进时间线。
     """
 
+    # screened_targets: 筛选结果目标集合。
     screened_targets: ScreenedTargetSet
+    # target_clusters: 目标目标簇集合。
     target_clusters: TargetClusterSet
+    # allocation_plan: 资源分配规划方案。
     allocation_plan: AllocationPlan
+    # strike_order_plans: 打击顺序plans。
     strike_order_plans: dict[int, StrikeOrderPlan] = field(default_factory=dict)
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: list[AlgorithmMetadata] = field(default_factory=list)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> None:
@@ -465,11 +544,17 @@ class MissionEvent:
         扩展信息。例如新目标信息、损毁原因、重规划原因等。
     """
 
+    # event_time: 事件时间。
     event_time: float
+    # event_type: 事件类型。
     event_type: MissionEventType
+    # affected_target_ids: affected目标编号集合。
     affected_target_ids: list[int] = field(default_factory=list)
+    # affected_uav_ids: affected无人机编号集合。
     affected_uav_ids: list[int] = field(default_factory=list)
+    # payload: payload 数据。
     payload: dict[str, Any] = field(default_factory=dict)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -482,12 +567,19 @@ class MissionTimeSnapshot:
     后续用于绘制 UAV 轨迹、目标状态变化、事件响应过程等。
     """
 
+    # time: 时间。
     time: float
+    # cluster_positions: 目标簇positions。
     cluster_positions: dict[int, Position] = field(default_factory=dict)
+    # active_target_ids: 可用状态目标编号集合。
     active_target_ids: list[int] = field(default_factory=list)
+    # destroyed_target_ids: 毁伤状态目标编号集合。
     destroyed_target_ids: list[int] = field(default_factory=list)
+    # active_uav_ids: 可用状态无人机编号集合。
     active_uav_ids: list[int] = field(default_factory=list)
+    # damaged_uav_ids: damaged无人机编号集合。
     damaged_uav_ids: list[int] = field(default_factory=list)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -499,21 +591,33 @@ class MissionMetrics:
     这些指标用于最终实验对比，而不是 DQN 训练过程中的 loss。
     """
 
+    # total_targets: total目标集合。
     total_targets: int = 0
+    # selected_targets: 已选择目标集合。
     selected_targets: int = 0
+    # destroyed_targets: 毁伤状态目标集合。
     destroyed_targets: int = 0
+    # high_value_destroyed_targets: high数值毁伤状态目标集合。
     high_value_destroyed_targets: int = 0
 
+    # total_uavs: totaluavs。
     total_uavs: int = 0
+    # lost_uavs: lostuavs。
     lost_uavs: int = 0
 
+    # total_distance: totaldistance。
     total_distance: float = 0.0
+    # total_reward: total奖励。
     total_reward: float = 0.0
+    # mission_completion_rate: 任务completion率。
     mission_completion_rate: float = 0.0
 
+    # num_dynamic_events: num动态事件集合。
     num_dynamic_events: int = 0
+    # num_replanning: num重规划。
     num_replanning: int = 0
 
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -526,10 +630,17 @@ class MissionResult:
     后续可以保存为 JSON、CSV、图表，或者用于多算法对比实验。
     """
 
+    # mission_plan: 标准任务规划方案。
     mission_plan: MissionPlan
+    # time_series: 时间series。
     time_series: list[MissionTimeSnapshot]
+    # event_log: 事件日志。
     event_log: list[MissionEvent]
+    # metrics: 指标集合。
     metrics: MissionMetrics
+    # final_target_status: final目标状态。
     final_target_status: dict[int, str] = field(default_factory=dict)
+    # final_uav_status: final无人机状态。
     final_uav_status: dict[int, str] = field(default_factory=dict)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)

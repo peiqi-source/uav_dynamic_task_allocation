@@ -1,3 +1,4 @@
+﻿"""历史版本中的1114PPO 算法grouping脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
@@ -9,16 +10,43 @@ NUM_GROUPS = 8
 AVG_TARGETS_PER_GROUP = NUM_TARGETS // NUM_GROUPS
 
 def std_x(target_indices, data_Target):
+    """处理标准差横坐标相关业务逻辑。
+
+    参数：
+        target_indices: 目标indices。
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if len(target_indices) == 0:
         return 0
     return np.std(data_Target[target_indices, 1])
 
 def std_y(target_indices, data_Target):
+    """处理标准差纵坐标相关业务逻辑。
+
+    参数：
+        target_indices: 目标indices。
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if len(target_indices) == 0:
         return 0
     return np.std(data_Target[target_indices, 2])
 
 def distance_to_center_sum(target_indices, data_Target):
+    """处理distancetocentersum相关业务逻辑。
+
+    参数：
+        target_indices: 目标indices。
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if len(target_indices) == 0:
         return 0
     x_mean = np.mean(data_Target[target_indices, 1])
@@ -28,14 +56,42 @@ def distance_to_center_sum(target_indices, data_Target):
 
 
 class TargetGroupingEnv(gymnasium.Env):
+    """TargetGroupingEnv 类，封装目标grouping环境相关的数据结构与业务行为。
+
+    属性：
+        data_Target: 数据目标。
+        current_grouping: 当前grouping。
+        action_space: 动作space。
+        observation_space: 观测向量space。
+    """
     def __init__(self, data_Target):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            data_Target: data_Target 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(TargetGroupingEnv, self).__init__()
+        # data_Target: 数据目标。
         self.data_Target = data_Target
+        # current_grouping: 当前grouping。
         self.current_grouping = self.initialize_grouping()
+        # action_space: 动作space。
         self.action_space = gymnasium.spaces.Discrete(NUM_GROUPS * NUM_GROUPS)  # 所有可能的转移动作
+        # observation_space: 观测向量space。
         self.observation_space = gymnasium.spaces.Box(low=0, high=1, shape=(self.get_obs_size(),), dtype=np.float32)
 
     def initialize_grouping(self):
+        """处理initializegrouping相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         current_grouping = [[] for _ in range(NUM_GROUPS)]
         groups = [
             [0, 1, 8, 18, 20, 36],
@@ -53,9 +109,25 @@ class TargetGroupingEnv(gymnasium.Env):
         return current_grouping
 
     def get_obs_size(self):
+        """处理getobssize相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         return NUM_GROUPS * 4
 
     def get_obs(self):
+        """处理getobs相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         obs = []
         for group in self.current_grouping:
             num_diff = len(group) - AVG_TARGETS_PER_GROUP
@@ -79,6 +151,14 @@ class TargetGroupingEnv(gymnasium.Env):
         return obs.flatten()
 
     def step(self, action):
+        """推进环境或仿真流程的一个时间步。
+
+        参数：
+            action: 动作。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         source_group = action // NUM_GROUPS
         target_group = action % NUM_GROUPS
         target_to_move = self.current_grouping[source_group][0]
@@ -92,6 +172,14 @@ class TargetGroupingEnv(gymnasium.Env):
         return obs, reward, done, truncated, {}
 
     def calculate_reward(self):
+        """计算指定指标或中间结果，处理奖励相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         num_diff_reward = 0
         compactness_reward = 0
         for group in self.current_grouping:
@@ -103,6 +191,14 @@ class TargetGroupingEnv(gymnasium.Env):
         return (num_diff_reward + compactness_reward) / (2 * NUM_GROUPS)
 
     def reset(self, seed=None):
+        """重置对象状态，为新的回合或流程做准备。
+
+        参数：
+            seed: 随机种子。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         self.current_grouping = self.initialize_grouping()
         obs = self.get_obs()
         return obs, {}

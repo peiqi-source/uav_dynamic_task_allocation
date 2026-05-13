@@ -1,11 +1,12 @@
+﻿"""历史版本中的saclearn脚本，保留用于算法对照、复现实验或迁移参考。"""
 import tensorflow as tf
 import tensorflow_probability as tfp
 import numpy as np
 
 
 num_episodes = 1000
-gamma = 0.99  
-alpha = 0.2  
+gamma = 0.99
+alpha = 0.2
 
 def initialize_state(num_targets):
     """
@@ -14,10 +15,10 @@ def initialize_state(num_targets):
     :return: 初始化后的状态字典
     """
     state = {
-        "positions": np.zeros((num_targets, 2)),  
-        "distance_matrix": np.zeros((num_targets, num_targets)),  
-        "cluster_assignments": np.full(num_targets, -1),  
-        "cluster_sizes": np.zeros(8)  
+        "positions": np.zeros((num_targets, 2)),
+        "distance_matrix": np.zeros((num_targets, num_targets)),
+        "cluster_assignments": np.full(num_targets, -1),
+        "cluster_sizes": np.zeros(8)
     }
     return state
 
@@ -68,8 +69,8 @@ data_Target_extracted = np.array([[1, -388, 1090, 1, 3, 2], [2, -479, 999, 1, 4,
                                   [151, 370, -772, 1, 3, 1], [158, -631, -225, 1, 2, 1], [167, 199, -1097, 1, 3, 1], [171, -671, -381, 1, 1, 1],
                                   [174, 4, -9, 1, 3, 1], [196, 86, -264, 1, 3, 1]])
 
-num_targets = len(data_Target_extracted)  
-state_dim = sum([v.size for v in initialize_state(num_targets).values()])  
+num_targets = len(data_Target_extracted)
+state_dim = sum([v.size for v in initialize_state(num_targets).values()])
 action_dim = 8
 
 policy_net = build_policy_network(state_dim, action_dim)
@@ -136,19 +137,19 @@ def take_action(state, action):
     :param action: 采取的动作（群编号，范围 0 - 7）
     :return: 下一个状态字典，奖励值，是否结束的布尔值（这里暂未实际使用结束条件，始终返回False）
     """
-    
+
     unassigned_target_indices = np.where(state["cluster_assignments"] == -1)[0]
     if len(unassigned_target_indices) > 0:
         target_index = unassigned_target_indices[0]
-        
+
         next_state = update_cluster_assignments(state, action, target_index)
-        
+
         next_state = update_distance_matrix(next_state)
-        
+
         reward = total_reward(next_state)
         return next_state, reward, False
     else:
-        return state, 0, True  
+        return state, 0, True
 
 
 def compactness_reward(cluster_assignments, positions):
@@ -195,31 +196,31 @@ def total_reward(state):
 
 for episode in range(num_episodes):
     state = initialize_state(num_targets)
-    state["positions"] = data_Target_extracted[:, 1:3]  
+    state["positions"] = data_Target_extracted[:, 1:3]
     done = False
     while not done:
-        
+
         positions = state["positions"]
         distance_matrix = state["distance_matrix"]
         cluster_assignments = state["cluster_assignments"]
         cluster_sizes = state["cluster_sizes"]
 
-        
+
         positions_tensor = tf.convert_to_tensor(np.array([positions]), dtype=tf.float32)
-        
+
         distance_matrix_tensor = tf.convert_to_tensor(np.array([distance_matrix[:, :, 0:2]]), dtype=tf.float32)
         cluster_assignments_tensor = tf.convert_to_tensor(np.array([cluster_assignments]), dtype=tf.float32)
         cluster_sizes_tensor = tf.convert_to_tensor(np.array([cluster_sizes]), dtype=tf.float32)
 
-        
+
         state_flatten = tf.concat(
             [positions_tensor, distance_matrix_tensor, cluster_assignments_tensor, cluster_sizes_tensor], axis=1)
         with tf.GradientTape() as tape_policy:
             action_probs = policy_net(state_flatten)
             action_dist = tfp.distributions.Categorical(probs=action_probs)
-            action = action_dist.sample().numpy()[0]  
+            action = action_dist.sample().numpy()[0]
 
-            
+
             next_state, reward, done = take_action(state, action)
 
             target_value = reward + gamma * value_net(tf.convert_to_tensor(np.array([next_state]).reshape(1, -1),
@@ -227,7 +228,7 @@ for episode in range(num_episodes):
             log_probs = action_dist.log_prob(action)
             policy_loss = (alpha * log_probs - value_net(state_flatten))
 
-            
+
             policy_loss = tf.reduce_mean(policy_loss)
 
         policy_gradients = tape_policy.gradient(policy_loss, policy_net.trainable_variables)

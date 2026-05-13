@@ -1,3 +1,4 @@
+﻿"""资源分配模块中的PSO 算法clusterer实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,20 +19,40 @@ class PSOClustererError(Exception):
 class PSOClustererConfig:
     """Configuration for PSO-based target region clustering."""
 
+    # num_particles: numparticles。
     num_particles: int = 30
+    # max_iter: 最大值iter。
     max_iter: int = 100
+    # inertia_weight: inertia权重。
     inertia_weight: float = 0.7
+    # cognitive_weight: cognitive权重。
     cognitive_weight: float = 1.5
+    # social_weight: social权重。
     social_weight: float = 1.5
+    # compactness_weight: compactness权重。
     compactness_weight: float = 1.0
+    # balance_weight: balance权重。
     balance_weight: float = 0.1
+    # value_weight: 数值权重。
     value_weight: float = 0.0
+    # defense_weight: 防御能力权重。
     defense_weight: float = 0.0
+    # convergence_threshold: convergencethreshold。
     convergence_threshold: float = 1e-6
+    # random_seed: 随机随机种子。
     random_seed: int = 42
+    # initialize_with_high_value_targets: initializewithhigh数值目标集合。
     initialize_with_high_value_targets: bool = True
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.num_particles <= 0:
             raise PSOClustererError("num_particles must be positive.")
         if self.max_iter <= 0:
@@ -44,11 +65,17 @@ class PSOClustererConfig:
 class PSOClustererResult:
     """Output of the PSO cluster-center optimization."""
 
+    # labels: labels 数据。
     labels: np.ndarray
+    # centers: centers 数据。
     centers: np.ndarray
+    # best_score: best评分。
     best_score: float
+    # convergence_history: convergencehistory。
     convergence_history: list[float] = field(default_factory=list)
+    # metrics: 指标集合。
     metrics: dict[str, float] = field(default_factory=dict)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -62,7 +89,16 @@ class PSOClusterer:
     """
 
     def __init__(self, config: PSOClustererConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 PSOClustererConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def cluster(
@@ -72,6 +108,17 @@ class PSOClusterer:
         target_values: np.ndarray | None = None,
         target_defenses: np.ndarray | None = None,
     ) -> PSOClustererResult:
+        """处理目标簇相关业务逻辑。
+
+        参数：
+            features: features 数据，类型为 np.ndarray。
+            num_clusters: num目标簇集合，类型为 int。
+            target_values: 目标values，类型为 np.ndarray | None。
+            target_defenses: 目标defenses，类型为 np.ndarray | None。
+
+        返回：
+            PSOClustererResult，表示该函数计算或构建得到的结果。
+        """
         if features.ndim != 2:
             raise PSOClustererError("features must be a 2D array.")
         if num_clusters <= 0:
@@ -198,6 +245,17 @@ class PSOClusterer:
         target_values: np.ndarray | None,
         target_defenses: np.ndarray | None,
     ) -> float:
+        """处理objective 数据相关业务逻辑。
+
+        参数：
+            features: features 数据，类型为 np.ndarray。
+            centers: centers 数据，类型为 np.ndarray。
+            target_values: 目标values，类型为 np.ndarray | None。
+            target_defenses: 目标defenses，类型为 np.ndarray | None。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         labels = self._assign_labels(features, centers)
         distances = np.linalg.norm(features - centers[labels], axis=1)
 
@@ -226,6 +284,15 @@ class PSOClusterer:
 
     @staticmethod
     def _assign_labels(features: np.ndarray, centers: np.ndarray) -> np.ndarray:
+        """处理assignlabels相关业务逻辑。
+
+        参数：
+            features: features 数据，类型为 np.ndarray。
+            centers: centers 数据，类型为 np.ndarray。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         distances = np.linalg.norm(features[:, None, :] - centers[None, :, :], axis=2)
         return distances.argmin(axis=1).astype(np.int64)
 
@@ -235,6 +302,16 @@ class PSOClusterer:
         labels: np.ndarray,
         centers: np.ndarray,
     ) -> np.ndarray:
+        """处理recomputecenters相关业务逻辑。
+
+        参数：
+            features: features 数据，类型为 np.ndarray。
+            labels: labels 数据，类型为 np.ndarray。
+            centers: centers 数据，类型为 np.ndarray。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         new_centers = centers.copy()
         for cluster_id in range(len(centers)):
             members = features[labels == cluster_id]
@@ -244,6 +321,14 @@ class PSOClusterer:
 
     @staticmethod
     def _normalize_vector(values: np.ndarray) -> np.ndarray:
+        """处理normalizevector相关业务逻辑。
+
+        参数：
+            values: values 数据，类型为 np.ndarray。
+
+        返回：
+            np.ndarray，表示该函数计算或构建得到的结果。
+        """
         values = np.asarray(values, dtype=np.float64)
         min_value = float(np.min(values))
         max_value = float(np.max(values))

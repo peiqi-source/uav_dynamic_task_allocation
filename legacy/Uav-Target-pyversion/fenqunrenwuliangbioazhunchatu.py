@@ -1,3 +1,4 @@
+﻿"""历史版本中的fenqunrenwuliangbioazhunchatu 数据脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import lognorm
@@ -38,8 +39,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 
-matplotlib.rcParams['font.family'] = 'SimHei'  
-matplotlib.rcParams['axes.unicode_minus'] = False  
+matplotlib.rcParams['font.family'] = 'SimHei'
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 data = np.genfromtxt("fenqunrenwuliangtu.csv", delimiter=",", names=True)
 x = data["training_rounds"]
@@ -57,12 +58,12 @@ plt.ylabel('分群任务量标准差')
 plt.xlim(0, 1000)
 
 
-window_size = 20  
+window_size = 20
 smoothed_y = []
 for i in range(len(y) - window_size + 1):
     group = y[i:i + window_size]
     smoothed_y.append(np.mean(group))
-x_smoothed = x[window_size - 1:len(x)]  
+x_smoothed = x[window_size - 1:len(x)]
 plt.plot(x_smoothed, smoothed_y, color='red')
 
 
@@ -70,8 +71,8 @@ plt.show()
 
 
 data = np.genfromtxt("lujin_training_rewards_losses_PPO.csv", delimiter=",", skip_header=1)
-x = data[:, 0]  
-y = data[:, 1]  
+x = data[:, 0]
+y = data[:, 1]
 y = (y + 2128)/10
 
 plt.figure(figsize=(12, 6))
@@ -81,12 +82,12 @@ plt.xlabel('训练轮数')
 plt.ylabel('奖励')
 
 
-window_size = 25  
+window_size = 25
 smoothed_y = []
 for i in range(len(y) - window_size + 1):
     group = y[i:i + window_size]
     smoothed_y.append(np.mean(group))
-x_smoothed = x[window_size - 1:len(x)]  
+x_smoothed = x[window_size - 1:len(x)]
 plt.plot(x_smoothed, smoothed_y, color='red')
 plt.savefig("D:\\西工大\\2024秋\\大论文\\图库\\\第四章\\svg\\PPO奖励随训练轮次变化图.svg", dpi=600, format="svg")
 plt.show()
@@ -96,8 +97,8 @@ plt.show()
 import math
 import random
 data = np.genfromtxt("x_y_data.csv", delimiter=",", skip_header=1)
-x = data[:, 0]  
-y = data[:, 1]  
+x = data[:, 0]
+y = data[:, 1]
 """
 
 for i in range(min(100, len(y))):
@@ -130,12 +131,12 @@ plt.ylabel('奖励')
 
 
 
-window_size = 25  
+window_size = 25
 smoothed_y = []
 for i in range(len(y) - window_size + 1):
     group = y[i:i + window_size]
     smoothed_y.append(np.mean(group))
-x_smoothed = x[window_size - 1:len(x)]  
+x_smoothed = x[window_size - 1:len(x)]
 plt.plot(x_smoothed, smoothed_y, color='red')
 
 

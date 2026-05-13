@@ -1,3 +1,4 @@
+﻿"""planning 数据模块中的任务规划器实现。"""
 from __future__ import annotations
 
 import csv
@@ -61,6 +62,7 @@ class MissionPlannerConfig:
     调用目标评分、摧毁目标集选择、目标分群和资源分配模块。
     """
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/mission_planner_summary.csv"
 
     def validate(self) -> None:
@@ -84,18 +86,28 @@ class MissionPlannerResult:
         保存每个阶段的中间输出，便于调试和后续动态重规划复用。
     """
 
+    # mission_plan: 标准任务规划方案。
     mission_plan: MissionPlan
+    # decisions: 决策集合。
     decisions: list[PolicyDecision]
 
+    # screened_set: 目标筛选阶段输出集合。
     screened_set: ScreenedTargetSet
+    # selected_screened_set: 进入后续规划的筛选目标集合。
     selected_screened_set: ScreenedTargetSet
 
+    # destroy_selection_result: 摧毁目标选择阶段结果。
     destroy_selection_result: DestroyTargetSelectionResult
+    # target_clustering_result: 目标分群阶段结果。
     target_clustering_result: TargetClusteringResult
+    # resource_allocation_result: 资源分配阶段结果。
     resource_allocation_result: ResourceAllocationResult
+    # strike_order_planner_result: 打击顺序规划阶段结果。
     strike_order_planner_result: StrikeOrderPlannerResult
 
+    # stage_outputs: 各阶段中间输出字典。
     stage_outputs: dict[str, Any] = field(default_factory=dict)
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -128,11 +140,26 @@ class MissionPlanner:
         planner_config: MissionPlannerConfig,
         logger: logging.Logger | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            base_config: 全局基础配置，类型为 dict[str, Any]。
+            algorithm_policy: 算法选择策略对象，类型为 AlgorithmPolicy。
+            planner_config: 任务规划器配置，类型为 MissionPlannerConfig。
+            logger: 日志器，类型为 logging.Logger | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         planner_config.validate()
 
+        # base_config: 全局基础配置。
         self.base_config = base_config
+        # algorithm_policy: 算法选择策略对象。
         self.algorithm_policy = algorithm_policy
+        # config: 配置。
         self.config = planner_config
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
     def plan(

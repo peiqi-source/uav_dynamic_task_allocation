@@ -1,3 +1,4 @@
+﻿"""历史版本中的KMeans 算法无人机core脚本，保留用于算法对照、复现实验或迁移参考。"""
 ## (C) Copyright 2012. All rights reserved. Sotiris L Karavarsamis.
 #  Contact the author at <sokar@aiia.csd.auth.gr>
 #
@@ -8,9 +9,20 @@
 
 import numpy as np
 import random
-    
-def Kmeans_UAVCore(X = None,K = None,maxIter = None,TOL = None): 
+
+def Kmeans_UAVCore(X = None,K = None,maxIter = None,TOL = None):
     # number of vectors in X X�向量的个�
+    """处理KMeans 算法无人机core相关业务逻辑。
+
+    参数：
+        X: 横坐标。
+        K: K 数据。
+        maxIter: 最大值iter。
+        TOL: TOL 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     vectors_num,dim = X.shape
     # compute a random permutation of all input vectors 计算�有输入向量的随机排列
     # R = random.randint(1, vectors_num)
@@ -24,7 +36,7 @@ def Kmeans_UAVCore(X = None,K = None,maxIter = None,TOL = None):
     # take the first K points in the random permutation as the center sead 将随机排列中的前K�点作为中心点
     for k in range(0, K):
         C[k] = X[R[k] - 1]
-    
+
     # iteration count �代�算
     iter = 0
     # compute new clustering while the cumulative intracluster error in kept 保持累计类内误差不变，计算新的聚类
@@ -111,6 +123,6 @@ def Kmeans_UAVCore(X = None,K = None,maxIter = None,TOL = None):
         if iter > maxIter:
             iter = iter - 1
             break
-    
+
     # disp(['k-means took ' int2str(iter) ' steps to converge']);
     return C,I,iter

@@ -1,3 +1,4 @@
+﻿"""绘图打击顺序DQN 算法训练脚本，封装可直接运行的实验、检查或可视化流程。"""
 from __future__ import annotations
 
 import argparse
@@ -340,7 +341,8 @@ def save_cluster_reward_boxplot(df: pd.DataFrame, output_dir: Path) -> None:
     plt.boxplot(
         reward_groups,
         tick_labels=[str(int(cid)) for cid in cluster_ids],
-    )    plt.title("StrikeOrder DQN Reward Distribution by Cluster")
+    )
+    plt.title("StrikeOrder DQN Reward Distribution by Cluster")
     plt.xlabel("Cluster ID")
     plt.ylabel("Total Reward")
     plt.grid(True, alpha=0.3)
@@ -401,6 +403,7 @@ def print_training_summary(df: pd.DataFrame) -> None:
 
 
 def main() -> None:
+    """解析命令行参数并生成 StrikeOrder DQN 训练曲线图。"""
     args = parse_args()
 
     metrics_path = resolve_path(args.metrics_path)

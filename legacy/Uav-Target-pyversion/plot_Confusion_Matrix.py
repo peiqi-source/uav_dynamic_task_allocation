@@ -1,3 +1,4 @@
+"""历史版本中的绘图confusionmatrix脚本，保留用于算法对照、复现实验或迁移参考。"""
 from graphviz import Digraph
 
 dot = Digraph(format='png')

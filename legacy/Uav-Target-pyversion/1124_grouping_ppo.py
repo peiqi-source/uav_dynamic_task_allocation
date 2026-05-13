@@ -1,3 +1,4 @@
+﻿"""历史版本中的1124groupingPPO 算法脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import torch
 import gymnasium as gym
@@ -8,10 +9,27 @@ from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.type_aliases import GymEnv
 
 class TargetGroupingEnv(gym.Env):
+    """TargetGroupingEnv 类，封装目标grouping环境相关的数据结构与业务行为。
+
+    属性：
+        target_groups: 目标groups。
+        data_Target: 数据目标。
+        action_space: 动作space。
+        observation_space: 观测向量space。
+    """
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(TargetGroupingEnv, self).__init__()
+        # target_groups: 目标groups。
         self.target_groups = {
             1: {'num_targets': 6, 'indices': [0, 1, 8, 18, 20, 36], 'targets': []},
             2: {'num_targets': 3, 'indices': [7, 12, 13], 'targets': []},
@@ -22,12 +40,23 @@ class TargetGroupingEnv(gym.Env):
             7: {'num_targets': 12, 'indices': [9, 10, 14, 23, 34, 40, 41, 47, 53, 55, 56, 58], 'targets': []},
             8: {'num_targets': 7, 'indices': [15, 17, 24, 25, 26, 30, 31], 'targets': []}
         }
+        # data_Target: 数据目标。
         self.data_Target = np.loadtxt(open('data_Target_extracted.csv'), delimiter=",", skiprows=1)
+        # action_space: 动作space。
         self.action_space = gym.spaces.MultiDiscrete([8, 62, 8])
         num_features = 7
+        # observation_space: 观测向量space。
         self.observation_space = gym.spaces.Box(low=-1, high=1, shape=(8, num_features), dtype=np.float32)
 
     def _compute_state(self):
+        """计算指定指标或中间结果，处理状态相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         state = []
         num_groups = 8
         num_features = 7
@@ -77,6 +106,15 @@ class TargetGroupingEnv(gym.Env):
         return all_features
 
     def reset(self, seed=None, options=None):
+        """重置对象状态，为新的回合或流程做准备。
+
+        参数：
+            seed: 随机种子。
+            options: options 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         super().reset(seed=seed)
         initial_groupings = {
             1: {'num_targets': 6, 'indices': [0, 1, 8, 18, 20, 36], 'targets': []},
@@ -96,6 +134,14 @@ class TargetGroupingEnv(gym.Env):
         return self._compute_state(), {}
 
     def get_action_mask(self):
+        """处理get动作掩码相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         action_mask = np.zeros((8, 62, 8), dtype=bool)
 
         for source_group_id in range(8):
@@ -108,6 +154,14 @@ class TargetGroupingEnv(gym.Env):
         return action_mask
 
     def step(self, action):
+        """推进环境或仿真流程的一个时间步。
+
+        参数：
+            action: 动作。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         group1, target_index, group2 = action
         if group1 < 1 or group1 > 8 or group2 < 1 or group2 > 8:
             reward = -1
@@ -160,6 +214,14 @@ class TargetGroupingEnv(gym.Env):
         return self._compute_state(), reward, terminated, truncated, {'action_mask': action_mask}
 
     def _calculate_reward(self):
+        """计算指定指标或中间结果，处理奖励相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         num_targets_per_group = [group['num_targets'] for group in self.target_groups.values()]
         avg_num_targets = np.mean(num_targets_per_group)
         num_targets_balance_reward = - np.std(num_targets_per_group) / avg_num_targets
@@ -187,16 +249,45 @@ class TargetGroupingEnv(gym.Env):
         return reward
 
     def render(self):
+        """处理render 数据相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         print("Current target groupings:")
         for group_id in self.target_groups:
             print(f"Group {group_id}: {self.target_groups[group_id]['num_targets']} targets")
 
 
 class MaskedPPO(PPO):
+    """MaskedPPO 类，封装maskedPPO 算法相关的数据结构与业务行为。"""
     def __init__(self, policy, env, **kwargs):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            policy: policy 参数。
+            env: 环境对象。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super().__init__(policy, env, **kwargs)
 
     def predict(self, observation, state=None, mask=None, deterministic=False):
+        """处理predict 数据相关业务逻辑。
+
+        参数：
+            observation: 观测向量。
+            state: 状态。
+            mask: 掩码。
+            deterministic: deterministic 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         if mask is None:
             return super().predict(observation, state, deterministic=deterministic)
 

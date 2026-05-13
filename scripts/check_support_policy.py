@@ -1,3 +1,4 @@
+﻿"""check支援策略脚本，封装可直接运行的实验、检查或可视化流程。"""
 from copy import deepcopy
 
 from uav_dynamic_task_allocation.core.contracts import MissionEvent, MissionEventType
@@ -20,6 +21,14 @@ from uav_dynamic_task_allocation.utils.logger import setup_logger_from_config
 
 
 def force_dynamic_demo_config(config):
+    """处理force动态demo配置相关业务逻辑。
+
+    参数：
+        config: 配置。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     local_config = deepcopy(config)
     local_config.setdefault("scenario", {})
     local_config["scenario"]["mode"] = "dynamic"
@@ -36,6 +45,14 @@ def force_dynamic_demo_config(config):
 
 
 def main() -> None:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+    """
     project_root = get_project_root()
     base_config = load_and_validate_config(project_root / "configs" / "default.yaml")
     config = force_dynamic_demo_config(base_config)

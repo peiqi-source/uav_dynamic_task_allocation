@@ -1,3 +1,4 @@
+﻿"""preprocessing 数据模块中的目标screening实现。"""
 from __future__ import annotations
 
 import csv
@@ -35,27 +36,43 @@ class TargetScreeningConfig:
     5. 输出 ScreenedTargetSet，供后续 KMeans / PSO / PPO 分群使用。
     """
 
+    # defense_post_type: 防御能力post类型。
     defense_post_type: int = 2
+    # high_value_target_type: high数值目标类型。
     high_value_target_type: int = 1
+    # defense_radius: 防御能力radius。
     defense_radius: float = 20.0
+    # reference_position: reference位置坐标。
     reference_position: Position = field(
         default_factory=lambda: Position(x=0.0, y=0.0)
     )
+    # use_defended_post_adjustment: usedefendedpostadjustment。
     use_defended_post_adjustment: bool = True
 
+    # defense_decay_weight: 防御能力decay权重。
     defense_decay_weight: float = 0.1
+    # significance_weight: 重要程度权重。
     significance_weight: float = 5.0
+    # distance_decay_weight: distancedecay权重。
     distance_decay_weight: float = 32.0
+    # angle_weight: angle权重。
     angle_weight: float = 1.0
 
+    # defense_decay_base: 防御能力decay基础。
     defense_decay_base: float = 0.9
+    # distance_decay_base: distancedecay基础。
     distance_decay_base: float = 0.9
 
+    # selection_method: selectionmethod。
     selection_method: str = "all"
+    # top_k: topk。
     top_k: int = 20
+    # top_ratio: topratio。
     top_ratio: float = 0.5
+    # threshold: threshold 数据。
     threshold: float = 0.5
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/target_screening_scores.csv"
 
     def validate(self) -> None:
@@ -90,16 +107,27 @@ class TargetScreeningRecord:
     它不会替代 Target，而是作为 TargetScore 的补充信息保存。
     """
 
+    # target: 目标。
     target: Target
+    # raw_defense: raw防御能力。
     raw_defense: float
+    # raw_significance: raw重要程度。
     raw_significance: float
+    # adjusted_defense: adjusted防御能力。
     adjusted_defense: float
+    # adjusted_significance: adjusted重要程度。
     adjusted_significance: float
+    # distance_to_reference: distancetoreference。
     distance_to_reference: float
+    # normalized_distance: normalizeddistance。
     normalized_distance: float
+    # angle: angle 数据。
     angle: float
+    # raw_score: raw评分。
     raw_score: float
+    # normalized_score: normalized评分。
     normalized_score: float
+    # affected_by_defense_posts: affectedby防御能力posts。
     affected_by_defense_posts: list[int] = field(default_factory=list)
 
     def to_target_score(self) -> TargetScore:
@@ -143,7 +171,16 @@ class TargetScreener:
     """
 
     def __init__(self, config: TargetScreeningConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 TargetScreeningConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def screen(self, targets: list[Target]) -> ScreenedTargetSet:

@@ -1,32 +1,33 @@
+"""历史版本中的text输出脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
-    
-def TextOutput(Distance = None,Demand = None,route = None,Capacity = None): 
+
+def TextOutput(Distance = None,Demand = None,route = None,Capacity = None):
     ## 杈撳嚭璺寰勫嚱鏁
 #杈撳叆锛歳oute 璺寰
 #杈撳嚭锛歱 璺寰勬枃鏈褰㈠紡
-    
+
     ## 鎬昏矾寰
     len_ = len(route)
-    
+
     print('Best Route:')
     p = num2str(route(1))
-    
+
     for i in np.arange(2,len_+1).reshape(-1):
         p = np.array([p,' -> ',num2str(route(i))])
-    
+
     print(p)
     ## 瀛愯矾寰
-    
+
     route = route + 1
-    
+
     Vnum = 1
-    
+
     DisTraveled = 0
-    
+
     delivery = 0
-    
+
     subpath = '0'
-    
+
     for j in np.arange(2,len_+1).reshape(-1):
         DisTraveled = DisTraveled + Distance(route(j - 1),route(j))
         delivery = delivery + Demand(route(j))
@@ -39,4 +40,3 @@ def TextOutput(Distance = None,Demand = None,route = None,Capacity = None):
             DisTraveled = 0
             delivery = 0
             subpath = '0'
-    

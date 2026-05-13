@@ -1,3 +1,4 @@
+﻿"""历史版本中的tarmathmodleDQN 算法3脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import random
 from collections import deque
@@ -7,40 +8,72 @@ from tensorflow.keras.optimizers import Adam
 
 
 class DQNAgent:
+    """DQNAgent 类，封装DQN 算法智能体相关的数据结构与业务行为。
+
+    属性：
+        state_size: 状态size。
+        action_size: 动作size。
+        memory: memory 数据。
+        gamma: 折扣因子。
+        epsilon: 探索率。
+        epsilon_min: 探索率最小值。
+        epsilon_decay: 探索率decay。
+        learning_rate: 学习率。
+        model: 模型。
+    """
     def __init__(self, state_size, action_size):
+        # state_size: 状态向量维度。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            state_size: state_size 参数。
+            action_size: action_size 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # state_size: 状态size。
         self.state_size = state_size
+        # action_size: 动作size。
         self.action_size = action_size
+        # memory: memory 数据。
         self.memory = deque(maxlen=2000)
-        self.gamma = 0.95  
-        self.epsilon = 1.0  
+        # gamma: 折扣因子。
+        self.gamma = 0.95
+        # epsilon: 探索率。
+        self.epsilon = 1.0
+        # epsilon_min: 探索率最小值。
         self.epsilon_min = 0.01
+        # epsilon_decay: 探索率decay。
         self.epsilon_decay = 0.995
-        self.learning_rate = 0.0005  
+        # learning_rate: 学习率。
+        self.learning_rate = 0.0005
+        # model: 模型。
         self.model = self._build_model()
 
     def _build_model(self):
         """构建优化后的神经网络架构"""
         model = Sequential()
 
-        
+
         model.add(Dense(128, input_dim=self.state_size, activation='relu', kernel_regularizer='l2'))
         model.add(BatchNormalization())
         model.add(Dropout(0.2))
 
-        
+
         model.add(Dense(128, activation='relu', kernel_regularizer='l2'))
         model.add(BatchNormalization())
         model.add(Dropout(0.2))
 
-        
+
         model.add(Dense(64, activation='relu', kernel_regularizer='l2'))
         model.add(BatchNormalization())
         model.add(Dropout(0.2))
 
-        
+
         model.add(Dense(self.action_size, activation='linear'))
 
-        
+
         model.compile(loss='mse', optimizer=Adam(learning_rate=self.learning_rate))
         return model
 
@@ -52,75 +85,120 @@ class DQNAgent:
         """基于epsilon贪婪策略选择动作"""
         if np.random.rand() <= self.epsilon:
             available_actions = np.where(targets_hit == 0)[0]
-            return random.choice(available_actions)  
-        act_values = self.model.predict(state, verbose=0)  
+            return random.choice(available_actions)
+        act_values = self.model.predict(state, verbose=0)
         available_actions = np.where(targets_hit == 0)[0]
         available_values = act_values[0][available_actions]
-        return available_actions[np.argmax(available_values)]  
+        return available_actions[np.argmax(available_values)]
 
     def replay(self, batch_size):
         """执行经验回放"""
         minibatch = random.sample(self.memory, batch_size)
-        loss = 0  
+        loss = 0
         for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
                 target = (reward + self.gamma * np.amax(self.model.predict(next_state, verbose=0)[0]))
             target_f = self.model.predict(state, verbose=0)
             target_f[0][action] = target
-            loss += self.model.train_on_batch(state, target_f)  
+            loss += self.model.train_on_batch(state, target_f)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-        return loss / batch_size  
+        return loss / batch_size
 
     def load(self, name):
+        """从配置文件或外部数据源加载所需数据。
+
+        参数：
+            name: 名称。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         self.model.load_weights(name)
 
     def save(self, name):
+        """将对象、模型或指标保存到指定位置。
+
+        参数：
+            name: 名称。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         self.model.save_weights(name)
 
 
 class UAVEnv:
+    """UAVEnv 类，封装无人机环境相关的数据结构与业务行为。
+
+    属性：
+        data: 数据。
+        num_targets: num目标集合。
+        action_space: 动作space。
+        state: 状态。
+        targets_hit: 目标集合hit。
+        defense_decay_radius: 防御能力decayradius。
+        defense_decay_rate: 防御能力decay率。
+        last_target_significance: last目标重要程度。
+    """
     def __init__(self, data_Target):
+        # 说明：历史脚本沿用早期变量命名，含义请结合上下文和算法流程理解。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            data_Target: data_Target 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # data: 数据。
         self.data = data_Target
+        # num_targets: num目标集合。
         self.num_targets = len(data_Target)
-        self.action_space = np.arange(self.num_targets)  
+        # action_space: 动作space。
+        self.action_space = np.arange(self.num_targets)
+        # state: 状态。
         self.state = None
-        self.targets_hit = np.zeros(self.num_targets)  
-        self.defense_decay_radius = 30  
-        self.defense_decay_rate = 0.1  
-        self.last_target_significance = None  
+        # targets_hit: 目标集合hit。
+        self.targets_hit = np.zeros(self.num_targets)
+        # defense_decay_radius: 防御能力decayradius。
+        self.defense_decay_radius = 30
+        # defense_decay_rate: 防御能力decay率。
+        self.defense_decay_rate = 0.1
+        # last_target_significance: last目标重要程度。
+        self.last_target_significance = None
         self.reset()
 
     def reset(self):
         """重置环境，返回初始状态"""
-        self.state = self.data[0]  
-        self.targets_hit = np.zeros(self.num_targets)  
-        self.last_target_significance = None  
-        return self.state  
+        self.state = self.data[0]
+        self.targets_hit = np.zeros(self.num_targets)
+        self.last_target_significance = None
+        return self.state
 
     def step(self, action):
         """执行一步操作"""
         if self.targets_hit[action] == 1:
             raise ValueError("Attempting to hit an already struck target.")
 
-        target = self.data[action]  
-        reward = self._calculate_reward(target)  
-        self.targets_hit[action] = 1  
+        target = self.data[action]
+        reward = self._calculate_reward(target)
+        self.targets_hit[action] = 1
 
-        
+
         if target[3] == 1:
             self._apply_defense_decay(action)
 
-        done = np.all(self.targets_hit)  
+        done = np.all(self.targets_hit)
 
-        
+
         if not done:
             available_actions = np.where(self.targets_hit == 0)[0]
             next_action = available_actions[np.argmax(self.data[available_actions][:, 5])]
             self.state = self.data[next_action]
         else:
-            self.state = None  
+            self.state = None
 
         return self.state, reward, done, {}
 
@@ -133,7 +211,7 @@ class UAVEnv:
             if target[3] == 2 and self.targets_hit[i] == 0:
                 distance = np.sqrt((target[1] - hit_x) ** 2 + (target[2] - hit_y) ** 2)
                 if distance <= self.defense_decay_radius:
-                    self.data[i][4] *= (1 - self.defense_decay_rate)  
+                    self.data[i][4] *= (1 - self.defense_decay_rate)
 
     def _calculate_reward(self, target):
         """根据目标特性和打击顺序计算奖励"""
@@ -141,7 +219,7 @@ class UAVEnv:
         reward = (significance / (defense + 1)) - 0.01 * np.sqrt(x ** 2 + y ** 2)
         if self.last_target_significance is not None:
             if significance <= self.last_target_significance:
-                reward += 5  
+                reward += 5
             else:
                 reward -= 0.5
         self.last_target_significance = significance
@@ -149,13 +227,21 @@ class UAVEnv:
 
 
 def train_dqn(data_Target):
+    """执行模型训练流程并保存训练产物，处理DQN 算法相关数据。
+
+    参数：
+        data_Target: 数据目标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     state_size = 6
     action_size = len(data_Target)
     agent = DQNAgent(state_size, action_size)
     episodes = 50
     batch_size = 32
 
-    
+
     env = UAVEnv(data_Target)
 
     for e in range(episodes):

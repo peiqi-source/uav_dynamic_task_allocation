@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的打击顺序训练器实现。"""
 from __future__ import annotations
 
 import logging
@@ -46,19 +47,27 @@ class StrikeOrderDQNTrainerConfig:
     - 一个 episode 对应一个目标群内部排序过程。
     """
 
+    # num_episodes: numepisodes。
     num_episodes: int = 100
+    # max_steps_per_episode: 最大值步数per训练回合。
     max_steps_per_episode: int | str = "auto"
 
+    # replay_buffer_capacity: replay经验缓冲区capacity。
     replay_buffer_capacity: int = 10000
+    # warmup_steps: warmup步数。
     warmup_steps: int = 100
+    # train_every_steps: 训练every步数。
     train_every_steps: int = 1
+    # updates_per_train_step: updatesper训练步数。
     updates_per_train_step: int = 1
 
+    # log_interval: 日志interval。
     log_interval: int = 1
+    # save_checkpoint: save检查点。
     save_checkpoint: bool = True
 
     # random: 每个 episode 随机抽一个目标群训练；
-    # round_robin: 按顺序循环目标群。
+    # cluster_sampling: 目标簇sampling。
     cluster_sampling: str = "random"
 
     def validate(self) -> None:
@@ -110,30 +119,49 @@ class StrikeOrderEpisodeMetrics:
         给定一个 TargetCluster，从起点出发，依次选择目标，直到该群目标全部访问完成。
     """
 
+    # episode: 训练回合。
     episode: int
+    # cluster_id: 目标簇编号。
     cluster_id: int
 
+    # total_reward: total奖励。
     total_reward: float = 0.0
+    # num_steps: num步数。
     num_steps: int = 0
+    # num_updates: numupdates。
     num_updates: int = 0
 
+    # random_action_count: 随机动作count。
     random_action_count: int = 0
+    # greedy_action_count: greedy动作count。
     greedy_action_count: int = 0
+    # invalid_or_no_action_count: invalidorno动作count。
     invalid_or_no_action_count: int = 0
 
+    # losses: losses 数据。
     losses: list[float] = field(default_factory=list)
+    # done: 结束标记。
     done: bool = False
 
+    # ordered_target_ids: ordered目标编号集合。
     ordered_target_ids: list[int] = field(default_factory=list)
+    # total_path_distance: total路径distance。
     total_path_distance: float = 0.0
 
+    # epsilon_after_episode: 探索率after训练回合。
     epsilon_after_episode: float | None = None
+    # best_reward_so_far: best奖励sofar。
     best_reward_so_far: float | None = None
+    # global_env_steps: global环境步数。
     global_env_steps: int = 0
+    # replay_buffer_size: replay经验缓冲区size。
     replay_buffer_size: int = 0
 
+    # latest_checkpoint_path: latest检查点路径。
     latest_checkpoint_path: str | None = None
+    # best_checkpoint_path: best检查点路径。
     best_checkpoint_path: str | None = None
+    # is_best_episode: isbest训练回合。
     is_best_episode: bool = False
 
     @property
@@ -181,6 +209,7 @@ class StrikeOrderEpisodeMetrics:
 class StrikeOrderTrainingResult:
     """StrikeOrder DQN 训练结果。"""
 
+    # episode_metrics: 训练回合指标集合。
     episode_metrics: list[StrikeOrderEpisodeMetrics]
 
     @property
@@ -237,24 +266,51 @@ class StrikeOrderDQNTrainer:
         logger: logging.Logger | None = None,
         seed: int | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            clusters: clusters 参数，类型为 list[TargetCluster]。
+            strike_order_env_config: strike_order_env_config 参数，类型为 StrikeOrderEnvConfig。
+            agent: agent 参数，类型为 DQNAgent。
+            replay_buffer: replay_buffer 参数，类型为 ReplayBuffer。
+            trainer_config: trainer_config 参数，类型为 StrikeOrderDQNTrainerConfig。
+            checkpoint_manager: checkpoint_manager 参数，类型为 DQNCheckpointManager | None。
+            metrics_writer: metrics_writer 参数，类型为 DQNMetricsWriter | None。
+            logger: 日志器，类型为 logging.Logger | None。
+            seed: 随机种子，类型为 int | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         trainer_config.validate()
 
         if not clusters:
             raise StrikeOrderDQNTrainerError("clusters must not be empty.")
 
+        # clusters: 目标簇集合。
         self.clusters = clusters
+        # strike_order_env_config: 打击顺序环境配置。
         self.strike_order_env_config = strike_order_env_config
+        # agent: 智能体。
         self.agent = agent
+        # replay_buffer: replay经验缓冲区。
         self.replay_buffer = replay_buffer
+        # config: 配置。
         self.config = trainer_config
+        # checkpoint_manager: 检查点manager。
         self.checkpoint_manager = checkpoint_manager
+        # metrics_writer: 指标集合writer。
         self.metrics_writer = metrics_writer
 
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
+        # global_env_steps: global环境步数。
         self.global_env_steps = 0
+        # best_reward: best奖励。
         self.best_reward: float | None = None
 
+        # _rng: rng 数据。
         self._rng = np.random.default_rng(seed)
 
         if self.config.save_checkpoint and self.checkpoint_manager is None:

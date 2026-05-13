@@ -1,3 +1,4 @@
+﻿"""历史版本中的disappearance 数据脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 import Kmeans_step2
@@ -7,15 +8,33 @@ import Particle_algorithm
 
 
 def calculate_angle(x, y):
-    angle = np.arctan2(y, x)  
-    angle_degrees = np.degrees(angle)  
+    """计算指定指标或中间结果，处理angle 数据相关数据。
+
+    参数：
+        x: 横坐标。
+        y: 纵坐标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
+    angle = np.arctan2(y, x)
+    angle_degrees = np.degrees(angle)
     if angle_degrees < 0:
-        angle_degrees += 360  
+        angle_degrees += 360
     return angle_degrees
 
 
 
 def assess_combat_resources(data_Target, data_UAV):
+    """处理assesscombat资源集合相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     total_resources_required = sum(data_Target[:, -1])
     available_resources = sum(data_UAV[:, -1])
     if total_resources_required <= available_resources:
@@ -25,11 +44,23 @@ def assess_combat_resources(data_Target, data_UAV):
 
 
 def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
+    """处理handledisappeared目标相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        cluster: 目标簇。
+        cluster_1: 目标簇1。
+        d: d 数据。
+        data2: 数据2。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if len(data_Target) == 0:
         print("Error，无目标数据！")
         return data_Target, cluster
 
-    
+
     num_targets_to_remove = random.randint(1, 3)
     targets_to_remove = random.sample(range(len(data_Target)), num_targets_to_remove)
     biaohao_targets_to_remove = [target + 1 for target in targets_to_remove]
@@ -37,7 +68,7 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
     removed_targets = data_Target[targets_to_remove]
 
     '''
-    
+
     n_data_Target = np.delete(data_Target, targets_to_remove, axis=0)
     plt.figure(1)
     plt.title('战场目标集')
@@ -59,22 +90,22 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
     '''
 
     cluster_1_array = np.array(cluster_1[1])
-    
+
     destroy_targets_ids = cluster_1_array[:, 0].astype(int)
     non_destroy_targets_ids = [int(data_Target[i, 0]) for i in range(len(data_Target)) if int(data_Target[i, 0]) not in destroy_targets_ids]
-    
-    
-    
 
-    
+
+
+
+
     removed_in_destroy_set = [target for target in removed_targets if int(target[0]) in destroy_targets_ids]
 
-    
+
     if removed_in_destroy_set:
         print("其中属于摧毁目标集的目标标号为:", [int(array[0]) for array in removed_in_destroy_set])
 
     if not removed_in_destroy_set:
-        
+
         print("消失目标属于非摧毁目标集！")
         colors = ['red', 'green', 'blue', 'black']
         fig = plt.figure(3)
@@ -83,7 +114,7 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
         ax.scatter(0, 0, 0, c='r', marker='*', label='飞行器基地')
         ax.text(0 + 0.01, 0, 0, '飞行器基地')
         for i, cluster_group in enumerate(cluster):
-            if i >= len(colors):  
+            if i >= len(colors):
                 color = colors[i % len(colors)]
             else:
                 color = colors[i]
@@ -108,36 +139,36 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
         plt.show()
 
         aco_plot.plot_clusters_and_routes(cluster)
-        
+
         return cluster
 
-    
+
     num_to_add = len(removed_in_destroy_set)
 
-    
+
     targets_to_add_ids = random.sample(non_destroy_targets_ids, num_to_add)
     print("补充目标标号为:", targets_to_add_ids)
     targets_to_add = np.array([data_Target[data_Target[:, 0] == target_id][0] for target_id in targets_to_add_ids])
     data2_to_add = np.array([data2[data2[:, 0] == target_id][0] for target_id in targets_to_add_ids])
 
-    
+
     new_targets = np.hstack((data2_to_add, targets_to_add[:, 4:5]))
 
-    
+
     cluster_1_array = np.concatenate((cluster_1_array, new_targets))
     cluster_1[1] = cluster_1_array
 
-    
-    
 
-    
+
+
+
     targets = cluster_1[1]
 
-    
-    targets = np.array([target for target in targets if target[0] not in biaohao_targets_to_remove])
-    
 
-    
+    targets = np.array([target for target in targets if target[0] not in biaohao_targets_to_remove])
+
+
+
     for target in targets:
         original_position = data_Target[data_Target[:, 0] == target[0], 1:3]
         x, y = original_position[0]
@@ -149,23 +180,23 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
     print("最佳分配方案:", best_assignment)
 
     colors = ['red', 'green', 'blue']
-    
+
     fig = plt.figure(3)
     ax = fig.add_subplot(111, projection='3d')
 
-    
+
     ax.scatter(0, 0, 0, c='r', marker='*', label='飞行器基地')
     ax.text(0 + 0.01, 0, 0, '飞行器基地')
     for cluster_id in range(num_clusters):
         cluster_indices = [i for i, x in enumerate(best_assignment) if x == cluster_id]
         cluster_targets = targets[cluster_indices]
 
-        
+
         original_positions = np.array(
             [data_Target[data_Target[:, 0] == target[0], 1:4] for target in cluster_targets]).reshape(-1, 3)
-        x = original_positions[:, 0]  
-        y = original_positions[:, 1]  
-        z = cluster_targets[:, 5]  
+        x = original_positions[:, 0]
+        y = original_positions[:, 1]
+        z = cluster_targets[:, 5]
         indices = cluster_targets[:, 0]
 
         ax.scatter(x, y, z, color=colors[cluster_id], label=f'Cluster {cluster_id + 1}')
@@ -180,13 +211,13 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
     ax.legend()
     plt.show()
 
-    
+
     updated_clusters = []
     for cluster_id in range(num_clusters):
         cluster_indices = [i for i, x in enumerate(best_assignment) if x == cluster_id]
         cluster_targets = targets[cluster_indices]
 
-        
+
         updated_cluster = np.array(
             [[target[0], data_Target[data_Target[:, 0] == target[0], 1][0],
               data_Target[data_Target[:, 0] == target[0], 2][0],
@@ -200,34 +231,34 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
 
     '''
     num_clusters = 3
-    
-    
+
+
     best_solution, best_value, best_assignment = Particle_algorithm.pso_optimization(targets, num_clusters)
     print("最佳分配方案:", best_assignment)
 
     colors = ['red', 'green', 'blue']
-    
+
     fig = plt.figure(3)
     ax = fig.add_subplot(111, projection='3d')
 
-    
+
     ax.scatter(0, 0, 0, c='r', marker='*', label='飞行器基地')
     ax.text(0 + 0.01, 0, 0, '飞行器基地')
     for cluster_id in range(num_clusters):
         cluster_indices = [i for i, x in enumerate(best_assignment) if x == cluster_id]
         cluster_targets = targets[cluster_indices]
 
-        
-        
+
+
         extracted_positions = [data_Target[data_Target[:, 0] == target[0], 1:4] for target in cluster_targets]
         print("Extracted positions:", extracted_positions)
 
-        
+
         extracted_positions_array = np.array(extracted_positions)
         print("Extracted positions array shape:", extracted_positions_array.shape)
-        
 
-        
+
+
         original_positions = []
         for target in cluster_targets:
             matching_rows = data_Target[data_Target[:, 0] == target[0]]
@@ -238,9 +269,9 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
                 original_positions.append([np.nan, np.nan, np.nan])
 
         original_positions = np.array(original_positions)
-        x = original_positions[:, 0]  
-        y = original_positions[:, 1]  
-        z = cluster_targets[:, 5]  
+        x = original_positions[:, 0]
+        y = original_positions[:, 1]
+        z = cluster_targets[:, 5]
         indices = cluster_targets[:, 0]
 
         ax.scatter(x, y, z, color=colors[cluster_id], label=f'Cluster {cluster_id + 1}')
@@ -254,20 +285,20 @@ def handle_disappeared_target(data_Target, cluster, cluster_1, d, data2):
     ax.legend()
     plt.show()
 
-    
+
     cluster = []
     for cluster_id in range(num_clusters):
         cluster_indices = [i for i, x in enumerate(best_assignment) if x == cluster_id]
         cluster_targets = targets[cluster_indices]
 
-        
+
         updated_positions = []
         for target in cluster_targets:
             matching_rows = data_Target[data_Target[:, 0] == target[0]]
             if len(matching_rows) > 0:
                 original_position = matching_rows[0, 1:4]
                 angle = cluster_targets[-1]
-                
+
                 posx = original_position[0]
                 posy = original_position[1]
                 if np.isfinite(posx) and np.isfinite(posy):

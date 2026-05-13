@@ -1,3 +1,4 @@
+﻿"""PPO 算法模块中的经验缓冲区实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,11 +10,17 @@ import numpy as np
 class PPORolloutBuffer:
     """Rollout buffer for clipped-objective PPO updates."""
 
+    # observations: observations 数据。
     observations: list[np.ndarray] = field(default_factory=list)
+    # actions: 动作集合。
     actions: list[int] = field(default_factory=list)
+    # log_probs: 日志probs。
     log_probs: list[float] = field(default_factory=list)
+    # rewards: rewards 数据。
     rewards: list[float] = field(default_factory=list)
+    # dones: dones 数据。
     dones: list[bool] = field(default_factory=list)
+    # values: values 数据。
     values: list[float] = field(default_factory=list)
 
     def add(
@@ -25,6 +32,19 @@ class PPORolloutBuffer:
         done: bool,
         value: float,
     ) -> None:
+        """处理add 数据相关业务逻辑。
+
+        参数：
+            observation: 观测向量，类型为 np.ndarray。
+            action: 动作，类型为 int。
+            log_prob: 日志prob，类型为 float。
+            reward: 奖励，类型为 float。
+            done: 结束标记，类型为 bool。
+            value: 数值，类型为 float。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         self.observations.append(np.asarray(observation, dtype=np.float32))
         self.actions.append(int(action))
         self.log_probs.append(float(log_prob))
@@ -33,6 +53,14 @@ class PPORolloutBuffer:
         self.values.append(float(value))
 
     def clear(self) -> None:
+        """处理clear 数据相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         self.observations.clear()
         self.actions.clear()
         self.log_probs.clear()
@@ -41,6 +69,14 @@ class PPORolloutBuffer:
         self.values.clear()
 
     def __len__(self) -> int:
+        """处理len 数据相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            int，表示该函数计算或构建得到的结果。
+        """
         return len(self.actions)
 
     def compute_returns_advantages(
@@ -49,6 +85,16 @@ class PPORolloutBuffer:
         gae_lambda: float,
         last_value: float = 0.0,
     ) -> tuple[np.ndarray, np.ndarray]:
+        """计算指定指标或中间结果，处理returnsadvantages相关数据。
+
+        参数：
+            gamma: 折扣因子，类型为 float。
+            gae_lambda: gaelambda，类型为 float。
+            last_value: last数值，类型为 float。
+
+        返回：
+            tuple[np.ndarray, np.ndarray]，表示该函数计算或构建得到的结果。
+        """
         values = self.values + [float(last_value)]
         advantages = np.zeros(len(self.rewards), dtype=np.float32)
         gae = 0.0

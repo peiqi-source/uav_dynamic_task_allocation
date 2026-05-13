@@ -1,3 +1,4 @@
+﻿"""testmontecarlo资源evaluator测试模块，用于验证对应业务模块的关键行为。"""
 from uav_dynamic_task_allocation.allocation.monte_carlo_resource_evaluator import (
     MonteCarloResourceEvaluator,
     MonteCarloResourceEvaluatorConfig,
@@ -7,6 +8,14 @@ from uav_dynamic_task_allocation.core.entities import Position, Target, UAV, UAV
 
 
 def test_monte_carlo_resource_evaluator_assesses_assignment():
+    """处理testmontecarlo资源evaluatorassessesassignment相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     target = Target(1, Position(10, 0), 1, defense=1.0, significance=2.0)
     uav = UAV(1, Position(0, 0), UAVType.ATTACK, work_range=100, attack_power=10)
     cluster = TargetCluster(0, [target], Position(10, 0), 1.0, 2.0)

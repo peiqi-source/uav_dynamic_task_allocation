@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的打击顺序环境实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -30,15 +31,24 @@ class StrikeOrderEnvConfig:
     或者已经进入可以执行群内打击排序的阶段。
     """
 
+    # max_targets_per_cluster: 最大值目标集合per目标簇。
     max_targets_per_cluster: int = 50
+    # include_distance_features: includedistancefeatures。
     include_distance_features: bool = True
+    # distance_normalizer: distancenormalizer。
     distance_normalizer: str | float = "auto"
 
+    # reward_mode: 奖励mode。
     reward_mode: str = "inverse_distance"
+    # distance_reward_scale: distance奖励scale。
     distance_reward_scale: float = 100.0
+    # repeat_penalty: repeatpenalty。
     repeat_penalty: float = -10.0
+    # completion_bonus: completionbonus。
     completion_bonus: float = 10.0
+    # priority_weight: priority权重。
     priority_weight: float = 0.1
+    # target_value_normalizer: 目标数值normalizer。
     target_value_normalizer: float = 100.0
 
     def validate(self) -> None:
@@ -77,9 +87,13 @@ class StrikeOrderObservation:
         额外调试信息。
     """
 
+    # vector: vector 数据。
     vector: np.ndarray
+    # action_mask: 动作掩码。
     action_mask: np.ndarray
+    # feature_names: featurenames。
     feature_names: list[str] = field(default_factory=list)
+    # debug_info: 调试info。
     debug_info: dict[str, Any] = field(default_factory=dict)
 
 
@@ -101,9 +115,13 @@ class StrikeOrderStepResult:
         调试信息，包括当前路径、距离、是否重复访问等。
     """
 
+    # observation: 观测向量。
     observation: StrikeOrderObservation
+    # reward: 奖励。
     reward: float
+    # done: 结束标记。
     done: bool
+    # info: info 数据。
     info: dict[str, Any]
 
 
@@ -131,10 +149,23 @@ class StrikeOrderEnv:
         start_position: Position,
         config: StrikeOrderEnvConfig,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            target_cluster: target_cluster 参数，类型为 TargetCluster。
+            start_position: start_position 参数，类型为 Position。
+            config: 配置对象，类型为 StrikeOrderEnvConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
 
+        # target_cluster: 目标目标簇。
         self.target_cluster = target_cluster
+        # start_position: start位置坐标。
         self.start_position = start_position
+        # config: 配置。
         self.config = config
 
         if len(self.target_cluster.targets) > self.config.max_targets_per_cluster:
@@ -144,17 +175,25 @@ class StrikeOrderEnv:
                 f"max={self.config.max_targets_per_cluster}"
             )
 
+        # distance_normalizer: distancenormalizer。
         self.distance_normalizer = self._resolve_distance_normalizer()
 
+        # current_position: 当前位置坐标。
         self.current_position: Position = start_position
+        # visited: visited 数据。
         self.visited: np.ndarray = np.zeros(
             self.config.max_targets_per_cluster,
             dtype=np.float32,
         )
+        # path_target_ids: 路径目标编号集合。
         self.path_target_ids: list[int] = []
+        # path_positions: 路径positions。
         self.path_positions: list[Position] = []
+        # total_path_distance: total路径distance。
         self.total_path_distance: float = 0.0
+        # current_step: 当前步数。
         self.current_step: int = 0
+        # episode_reward: 训练回合奖励。
         self.episode_reward: float = 0.0
 
     @property

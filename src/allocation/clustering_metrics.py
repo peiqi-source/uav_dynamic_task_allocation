@@ -1,3 +1,4 @@
+﻿"""资源分配模块中的clustering指标集合实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,16 +17,32 @@ class ClusteringMetricsError(Exception):
 class ClusteringMetrics:
     """Compact summary of clustering quality."""
 
+    # num_clusters: num目标簇集合。
     num_clusters: int
+    # num_targets: num目标集合。
     num_targets: int
+    # mean_compactness: 均值compactness。
     mean_compactness: float
+    # max_compactness: 最大值compactness。
     max_compactness: float
+    # target_count_std: 目标count标准差。
     target_count_std: float
+    # target_count_balance_score: 目标countbalance评分。
     target_count_balance_score: float
+    # workload_std: workload标准差。
     workload_std: float
+    # workload_balance_score: workloadbalance评分。
     workload_balance_score: float
 
     def to_dict(self) -> dict[str, Any]:
+        """将对象转换为字典，便于日志记录、序列化或调试输出。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            dict[str, Any]，表示该函数计算或构建得到的结果。
+        """
         return {
             "num_clusters": self.num_clusters,
             "num_targets": self.num_targets,

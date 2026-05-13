@@ -1,3 +1,4 @@
+﻿"""仿真模块中的任务指标集合实现。"""
 from __future__ import annotations
 
 import ast
@@ -37,12 +38,24 @@ class MissionMetricsConfig:
         保存趋势图。
     """
 
+    # input_csv_path: 输入CSV 数据路径。
     input_csv_path: str = "outputs/simulation/mission_simulation_log.csv"
+    # summary_csv_path: summaryCSV 数据路径。
     summary_csv_path: str = "outputs/simulation/mission_simulation_summary.csv"
+    # timeline_csv_path: timelineCSV 数据路径。
     timeline_csv_path: str = "outputs/simulation/mission_simulation_timeline_metrics.csv"
+    # figure_dir: 图表dir。
     figure_dir: str = "outputs/simulation/figures"
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if not self.input_csv_path:
             raise MissionMetricsError("input_csv_path must not be empty.")
 
@@ -68,7 +81,9 @@ class MissionMetricsResult:
         时间步级指标表。
     """
 
+    # summary: summary 数据。
     summary: dict[str, Any]
+    # timeline: timeline 数据。
     timeline: pd.DataFrame
 
 
@@ -88,7 +103,16 @@ class MissionMetricsAnalyzer:
     """
 
     def __init__(self, config: MissionMetricsConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 MissionMetricsConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def analyze(

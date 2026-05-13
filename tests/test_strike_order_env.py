@@ -1,3 +1,4 @@
+﻿"""test打击顺序环境测试模块，用于验证对应业务模块的关键行为。"""
 from uav_dynamic_task_allocation.core.contracts import TargetCluster
 from uav_dynamic_task_allocation.core.entities import Position, Target
 from uav_dynamic_task_allocation.envs.strike_order_env import (
@@ -7,6 +8,14 @@ from uav_dynamic_task_allocation.envs.strike_order_env import (
 
 
 def test_strike_order_env_masks_visited_target():
+    """处理test打击顺序环境masksvisited目标相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     targets = [
         Target(1, Position(1, 0), 1, defense=1, significance=2),
         Target(2, Position(2, 0), 1, defense=1, significance=1),

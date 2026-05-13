@@ -1,9 +1,18 @@
+﻿"""test数据loading测试模块，用于验证对应业务模块的关键行为。"""
 from pathlib import Path
 
 from uav_dynamic_task_allocation.data.loaders import load_target_data, load_uav_data
 
 
 def test_load_uav_and_target_csv(tmp_path: Path):
+    """处理testload无人机and目标CSV 数据相关业务逻辑。
+
+    参数：
+        tmp_path: tmp路径，类型为 Path。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     uav_csv = tmp_path / "uav.csv"
     target_csv = tmp_path / "target.csv"
     uav_csv.write_text(

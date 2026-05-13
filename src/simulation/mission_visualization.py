@@ -1,3 +1,4 @@
+﻿"""仿真模块中的任务visualization实现。"""
 from __future__ import annotations
 
 import ast
@@ -40,14 +41,27 @@ class MissionVisualizationConfig:
         是否只绘制参与任务分配的 UAV。
     """
 
+    # uav_trajectory_csv_path: 无人机trajectoryCSV 数据路径。
     uav_trajectory_csv_path: str = "outputs/simulation/uav_trajectory_log.csv"
+    # simulation_log_csv_path: 仿真日志CSV 数据路径。
     simulation_log_csv_path: str = "outputs/simulation/mission_simulation_log.csv"
+    # figure_dir: 图表dir。
     figure_dir: str = "outputs/simulation/figures"
 
+    # max_uavs_to_plot: 最大值uavsto绘图。
     max_uavs_to_plot: int = 20
+    # only_assigned_uavs: onlyassigneduavs。
     only_assigned_uavs: bool = True
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if not self.uav_trajectory_csv_path:
             raise MissionVisualizationError("uav_trajectory_csv_path must not be empty.")
 
@@ -78,7 +92,16 @@ class MissionVisualizer:
     """
 
     def __init__(self, config: MissionVisualizationConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 MissionVisualizationConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def save_all(
@@ -470,6 +493,14 @@ class MissionVisualizer:
         df = target_df.copy()
 
         def get_status(target_id: int) -> str:
+            """处理get状态相关业务逻辑。
+
+            参数：
+                target_id: 目标编号，类型为 int。
+
+            返回：
+                str，表示该函数计算或构建得到的结果。
+            """
             if int(target_id) in destroyed_ids:
                 return "destroyed"
             if int(target_id) in disappeared_ids:

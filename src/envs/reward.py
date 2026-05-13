@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的奖励实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -26,25 +27,40 @@ class RewardConfig:
     因此这里把论文奖励项和工程惩罚项都配置化，方便后续实验调参。
     """
 
+    # mode: mode 数据。
     mode: str = "paper"
 
+    # use_normalized_distance: usenormalizeddistance。
     use_normalized_distance: bool = True
+    # distance_normalizer: distancenormalizer。
     distance_normalizer: str | float = "auto"
+    # distance_weight: distance权重。
     distance_weight: float = 1.0
 
+    # repetition_penalty: repetitionpenalty。
     repetition_penalty: float = -10.0
 
+    # priority_weight: priority权重。
     priority_weight: float = 1.0
+    # target_value_normalizer: 目标数值normalizer。
     target_value_normalizer: float = 100.0
 
+    # invalid_action_penalty: invalid动作penalty。
     invalid_action_penalty: float = -10.0
+    # inactive_uav_penalty: 不可用状态无人机penalty。
     inactive_uav_penalty: float = -5.0
+    # inactive_target_penalty: 不可用状态目标penalty。
     inactive_target_penalty: float = -10.0
+    # non_attack_uav_penalty: non攻击无人机penalty。
     non_attack_uav_penalty: float = -2.0
+    # out_of_range_penalty: outof作用范围penalty。
     out_of_range_penalty: float = -1.0
+    # out_of_bounds_penalty: outofboundspenalty。
     out_of_bounds_penalty: float = -2.0
 
+    # destroy_bonus: destroybonus。
     destroy_bonus: float = 0.0
+    # damage_reward_weight: damage奖励权重。
     damage_reward_weight: float = 0.0
 
     def validate(self) -> None:
@@ -82,22 +98,34 @@ class RewardContext:
     避免 RewardCalculator 直接依赖 DroneBattleEnv 内部实现细节。
     """
 
+    # uav: 无人机。
     uav: UAV | None
+    # target: 目标。
     target: Target | None
 
+    # current_step: 当前步数。
     current_step: int
+    # current_time: 当前时间。
     current_time: float
 
+    # is_valid_action: isvalid动作。
     is_valid_action: bool = True
+    # invalid_reason: invalidreason。
     invalid_reason: str | None = None
 
+    # target_was_active_before_action: 目标was可用状态before动作。
     target_was_active_before_action: bool = True
+    # target_destroyed_after_action: 目标毁伤状态after动作。
     target_destroyed_after_action: bool = False
+    # target_damaged_after_action: 目标damagedafter动作。
     target_damaged_after_action: bool = False
 
+    # previous_target_defense: previous目标防御能力。
     previous_target_defense: float | None = None
+    # remaining_target_defense: remaining目标防御能力。
     remaining_target_defense: float | None = None
 
+    # attacked_target_ids_before_action: attacked目标编号集合before动作。
     attacked_target_ids_before_action: set[int] = field(default_factory=set)
 
 
@@ -116,16 +144,24 @@ class RewardBreakdown:
     这对调试强化学习非常重要。
     """
 
+    # total_reward: total奖励。
     total_reward: float
 
+    # distance_reward: distance奖励。
     distance_reward: float = 0.0
+    # repetition_penalty: repetitionpenalty。
     repetition_penalty: float = 0.0
+    # priority_reward: priority奖励。
     priority_reward: float = 0.0
 
+    # invalid_action_penalty: invalid动作penalty。
     invalid_action_penalty: float = 0.0
+    # destroy_bonus: destroybonus。
     destroy_bonus: float = 0.0
+    # damage_reward: damage奖励。
     damage_reward: float = 0.0
 
+    # reason: reason 数据。
     reason: str = "valid"
 
     def to_dict(self) -> dict[str, float | str]:
@@ -163,10 +199,22 @@ class RewardCalculator:
         env_config: EnvConfig,
         reward_config: RewardConfig,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            env_config: env_config 参数，类型为 EnvConfig。
+            reward_config: reward_config 参数，类型为 RewardConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # env_config: 环境配置。
         self.env_config = env_config
+        # reward_config: 奖励配置。
         self.reward_config = reward_config
         self.reward_config.validate()
 
+        # distance_normalizer: distancenormalizer。
         self.distance_normalizer = self._resolve_distance_normalizer()
 
     def calculate(self, context: RewardContext) -> RewardBreakdown:

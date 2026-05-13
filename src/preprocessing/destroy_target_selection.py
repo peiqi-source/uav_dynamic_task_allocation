@@ -1,3 +1,4 @@
+﻿"""preprocessing 数据模块中的destroy目标selection实现。"""
 from __future__ import annotations
 
 import csv
@@ -38,24 +39,37 @@ class DestroyTargetSelectionConfig:
     StrikeOrder DQN 和 MissionSimulator 都不需要关心前面到底用了哪种算法。
     """
 
+    # method: method 数据。
     method: str = "weighted_kmeans"
 
     # weighted_kmeans 配置
+    # num_clusters: num目标簇集合。
     num_clusters: int = 2
+    # max_iter: 最大值iter。
     max_iter: int = 300
+    # tolerance: tolerance 数据。
     tolerance: float = 0.0004
+    # random_seed: 随机随机种子。
     random_seed: int = 42
 
+    # normalized_distance_weight: normalizeddistance权重。
     normalized_distance_weight: float = 0.4
+    # score_weight: 评分权重。
     score_weight: float = 0.6
 
+    # choose_cluster_by: choose目标簇by。
     choose_cluster_by: str = "highest_score_cluster"
 
     # random forest 配置
+    # rf_model_path: 随机森林模型路径。
     rf_model_path: str = "checkpoints/random_forest/destroy_target_rf.joblib"
+    # rf_probability_threshold: 随机森林probabilitythreshold。
     rf_probability_threshold: float = 0.5
+    # rf_fallback_method: 随机森林fallbackmethod。
     rf_fallback_method: str = "top_k"
+    # rf_fallback_top_k: 随机森林fallbacktopk。
     rf_fallback_top_k: int = 5
+    # rf_feature_names: 随机森林featurenames。
     rf_feature_names: tuple[str, ...] = (
         "score",
         "normalized_distance",
@@ -65,9 +79,12 @@ class DestroyTargetSelectionConfig:
     )
 
     # rule baseline 配置
+    # rule_top_k: ruletopk。
     rule_top_k: int = 8
+    # rule_threshold: rulethreshold。
     rule_threshold: float = 0.5
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/destroy_target_selection.csv"
 
     def validate(self) -> None:
@@ -139,11 +156,17 @@ class DestroyTargetSelectionRecord:
     - 是否被选入摧毁目标集。
     """
 
+    # target: 目标。
     target: Target
+    # score: 评分。
     score: float
+    # normalized_distance: normalizeddistance。
     normalized_distance: float
+    # cluster_label: 目标簇label。
     cluster_label: int
+    # is_destroy_target: isdestroy目标。
     is_destroy_target: bool
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -169,12 +192,19 @@ class DestroyTargetSelectionResult:
         可以继续读取 screened_set.selected_targets。
     """
 
+    # source_screened_set: source筛选结果set。
     source_screened_set: ScreenedTargetSet
+    # destroy_targets: destroy目标集合。
     destroy_targets: list[Target]
+    # non_destroy_targets: nondestroy目标集合。
     non_destroy_targets: list[Target]
+    # records: records 数据。
     records: list[DestroyTargetSelectionRecord]
+    # selected_cluster_label: 已选择目标簇label。
     selected_cluster_label: int
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_screened_target_set(self) -> ScreenedTargetSet:
@@ -219,7 +249,16 @@ class DestroyTargetSelector:
     """
 
     def __init__(self, config: DestroyTargetSelectionConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 DestroyTargetSelectionConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def select(

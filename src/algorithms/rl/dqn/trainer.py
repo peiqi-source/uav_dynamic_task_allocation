@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的训练器实现。"""
 from __future__ import annotations
 
 import logging
@@ -65,15 +66,23 @@ class DQNTrainerConfig:
         是否在训练过程中自动保存 latest.pt 和 best.pt。
     """
 
+    # num_episodes: numepisodes。
     num_episodes: int = 5
+    # max_steps_per_episode: 最大值步数per训练回合。
     max_steps_per_episode: int | str = "auto"
 
+    # replay_buffer_capacity: replay经验缓冲区capacity。
     replay_buffer_capacity: int = 10000
+    # warmup_steps: warmup步数。
     warmup_steps: int = 32
+    # train_every_steps: 训练every步数。
     train_every_steps: int = 1
+    # updates_per_train_step: updatesper训练步数。
     updates_per_train_step: int = 1
 
+    # log_interval: 日志interval。
     log_interval: int = 1
+    # save_checkpoint: save检查点。
     save_checkpoint: bool = False
 
     def validate(self) -> None:
@@ -120,25 +129,41 @@ class EpisodeMetrics:
     - latest_checkpoint_path / best_checkpoint_path 是否正确生成。
     """
 
+    # episode: 训练回合。
     episode: int
+    # total_reward: total奖励。
     total_reward: float = 0.0
+    # num_steps: num步数。
     num_steps: int = 0
+    # num_updates: numupdates。
     num_updates: int = 0
 
+    # random_action_count: 随机动作count。
     random_action_count: int = 0
+    # greedy_action_count: greedy动作count。
     greedy_action_count: int = 0
+    # invalid_or_no_action_count: invalidorno动作count。
     invalid_or_no_action_count: int = 0
 
+    # losses: losses 数据。
     losses: list[float] = field(default_factory=list)
+    # done: 结束标记。
     done: bool = False
 
+    # latest_checkpoint_path: latest检查点路径。
     latest_checkpoint_path: str | None = None
+    # best_checkpoint_path: best检查点路径。
     best_checkpoint_path: str | None = None
+    # is_best_episode: isbest训练回合。
     is_best_episode: bool = False
 
+    # epsilon_after_episode: 探索率after训练回合。
     epsilon_after_episode: float | None = None
+    # best_reward_so_far: best奖励sofar。
     best_reward_so_far: float | None = None
+    # global_env_steps: global环境步数。
     global_env_steps: int = 0
+    # replay_buffer_size: replay经验缓冲区size。
     replay_buffer_size: int = 0
 
     @property
@@ -192,6 +217,7 @@ class TrainingResult:
     - evaluation 指标。
     """
 
+    # episode_metrics: 训练回合指标集合。
     episode_metrics: list[EpisodeMetrics]
 
     @property
@@ -251,20 +277,47 @@ class DQNTrainer:
         metrics_writer: DQNMetricsWriter | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            env: 环境对象，类型为 DroneBattleEnv。
+            observation_builder: observation_builder 参数，类型为 ObservationBuilder。
+            action_space: action_space 参数，类型为 FixedUAVTargetActionSpace。
+            agent: agent 参数，类型为 DQNAgent。
+            replay_buffer: replay_buffer 参数，类型为 ReplayBuffer。
+            trainer_config: trainer_config 参数，类型为 DQNTrainerConfig。
+            checkpoint_manager: checkpoint_manager 参数，类型为 DQNCheckpointManager | None。
+            metrics_writer: metrics_writer 参数，类型为 DQNMetricsWriter | None。
+            logger: 日志器，类型为 logging.Logger | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         trainer_config.validate()
 
+        # env: 环境。
         self.env = env
+        # observation_builder: 观测向量builder。
         self.observation_builder = observation_builder
+        # action_space: 动作space。
         self.action_space = action_space
+        # agent: 智能体。
         self.agent = agent
+        # replay_buffer: replay经验缓冲区。
         self.replay_buffer = replay_buffer
+        # config: 配置。
         self.config = trainer_config
+        # checkpoint_manager: 检查点manager。
         self.checkpoint_manager = checkpoint_manager
+        # metrics_writer: 指标集合writer。
         self.metrics_writer = metrics_writer
 
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
+        # global_env_steps: global环境步数。
         self.global_env_steps = 0
+        # best_reward: best奖励。
         self.best_reward: float | None = None
 
         if self.config.save_checkpoint and self.checkpoint_manager is None:

@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的replay经验缓冲区实现。"""
 from __future__ import annotations
 
 from collections import deque
@@ -34,15 +35,23 @@ class Transition:
     来计算合法动作中的 max Q(s_{t+1}, a')。
     """
 
+    # state: 状态。
     state: np.ndarray
+    # action_id: 动作编号。
     action_id: int
+    # reward: 奖励。
     reward: float
+    # next_state: 下一步状态。
     next_state: np.ndarray
+    # done: 结束标记。
     done: bool
 
+    # action_mask: 动作掩码。
     action_mask: np.ndarray | None = None
+    # next_action_mask: 下一步动作掩码。
     next_action_mask: np.ndarray | None = None
 
+    # info: info 数据。
     info: dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> None:
@@ -108,15 +117,23 @@ class ExperienceBatch:
     等到正式写 trainer 时，再把这些数组转换成 torch.Tensor。
     """
 
+    # states: states 数据。
     states: np.ndarray
+    # action_ids: 动作编号集合。
     action_ids: np.ndarray
+    # rewards: rewards 数据。
     rewards: np.ndarray
+    # next_states: 下一步states。
     next_states: np.ndarray
+    # dones: dones 数据。
     dones: np.ndarray
 
+    # action_masks: 动作masks。
     action_masks: np.ndarray | None = None
+    # next_action_masks: 下一步动作masks。
     next_action_masks: np.ndarray | None = None
 
+    # infos: infos 数据。
     infos: list[dict[str, Any]] = field(default_factory=list)
 
     @property
@@ -143,20 +160,25 @@ class ReplayBuffer:
         capacity: int,
         seed: int | None = None,
     ) -> None:
-        """
-        初始化经验回放池。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
 
-        Args:
-            capacity: 回放池最大容量。
-            seed: 随机种子，用于保证采样过程尽可能可复现。
+        参数：
+            capacity: capacity 参数，类型为 int。
+            seed: 随机种子，类型为 int | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
         """
         if capacity <= 0:
             raise ReplayBufferError("Replay buffer capacity must be positive.")
 
+        # capacity: capacity 数据。
         self.capacity = int(capacity)
+        # _buffer: 经验缓冲区。
         self._buffer: deque[Transition] = deque(maxlen=self.capacity)
 
         # 使用 NumPy 新版随机数生成器，便于控制采样随机性。
+        # _rng: rng 数据。
         self._rng = np.random.default_rng(seed)
 
     def push(self, transition: Transition) -> None:

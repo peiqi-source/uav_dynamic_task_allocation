@@ -1,3 +1,4 @@
+﻿"""planning 数据模块中的算法选择策略对象实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -26,7 +27,9 @@ class ScenarioMode(str, Enum):
         动态场景。任务开始时先做初始规划，任务过程中根据动态事件触发局部或全局重规划。
     """
 
+    # STATIC: STATIC 数据。
     STATIC = "static"
+    # DYNAMIC: 动态。
     DYNAMIC = "dynamic"
 
 
@@ -50,10 +53,15 @@ class ReplanningScope(str, Enum):
         全局重规划，从目标筛选开始重新执行。
     """
 
+    # NONE: NONE 数据。
     NONE = "none"
+    # LOCAL: LOCAL 数据。
     LOCAL = "local"
+    # AFFECTED_CLUSTERS: affected目标簇集合。
     AFFECTED_CLUSTERS = "affected_clusters"
+    # RESOURCE_ONLY: 资源only。
     RESOURCE_ONLY = "resource_only"
+    # GLOBAL: GLOBAL 数据。
     GLOBAL = "global"
 
 
@@ -76,9 +84,13 @@ class StagePolicy:
         当前决策的来源说明，便于调试和日志记录。
     """
 
+    # stage: 阶段。
     stage: str
+    # method: method 数据。
     method: str
+    # should_run: shouldrun。
     should_run: bool
+    # reason: reason 数据。
     reason: str = ""
 
 
@@ -91,13 +103,21 @@ class PolicyDecision:
     某个阶段在当前场景、当前事件下应该怎么处理。
     """
 
+    # scenario_mode: scenariomode。
     scenario_mode: ScenarioMode
+    # stage: 阶段。
     stage: str
+    # method: method 数据。
     method: str
+    # should_run: shouldrun。
     should_run: bool
+    # replanning_scope: 重规划scope。
     replanning_scope: ReplanningScope = ReplanningScope.NONE
+    # event_type: 事件类型。
     event_type: MissionEventType | None = None
+    # reason: reason 数据。
     reason: str = ""
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -122,8 +142,11 @@ class EventPolicy:
                 strike_order_planning: dqn
     """
 
+    # event_type: 事件类型。
     event_type: MissionEventType
+    # replanning_scope: 重规划scope。
     replanning_scope: ReplanningScope
+    # stage_methods: 阶段methods。
     stage_methods: dict[str, str]
 
 
@@ -145,11 +168,16 @@ class AlgorithmPolicyConfig:
         动态事件触发后的算法配置。
     """
 
+    # scenario_mode: scenariomode。
     scenario_mode: ScenarioMode = ScenarioMode.STATIC
 
+    # default_stage_methods: default阶段methods。
     default_stage_methods: dict[str, str] = field(default_factory=dict)
+    # static_stage_methods: static阶段methods。
     static_stage_methods: dict[str, str] = field(default_factory=dict)
+    # dynamic_initial_stage_methods: 动态initial阶段methods。
     dynamic_initial_stage_methods: dict[str, str] = field(default_factory=dict)
+    # dynamic_event_policies: 动态事件policies。
     dynamic_event_policies: dict[MissionEventType, EventPolicy] = field(
         default_factory=dict
     )
@@ -180,8 +208,10 @@ class AlgorithmPolicy:
     - ReplanningController 可以根据事件类型做局部重规划。
     """
 
+    # KEEP_EXISTING_METHODS: keepexistingmethods。
     KEEP_EXISTING_METHODS = {"keep_existing", "skip", "none", "no_op"}
 
+    # STAGE_TO_CONFIG_PATH: 阶段to配置路径。
     STAGE_TO_CONFIG_PATH = {
         "destroy_target_selection": "destroy_target_selection.method",
         "target_clustering": "target_clustering.method",
@@ -191,6 +221,7 @@ class AlgorithmPolicy:
         "strike_order_planning": "strike_order_planner.method",
     }
 
+    # DEFAULT_STAGE_ORDER: default阶段顺序。
     DEFAULT_STAGE_ORDER = [
         "target_screening",
         "destroy_target_selection",
@@ -200,7 +231,16 @@ class AlgorithmPolicy:
     ]
 
     def __init__(self, config: AlgorithmPolicyConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 AlgorithmPolicyConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def get_initial_stage_policies(

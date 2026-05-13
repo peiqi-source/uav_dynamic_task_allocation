@@ -1,3 +1,4 @@
+﻿"""历史版本中的KMeans 算法无人机脚本，保留用于算法对照、复现实验或迁移参考。"""
 ## (C) Copyright 2012. All rights reserved. Sotiris L Karavarsamis.
 # Contact author at sokar@aiia.csd.auth.gr
 #
@@ -8,15 +9,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import Kmeans_UAVCore
-    
-def Kmeans_UAV(test1 = None,d = None,data_UAV = None): 
+
+def Kmeans_UAV(test1 = None,d = None,data_UAV = None):
     ## set algorithm parameters
+    """处理KMeans 算法无人机相关业务逻辑。
+
+    参数：
+        test1: test1 数据。
+        d: d 数据。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     TOL = 0.004
-    
+
     ITER = 300
-    
+
     kappa = d
-    
+
     # generate random data
     # X = np.array([test1(:,1),test1(:,2),test1(:,3),test1(:,7)])
 
@@ -60,7 +71,7 @@ def Kmeans_UAV(test1 = None,d = None,data_UAV = None):
         plot3(X(I == i,2),X(I == i,3),X(I == i,4),'d','color',np.array([0.5,0.5,0.5]),'MarkerFaceColor',colors[i])
         c = X(I == i,1)
         text(X(I == i,2) + 0.01,X(I == i,3) + 0.01,X(I == i,4),num2str(c),'Visible','on')
-    
+
     plt.title('无人飞�器组网')
     plt.xlabel('X�')
     plt.ylabel('Y�')
@@ -117,6 +128,5 @@ def Kmeans_UAV(test1 = None,d = None,data_UAV = None):
     for i in range(kappa):
         cluster.append(C[i, :])
         # plt.scatter(C[i, 0], C[i, 1], C[i, 2], color='black', marker='o')
-    
+
     return cluster, cluster_results
-    

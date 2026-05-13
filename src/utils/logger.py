@@ -1,3 +1,4 @@
+﻿"""utils 数据模块中的日志器实现。"""
 from __future__ import annotations
 
 import logging
@@ -106,7 +107,7 @@ def setup_logger(
     if log_file is not None:
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # file handler 负责写入日志文件
         file_handler = logging.FileHandler(log_path, encoding="utf-8")
         file_handler.setLevel(get_log_level(level))

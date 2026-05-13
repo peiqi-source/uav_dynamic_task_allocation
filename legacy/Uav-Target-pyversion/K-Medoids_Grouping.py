@@ -1,3 +1,4 @@
+﻿"""历史版本中的kmedoidsgrouping脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 from sklearn_extra.cluster import KMedoids
 from sklearn.metrics import pairwise_distances_argmin_min
@@ -79,12 +80,23 @@ labels = kmedoids.labels_
 cluster_counts = np.bincount(labels)
 
 def balance_clusters(data, labels, cluster_counts, target_count):
-    
+
+    """处理balance目标簇集合相关业务逻辑。
+
+    参数：
+        data: 数据。
+        labels: labels 数据。
+        cluster_counts: 目标簇counts。
+        target_count: 目标count。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     medoids = kmedoids.cluster_centers_
 
     for cluster_idx in range(num_clusters):
         while cluster_counts[cluster_idx] > target_count:
-            
+
             cluster_points = data[labels == cluster_idx, 1:3]
             distances = cdist(cluster_points, [medoids[cluster_idx]])
             farthest_idx = np.argmax(distances)

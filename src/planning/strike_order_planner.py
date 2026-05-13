@@ -1,3 +1,4 @@
+﻿"""planning 数据模块中的打击顺序规划器实现。"""
 from __future__ import annotations
 
 import csv
@@ -50,17 +51,25 @@ class StrikeOrderPlannerConfig:
             使用资源分配结果中的起飞位置。
     """
 
+    # method: method 数据。
     method: str = "dqn"
+    # checkpoint_type: 检查点类型。
     checkpoint_type: str = "best"
 
+    # allow_fallback: allowfallback。
     allow_fallback: bool = True
+    # fallback_method: fallbackmethod。
     fallback_method: str = "nearest_neighbor"
 
+    # start_position_source: start位置坐标source。
     start_position_source: str = "cluster_center"
 
+    # device: 计算设备。
     device: str = "auto"
+    # random_seed: 随机随机种子。
     random_seed: int = 42
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/strike_order_planner.csv"
 
     def validate(self) -> None:
@@ -96,13 +105,21 @@ class StrikeOrderPlannerConfig:
 class StrikeOrderPlannerRecord:
     """单个目标群的打击次序规划记录。"""
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # method: method 数据。
     method: str
+    # ordered_target_ids: ordered目标编号集合。
     ordered_target_ids: list[int]
+    # total_path_distance: total路径distance。
     total_path_distance: float
+    # expected_reward: expected奖励。
     expected_reward: float
+    # start_position: start位置坐标。
     start_position: Position
+    # path_positions: 路径positions。
     path_positions: list[Position]
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -118,9 +135,13 @@ class StrikeOrderPlannerResult:
         用于 debug CSV 和报告分析。
     """
 
+    # strike_order_plans: 打击顺序plans。
     strike_order_plans: dict[int, StrikeOrderPlan]
+    # records: records 数据。
     records: list[StrikeOrderPlannerRecord]
+    # algorithm_metadata: algorithm扩展元数据。
     algorithm_metadata: AlgorithmMetadata
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -151,15 +172,33 @@ class StrikeOrderPlanner:
         full_config: dict[str, Any],
         logger: logging.Logger | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            planner_config: 任务规划器配置，类型为 StrikeOrderPlannerConfig。
+            env_config: env_config 参数，类型为 StrikeOrderEnvConfig。
+            full_config: full_config 参数，类型为 dict[str, Any]。
+            logger: 日志器，类型为 logging.Logger | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         planner_config.validate()
 
+        # config: 配置。
         self.config = planner_config
+        # env_config: 环境配置。
         self.env_config = env_config
+        # full_config: full配置。
         self.full_config = full_config
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
+        # rng: rng 数据。
         self.rng = np.random.default_rng(self.config.random_seed)
+        # _dqn_agent: DQN 算法智能体。
         self._dqn_agent: DQNAgent | None = None
+        # _dqn_load_error: DQN 算法loaderror。
         self._dqn_load_error: Exception | None = None
 
     def plan(

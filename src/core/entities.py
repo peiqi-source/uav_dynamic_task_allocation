@@ -1,3 +1,4 @@
+"""core 数据模块中的entities 数据实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -15,8 +16,11 @@ class EntityError(Exception):
 class UAVType(Enum):
     """无人机类型定义。"""
 
+    # GUIDE: 导引。
     GUIDE = 1
+    # COMMUNICATION: 通信。
     COMMUNICATION = 2
+    # ATTACK: 攻击。
     ATTACK = 3
 
     @classmethod
@@ -37,8 +41,11 @@ class UAVType(Enum):
 class EntityStatus(Enum):
     """实体状态定义。"""
 
+    # ACTIVE: 可用状态。
     ACTIVE = "active"
+    # INACTIVE: 不可用状态。
     INACTIVE = "inactive"
+    # DESTROYED: 毁伤状态。
     DESTROYED = "destroyed"
 
 
@@ -46,7 +53,9 @@ class EntityStatus(Enum):
 class Position:
     """二维战场坐标。"""
 
+    # x: 横坐标。
     x: float
+    # y: 纵坐标。
     y: float
 
     def distance_to(self, other: "Position") -> float:
@@ -63,12 +72,19 @@ class UAV:
     路径规划、强化学习环境构建提供标准对象。
     """
 
+    # uav_id: 无人机编号。
     uav_id: int
+    # position: 位置坐标。
     position: Position
+    # uav_type: 无人机类型。
     uav_type: UAVType
+    # work_range: 无人机工作半径。
     work_range: float
+    # attack_power: 无人机攻击能力。
     attack_power: float
+    # status: 状态。
     status: EntityStatus = EntityStatus.ACTIVE
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -126,12 +142,19 @@ class Target:
     该类用于描述战场目标的基础属性，包括位置、类型、防御力和重要性。
     """
 
+    # target_id: 目标编号。
     target_id: int
+    # position: 位置坐标。
     position: Position
+    # target_type: 目标类型。
     target_type: int
+    # defense: 防御能力。
     defense: float
+    # significance: 重要程度。
     significance: float
+    # status: 状态。
     status: EntityStatus = EntityStatus.ACTIVE
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -179,9 +202,13 @@ class BattlefieldState:
     后续环境 reset()、step()、动态事件处理都会围绕该对象展开。
     """
 
+    # uavs: uavs 数据。
     uavs: list[UAV]
+    # targets: 目标集合。
     targets: list[Target]
+    # current_step: 当前步数。
     current_step: int = 0
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property

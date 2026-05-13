@@ -1,3 +1,4 @@
+﻿"""绘图DQN 算法训练脚本，封装可直接运行的实验、检查或可视化流程。"""
 from __future__ import annotations
 
 import argparse
@@ -347,6 +348,14 @@ def print_training_summary(df: pd.DataFrame) -> None:
 
 
 def main() -> None:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+    """
     args = parse_args()
 
     metrics_path = resolve_path(args.metrics_path)

@@ -1,3 +1,4 @@
+﻿"""资源分配模块中的资源资源分配实现。"""
 from __future__ import annotations
 
 import csv
@@ -47,25 +48,36 @@ class ResourceAllocationConfig:
     这样后续 StrikeOrderDQN 和 MissionSimulator 不需要改。
     """
 
+    # method: method 数据。
     method: str = "rule_based"
 
+    # attack_payload_per_uav: 攻击payloadper无人机。
     attack_payload_per_uav: float = 6.0
+    # guide_uavs_per_cluster: 导引uavsper目标簇。
     guide_uavs_per_cluster: int = 1
+    # communication_uavs_per_cluster: 通信uavsper目标簇。
     communication_uavs_per_cluster: int = 0
 
+    # allow_partial_allocation: allowpartial资源分配。
     allow_partial_allocation: bool = True
+    # enable_monte_carlo_assessment: enablemontecarloassessment。
     enable_monte_carlo_assessment: bool = True
+    # monte_carlo_config: montecarlo配置。
     monte_carlo_config: MonteCarloResourceEvaluatorConfig = field(
         default_factory=MonteCarloResourceEvaluatorConfig
     )
 
+    # cluster_priority: 目标簇priority。
     cluster_priority: str = "defense_desc"
+    # uav_sorting: 无人机sorting。
     uav_sorting: str = "uav_id_asc"
 
+    # base_position: 基础位置坐标。
     base_position: Position = field(
         default_factory=lambda: Position(x=0.0, y=-16000.0)
     )
 
+    # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/resource_allocation.csv"
 
     def validate(self) -> None:
@@ -125,16 +137,27 @@ class ResourceAllocationRecord:
     用于 debug CSV 和后续分析。
     """
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # target_ids: 目标编号集合。
     target_ids: list[int]
+    # required_attack_uav_count: required攻击无人机count。
     required_attack_uav_count: int
+    # assigned_attack_uav_ids: assigned攻击无人机编号集合。
     assigned_attack_uav_ids: list[int]
+    # assigned_guide_uav_ids: assigned导引无人机编号集合。
     assigned_guide_uav_ids: list[int]
+    # assigned_communication_uav_ids: assigned通信无人机编号集合。
     assigned_communication_uav_ids: list[int]
+    # defense_sum: 防御能力sum。
     defense_sum: float
+    # significance_sum: 重要程度sum。
     significance_sum: float
+    # cluster_center: 目标簇center。
     cluster_center: Position
+    # resource_shortage: 资源shortage。
     resource_shortage: bool
+    # metadata: 扩展元数据。
     metadata: dict[str, Any]
 
 
@@ -153,8 +176,11 @@ class ResourceAllocationResult:
         保存资源剩余情况、短缺情况等。
     """
 
+    # allocation_plan: 资源分配规划方案。
     allocation_plan: AllocationPlan
+    # records: records 数据。
     records: list[ResourceAllocationRecord]
+    # metadata: 扩展元数据。
     metadata: dict[str, Any]
 
 
@@ -177,7 +203,16 @@ class ResourceAllocator:
     """
 
     def __init__(self, config: ResourceAllocationConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 ResourceAllocationConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def allocate(

@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的指标集合实现。"""
 from __future__ import annotations
 
 import csv
@@ -32,11 +33,17 @@ class DQNMetricsConfig:
         是否额外保存 jsonl 文件。CSV 适合画图，jsonl 适合保存复杂嵌套信息。
     """
 
+    # enabled: enabled 数据。
     enabled: bool = True
+    # metrics_dir: 指标集合dir。
     metrics_dir: str = "outputs/metrics"
+    # metrics_filename: 指标集合filename。
     metrics_filename: str = "dqn_training_metrics.csv"
+    # overwrite: overwrite 数据。
     overwrite: bool = True
+    # save_jsonl: savejsonl。
     save_jsonl: bool = True
+    # jsonl_filename: jsonlfilename。
     jsonl_filename: str = "dqn_training_metrics.jsonl"
 
     def validate(self) -> None:
@@ -63,6 +70,7 @@ class DQNMetricsWriter:
     可以让 trainer.py 保持简洁。
     """
 
+    # FIELDNAMES: FIELDNAMES 数据。
     FIELDNAMES = [
         "episode",
 
@@ -99,18 +107,32 @@ class DQNMetricsWriter:
         config: DQNMetricsConfig,
         project_root: str | Path | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 DQNMetricsConfig。
+            project_root: project_root 参数，类型为 str | Path | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
 
+        # config: 配置。
         self.config = config
+        # project_root: projectroot。
         self.project_root = Path(project_root) if project_root is not None else None
 
+        # metrics_dir: 指标集合dir。
         self.metrics_dir = resolve_path(
             self.config.metrics_dir,
             project_root=self.project_root,
         )
         self.metrics_dir.mkdir(parents=True, exist_ok=True)
 
+        # csv_path: CSV 数据路径。
         self.csv_path = self.metrics_dir / self.config.metrics_filename
+        # jsonl_path: jsonl路径。
         self.jsonl_path = self.metrics_dir / self.config.jsonl_filename
 
         self._prepare_output_files()

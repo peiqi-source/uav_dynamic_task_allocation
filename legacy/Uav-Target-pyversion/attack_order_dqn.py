@@ -1,3 +1,4 @@
+﻿"""历史版本中的攻击顺序DQN 算法脚本，保留用于算法对照、复现实验或迁移参考。"""
 import os
 import numpy as np
 import tensorflow as tf
@@ -64,7 +65,9 @@ def attack_order_dec(target_data, base):
 
     class UAVEnv:
        def __init__(self, targets, base):
+           # targets: 目标集合。
            self.targets = targets
+           # base: 基础。
            self.base = base
            self.reset()
 
@@ -188,10 +191,10 @@ def attack_order_dec(target_data, base):
     # 创建环境并训练模型
     env = UAVEnv(target_data, base_location)
     trained_model, rewards, losses = train_dqn(env)
-    
+
     # 绘制奖励和损失曲线
     plt.figure(figsize=(12, 5))
-    
+
     # 绘制奖励曲线
     plt.subplot(1, 2, 1)
     plt.plot(rewards, label='Total Reward per Episode')
@@ -199,7 +202,7 @@ def attack_order_dec(target_data, base):
     plt.ylabel('Total Reward')
     plt.title('Reward per Episode')
     plt.legend()
-    
+
     # 绘制损失曲线
     plt.subplot(1, 2, 2)
     plt.plot(losses, label='Average Loss per Episode', color='orange')
@@ -207,10 +210,10 @@ def attack_order_dec(target_data, base):
     plt.ylabel('Average Loss')
     plt.title('Loss per Episode')
     plt.legend()
-    
+
     plt.tight_layout()
     plt.show()
-    
+
     # 打印最终打击顺序
     print("Final Strike Sequence (Target Indices):")
     print(env.path)

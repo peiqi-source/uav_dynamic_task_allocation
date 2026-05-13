@@ -1,3 +1,4 @@
+﻿"""历史版本中的groupingPPO 算法脚本，保留用于算法对照、复现实验或迁移参考。"""
 import time
 import numpy as np
 import torch
@@ -12,11 +13,28 @@ import matplotlib.pyplot as plt
 import torch as nn
 
 class TargetGroupingEnv(gym.Env):
+    """TargetGroupingEnv 类，封装目标grouping环境相关的数据结构与业务行为。
+
+    属性：
+        target_groups: 目标groups。
+        data_Target: 数据目标。
+        action_space: 动作space。
+        observation_space: 观测向量space。
+    """
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(TargetGroupingEnv, self).__init__()
-        
+
+        # target_groups: 目标groups。
         self.target_groups = {
             1: {'num_targets': 6, 'indices': [0, 1, 8, 18, 20, 36], 'targets': []},
             2: {'num_targets': 3, 'indices': [7, 12, 13], 'targets': []},
@@ -27,13 +45,24 @@ class TargetGroupingEnv(gym.Env):
             7: {'num_targets': 12, 'indices': [9, 10, 14, 23, 34, 40, 41, 47, 53, 55, 56, 58], 'targets': []},
             8: {'num_targets': 7, 'indices': [15, 17, 24, 25, 26, 30, 31], 'targets': []}
         }
+        # data_Target: 数据目标。
         self.data_Target = np.loadtxt(open('data_Target_extracted.csv'), delimiter=",", skiprows=1)
+        # action_space: 动作space。
         self.action_space = gym.spaces.MultiDiscrete([8, 62, 8])
 
         num_features = 7
+        # observation_space: 观测向量space。
         self.observation_space = gym.spaces.Box(low=-1, high=1, shape=(8, num_features), dtype=np.float32)
 
     def _compute_state(self):
+        """计算指定指标或中间结果，处理状态相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         state = []
         num_groups = 8
         num_features = 7
@@ -57,7 +86,7 @@ class TargetGroupingEnv(gym.Env):
             importance_defense_ratio = importance_sum / defense_sum if defense_sum > 0 else 0
             all_features[group_id - 1] = [num_targets, x_std, y_std, sum_distances, importance_sum, defense_sum,
                                           importance_defense_ratio]
-        
+
         features_for_z_score = all_features[:, [0, 4, 5, 6]]
         mean_values_z_score = np.mean(features_for_z_score, axis=0)
         std_values_z_score = np.std(features_for_z_score, axis=0)
@@ -65,9 +94,9 @@ class TargetGroupingEnv(gym.Env):
             for j in range(len(features_for_z_score[i])):
                 if std_values_z_score[j] != 0:
                     z_score_value = (features_for_z_score[i][j] - mean_values_z_score[j]) / std_values_z_score[j]
-                    
+
                     features_for_z_score[i][j] = np.tanh(z_score_value)
-        
+
         features_for_min_max = all_features[:, [1, 2, 3]]
         min_values = np.min(features_for_min_max, axis=0)
         max_values = np.max(features_for_min_max, axis=0)
@@ -76,7 +105,7 @@ class TargetGroupingEnv(gym.Env):
                 if max_values[j] - min_values[j] != 0:
                     features_for_min_max[i][j] = (features_for_min_max[i][j] - min_values[j]) / (
                                 max_values[j] - min_values[j])
-        
+
         all_features[:, [0, 4, 5, 6]] = features_for_z_score
         all_features[:, [1, 2, 3]] = features_for_min_max
 
@@ -85,6 +114,15 @@ class TargetGroupingEnv(gym.Env):
         return all_features
 
     def reset(self, seed=None, options=None):
+        """重置对象状态，为新的回合或流程做准备。
+
+        参数：
+            seed: 随机种子。
+            options: options 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         super().reset(seed=seed)
         initial_groupings = {
             1: {'num_targets': 6, 'indices': [0, 1, 8, 18, 20, 36], 'targets': []},
@@ -104,22 +142,38 @@ class TargetGroupingEnv(gym.Env):
         return self._compute_state(), {}
 
     def get_action_mask(self):
-        action_mask = np.zeros((8, 62, 8), dtype=bool)  
+        """处理get动作掩码相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
+        action_mask = np.zeros((8, 62, 8), dtype=bool)
 
         for source_group_id in range(8):
             source_group_indices = self.target_groups[source_group_id + 1]['indices']
             for target_index in source_group_indices:
                 for target_group_id in range(8):
-                    if target_group_id!= source_group_id:  
+                    if target_group_id!= source_group_id:
                         action_mask[source_group_id, target_index, target_group_id] = True
 
         return action_mask
 
     def step(self, action):
+        """推进环境或仿真流程的一个时间步。
+
+        参数：
+            action: 动作。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         group1, target_index, group2 = action
-        
+
         if group1 < 1 or group1 > 8 or group2 < 1 or group2 > 8:
-            reward = -1  
+            reward = -1
             print("！！！！！！！选择的群组编号不合法！！！！！！！！！！")
             terminated = False
             truncated = False
@@ -142,7 +196,7 @@ class TargetGroupingEnv(gym.Env):
             truncated = False
             return self._compute_state(), reward, terminated, truncated, {}
 
-        
+
         if target_group['num_targets'] == 0:
             reward = -1
             print("！！！！！！！目标群为空，无法执行移动操作！！！！！！！")
@@ -158,7 +212,7 @@ class TargetGroupingEnv(gym.Env):
 
         target_group['targets'] = np.vstack([target_group['targets'], target_to_move])
         target_group['num_targets'] += 1
-        target_group['indices'] = np.append(target_group['indices'], target_index_in_data_Target)  
+        target_group['indices'] = np.append(target_group['indices'], target_index_in_data_Target)
 
         reward = self._calculate_reward()
 
@@ -171,6 +225,14 @@ class TargetGroupingEnv(gym.Env):
 
     def _calculate_reward(self):
 
+        """计算指定指标或中间结果，处理奖励相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         num_targets_per_group = [group['num_targets'] for group in self.target_groups.values()]
         avg_num_targets = np.mean(num_targets_per_group)
         num_targets_balance_reward = - np.std(num_targets_per_group) / avg_num_targets
@@ -195,23 +257,52 @@ class TargetGroupingEnv(gym.Env):
                                      for group in self.target_groups.values()]
         avg_ratio = np.mean(importance_defense_ratios)
         task_balance_reward = - np.std(importance_defense_ratios) / avg_ratio if avg_ratio > 0 else 0
-        
+
         reward = num_targets_balance_reward + compactness_reward + task_balance_reward
         return reward
 
     def render(self):
-        
+
+        """处理render 数据相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         for group_id in self.target_groups:
-            
+
             break
 
 
 class MaskedPPO():
+    """MaskedPPO 类，封装maskedPPO 算法相关的数据结构与业务行为。"""
     def __init__(self, policy, env, **kwargs):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            policy: policy 参数。
+            env: 环境对象。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super().__init__(policy, env, **kwargs)
 
     def predict(self, observation, state=None, mask=None, deterministic=False):
 
+        """处理predict 数据相关业务逻辑。
+
+        参数：
+            observation: 观测向量。
+            state: 状态。
+            mask: 掩码。
+            deterministic: deterministic 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         if mask is None:
             return super().predict(observation, state, deterministic=deterministic)
 

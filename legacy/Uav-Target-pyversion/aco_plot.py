@@ -1,9 +1,18 @@
+﻿"""历史版本中的aco绘图脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 
 
 def set_chinese_font():
+    """处理setchinesefont相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     font_path = None
     for font in fm.findSystemFonts(fontpaths=None, fontext='ttf'):
         if 'SimHei' in font:

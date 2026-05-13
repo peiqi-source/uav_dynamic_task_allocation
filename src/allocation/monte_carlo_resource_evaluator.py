@@ -1,3 +1,4 @@
+﻿"""资源分配模块中的montecarlo资源evaluator实现。"""
 from __future__ import annotations
 
 import csv
@@ -24,19 +25,38 @@ class MonteCarloResourceEvaluatorError(Exception):
 class MonteCarloResourceEvaluatorConfig:
     """Configuration for Monte Carlo cluster resource sufficiency assessment."""
 
+    # num_simulations: numsimulations。
     num_simulations: int = 300
+    # completion_threshold: completionthreshold。
     completion_threshold: float = 0.8
+    # uav_loss_probability: 无人机损失值probability。
     uav_loss_probability: float = 0.05
+    # target_defense_noise: 目标防御能力noise。
     target_defense_noise: float = 0.1
+    # hit_probability_noise: hitprobabilitynoise。
     hit_probability_noise: float = 0.05
+    # distance_consumption_weight: distanceconsumption权重。
     distance_consumption_weight: float = 0.05
+    # min_hit_probability: 最小值hitprobability。
     min_hit_probability: float = 0.05
+    # max_hit_probability: 最大值hitprobability。
     max_hit_probability: float = 0.98
+    # random_seed: 随机随机种子。
     random_seed: int = 42
+    # output_csv_path: 输出CSV 数据路径。
     output_csv_path: str = "outputs/resource_assessment/monte_carlo_results.csv"
+    # figure_path: 图表路径。
     figure_path: str = "outputs/resource_assessment/monte_carlo_completion_distribution.png"
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.num_simulations <= 0:
             raise MonteCarloResourceEvaluatorError("num_simulations must be positive.")
         if not 0.0 <= self.completion_threshold <= 1.0:
@@ -63,23 +83,46 @@ class MonteCarloResourceEvaluatorConfig:
 class ResourceAssessmentResult:
     """Monte Carlo resource assessment result for one target cluster."""
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # completion_probability: completionprobability。
     completion_probability: float
+    # mean_completion_rate: 均值completion率。
     mean_completion_rate: float
+    # std_completion_rate: 标准差completion率。
     std_completion_rate: float
+    # quantile_05: quantile05。
     quantile_05: float
+    # quantile_50: quantile50。
     quantile_50: float
+    # quantile_95: quantile95。
     quantile_95: float
+    # threshold: threshold 数据。
     threshold: float
+    # threshold_passed: thresholdpassed。
     threshold_passed: bool
+    # resource_sufficiency: 资源sufficiency。
     resource_sufficiency: str
+    # support_required: 支援required。
     support_required: bool
+    # recommended_support_type: recommended支援类型。
     recommended_support_type: str
+    # details: details 数据。
     details: dict[str, Any] = field(default_factory=dict)
+    # samples: samples 数据。
     samples: list[float] = field(default_factory=list)
+    # trial_records: trialrecords。
     trial_records: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self, include_samples: bool = False) -> dict[str, Any]:
+        """将对象转换为字典，便于日志记录、序列化或调试输出。
+
+        参数：
+            include_samples: includesamples，类型为 bool。
+
+        返回：
+            dict[str, Any]，表示该函数计算或构建得到的结果。
+        """
         payload = asdict(self)
         if not include_samples:
             payload.pop("samples", None)
@@ -98,14 +141,32 @@ class MonteCarloResourceEvaluator:
     """
 
     def __init__(self, config: MonteCarloResourceEvaluatorConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 MonteCarloResourceEvaluatorConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
+        # _rng: rng 数据。
         self._rng = np.random.default_rng(config.random_seed)
 
     def assess_assignment(
         self,
         assignment: ClusterAssignment,
     ) -> ResourceAssessmentResult:
+        """处理assessassignment相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            ResourceAssessmentResult，表示该函数计算或构建得到的结果。
+        """
         assignment.validate()
 
         targets = list(assignment.target_cluster.targets)
@@ -206,6 +267,14 @@ class MonteCarloResourceEvaluator:
         self,
         allocation_plan: AllocationPlan,
     ) -> list[ResourceAssessmentResult]:
+        """处理assess资源分配相关业务逻辑。
+
+        参数：
+            allocation_plan: 资源分配规划方案，类型为 AllocationPlan。
+
+        返回：
+            list[ResourceAssessmentResult]，表示该函数计算或构建得到的结果。
+        """
         allocation_plan.validate()
         return [
             self.assess_assignment(assignment)
@@ -218,6 +287,16 @@ class MonteCarloResourceEvaluator:
         output_path: str | Path | None = None,
         project_root: str | Path | None = None,
     ) -> Path:
+        """处理writeCSV 数据相关业务逻辑。
+
+        参数：
+            results: 结果集合，类型为 list[ResourceAssessmentResult]。
+            output_path: 输出路径，类型为 str | Path | None。
+            project_root: projectroot，类型为 str | Path | None。
+
+        返回：
+            Path，表示该函数计算或构建得到的结果。
+        """
         path = resolve_path(
             output_path or self.config.output_csv_path,
             project_root=project_root,
@@ -291,6 +370,16 @@ class MonteCarloResourceEvaluator:
         output_path: str | Path | None = None,
         project_root: str | Path | None = None,
     ) -> Path | None:
+        """处理writedistribution绘图相关业务逻辑。
+
+        参数：
+            results: 结果集合，类型为 list[ResourceAssessmentResult]。
+            output_path: 输出路径，类型为 str | Path | None。
+            project_root: projectroot，类型为 str | Path | None。
+
+        返回：
+            Path | None，表示该函数计算或构建得到的结果。
+        """
         if not results:
             return None
 
@@ -334,6 +423,16 @@ class MonteCarloResourceEvaluator:
         attack_uavs: list[UAV],
         assignment: ClusterAssignment,
     ) -> dict[str, float]:
+        """处理simulateonce相关业务逻辑。
+
+        参数：
+            targets: 目标集合，类型为 list[Target]。
+            attack_uavs: 攻击uavs，类型为 list[UAV]。
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            dict[str, float]，表示该函数计算或构建得到的结果。
+        """
         available_uavs = [
             uav for uav in attack_uavs
             if self._rng.random() >= self.config.uav_loss_probability
@@ -404,6 +503,14 @@ class MonteCarloResourceEvaluator:
 
     @staticmethod
     def _resource_redundancy_ratio(assignment: ClusterAssignment) -> float:
+        """处理资源redundancyratio相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         required = max(int(assignment.required_attack_uav_count), 1)
         assigned = len(assignment.assigned_attack_uavs)
         return float((assigned - required) / required)
@@ -413,6 +520,15 @@ class MonteCarloResourceEvaluator:
         assignment: ClusterAssignment,
         attack_uavs: list[UAV],
     ) -> float:
+        """处理distanceconsumption相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+            attack_uavs: 攻击uavs，类型为 list[UAV]。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         center = assignment.target_cluster.center
         if not attack_uavs:
             return 0.0
@@ -431,6 +547,16 @@ class MonteCarloResourceEvaluator:
         mean_completion_rate: float,
         resource_redundancy_ratio: float,
     ) -> float:
+        """处理支援trigger评分相关业务逻辑。
+
+        参数：
+            completion_probability: completionprobability，类型为 float。
+            mean_completion_rate: 均值completion率，类型为 float。
+            resource_redundancy_ratio: 资源redundancyratio，类型为 float。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         probability_gap = max(0.0, self.config.completion_threshold - completion_probability)
         mean_gap = max(0.0, self.config.completion_threshold - mean_completion_rate)
         shortage_gap = max(0.0, -resource_redundancy_ratio)
@@ -444,6 +570,18 @@ class MonteCarloResourceEvaluator:
         resource_redundancy_ratio: float,
         threshold_passed: bool,
     ) -> list[str]:
+        """处理shortagereasons相关业务逻辑。
+
+        参数：
+            attack_uavs: 攻击uavs，类型为 list[UAV]。
+            guide_uavs: 导引uavs，类型为 list[UAV]。
+            communication_uavs: 通信uavs，类型为 list[UAV]。
+            resource_redundancy_ratio: 资源redundancyratio，类型为 float。
+            threshold_passed: thresholdpassed，类型为 bool。
+
+        返回：
+            list[str]，表示该函数计算或构建得到的结果。
+        """
         reasons: list[str] = []
         if not threshold_passed:
             reasons.append("completion_probability_below_threshold")
@@ -465,6 +603,18 @@ class MonteCarloResourceEvaluator:
         mean_completion_rate: float,
         threshold_passed: bool,
     ) -> str:
+        """处理recommend支援类型相关业务逻辑。
+
+        参数：
+            attack_uavs: 攻击uavs，类型为 list[UAV]。
+            guide_uavs: 导引uavs，类型为 list[UAV]。
+            communication_uavs: 通信uavs，类型为 list[UAV]。
+            mean_completion_rate: 均值completion率，类型为 float。
+            threshold_passed: thresholdpassed，类型为 bool。
+
+        返回：
+            str，表示该函数计算或构建得到的结果。
+        """
         if threshold_passed:
             return "no_support"
         if not attack_uavs or mean_completion_rate < 0.5:

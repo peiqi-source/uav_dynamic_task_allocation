@@ -1,3 +1,4 @@
+﻿"""历史版本中的KMeans 算法步数2脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 import Kmeans_step2Core
@@ -5,6 +6,16 @@ import Kmeans_step2Core
 def Kmeans_step2(data_Target = None,cluster_1 = None,d = None):
 
     # Set algorithm parameters
+    """处理KMeans 算法步数2相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        cluster_1: 目标簇1。
+        d: d 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     TOL = 0.15
     ITER = 3000
     kappa = d
@@ -63,5 +74,5 @@ def Kmeans_step2(data_Target = None,cluster_1 = None,d = None):
         Sorting = Sort[np.argsort(Sort[:, 3])[::-1], :]
         # cluster[i] = Sorting
         cluster.append(Sorting)
-    
+
     return cluster

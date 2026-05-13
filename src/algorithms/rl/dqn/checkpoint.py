@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的检查点实现。"""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
@@ -37,11 +38,17 @@ class DQNCheckpointConfig:
         而且我们还没有实现 buffer 的序列化恢复逻辑。
     """
 
+    # enabled: enabled 数据。
     enabled: bool = True
+    # checkpoint_dir: 检查点dir。
     checkpoint_dir: str = "checkpoints/dqn"
+    # latest_filename: latestfilename。
     latest_filename: str = "latest.pt"
+    # best_filename: bestfilename。
     best_filename: str = "best.pt"
+    # save_optimizer: saveoptimizer。
     save_optimizer: bool = True
+    # save_replay_buffer: savereplay经验缓冲区。
     save_replay_buffer: bool = False
 
     def validate(self) -> None:
@@ -72,20 +79,29 @@ class DQNCheckpointMetadata:
     当时 reward 是多少、网络更新了多少次、epsilon 下降到了多少。
     """
 
+    # episode: 训练回合。
     episode: int = 0
+    # global_env_steps: global环境步数。
     global_env_steps: int = 0
 
+    # total_action_steps: total动作步数。
     total_action_steps: int = 0
+    # total_update_steps: totalupdate步数。
     total_update_steps: int = 0
 
+    # best_reward: best奖励。
     best_reward: float | None = None
+    # last_reward: last奖励。
     last_reward: float | None = None
+    # epsilon: 探索率。
     epsilon: float | None = None
 
+    # created_at: createdat。
     created_at: str = field(
         default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
 
+    # extra: extra 数据。
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -97,8 +113,11 @@ class DQNCheckpointLoadResult:
     返回 metadata 和原始 checkpoint 字典，便于后续恢复训练器状态或调试。
     """
 
+    # path: 路径。
     path: Path
+    # metadata: 扩展元数据。
     metadata: DQNCheckpointMetadata
+    # raw_checkpoint: raw检查点。
     raw_checkpoint: dict[str, Any]
 
 
@@ -124,11 +143,23 @@ class DQNCheckpointManager:
         config: DQNCheckpointConfig,
         project_root: str | Path | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 DQNCheckpointConfig。
+            project_root: project_root 参数，类型为 str | Path | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
 
+        # config: 配置。
         self.config = config
+        # project_root: projectroot。
         self.project_root = Path(project_root) if project_root is not None else None
 
+        # checkpoint_dir: 检查点dir。
         self.checkpoint_dir = resolve_path(
             self.config.checkpoint_dir,
             project_root=self.project_root,

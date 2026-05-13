@@ -1,3 +1,4 @@
+﻿"""历史版本中的new目标脚本，保留用于算法对照、复现实验或迁移参考。"""
 import random
 import numpy as np
 import Target_Screen
@@ -10,14 +11,32 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 def calculate_angle(x, y):
-    angle = np.arctan2(y, x)  
-    angle_degrees = np.degrees(angle)  
+    """计算指定指标或中间结果，处理angle 数据相关数据。
+
+    参数：
+        x: 横坐标。
+        y: 纵坐标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
+    angle = np.arctan2(y, x)
+    angle_degrees = np.degrees(angle)
     if angle_degrees < 0:
-        angle_degrees += 360  
+        angle_degrees += 360
     return angle_degrees
 
 
 def assess_combat_resources(data_Target, data_UAV):
+    """处理assesscombat资源集合相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     total_resources_required = sum(data_Target[:, -1])
     available_resources = sum(data_UAV[:, -1])
     if total_resources_required <= available_resources:
@@ -27,7 +46,19 @@ def assess_combat_resources(data_Target, data_UAV):
 
 
 def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
-    num_new_targets = random.randint(1, 3)  
+    """处理handlenew目标事件相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        data_UAV: 数据无人机。
+        attack: 攻击。
+        cluster_1: 目标簇1。
+        cluster: 目标簇。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
+    num_new_targets = random.randint(1, 3)
     new_targets = []
 
     for _ in range(num_new_targets):
@@ -54,11 +85,11 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
     plt.plot(0, 0, 'bp', markerfacecolor='r', markersize=15)
     plt.text(0 + 0.01, 0, 'Base')
     '''
-    
+
     start_time = time.time()
     data2 = Target_Screen.Target_Screen(data_Target, attack)
 
-    
+
     rf_clf = joblib.load('random_forest_model.joblib')
     new_features = data2[-num_new_targets:, 3:6]
     predictions = rf_clf.predict(new_features)
@@ -72,10 +103,10 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
             target_data = data2[data2[:, 0] == new_target_index][:, :6]
             if target_data.size > 0:
                 target_data = target_data[0]
-                target_data = np.append(target_data, new_target_info[4])  
+                target_data = np.append(target_data, new_target_info[4])
                 destroy_targets.append(target_data)
     end_time = time.time()
-    
+
     execution_time = end_time - start_time
     print(f"使用RF预测耗时: {execution_time:.3f} 秒")
 
@@ -95,7 +126,7 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
         new_target_index = new_target_info[0]
         if new_target_index in destroy_targets_indices:
             print(f"New target {new_target_index} added to destroy targets set.")
-            
+
             cluster_1[1] = np.vstack([cluster_1[1], second_array[np.where(second_array[:, 0] == new_target_index)][0]])
             added_to_destroy_set = True
     """
@@ -103,11 +134,11 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
     """
     if new_target_index in destroy_targets_indices:
         print(f"New target {new_target_index} added to destroy targets set.")
-        
+
         cluster_1[1] = np.vstack([cluster_1[1], second_array[-1]])
 
-        
-        
+
+
         cluster = Kmeans_step2.Kmeans_step2(data_Target, cluster_1, d)
     """
 
@@ -115,14 +146,14 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
         destroy_targets = np.array(destroy_targets)
         cluster_1[1] = np.vstack([cluster_1[1], destroy_targets])
 
-        
+
         if not assess_combat_resources(cluster_1[1], data_UAV):
             print(f"进攻资源有限，筛选摧毁目标集!")
-            
+
             num_to_remove = np.sum(predictions == 1)
-            sorted_indices = np.argsort(cluster_1[1][:, 3])  
+            sorted_indices = np.argsort(cluster_1[1][:, 3])
             removed_indices = sorted_indices[:num_to_remove]
-            removed_targets = cluster_1[1][removed_indices, 0]  
+            removed_targets = cluster_1[1][removed_indices, 0]
             cluster_1[1] = np.delete(cluster_1[1], removed_indices, axis=0)
 
             for removed_index in removed_targets:
@@ -130,7 +161,7 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
 
         start_time = time.time()
         targets = cluster_1[1]
-        
+
 
         plt.figure(1)
         plt.title('摧毁目标集')
@@ -166,7 +197,7 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
         print(f"PSO分簇耗时: {execution_time:.3f} 秒")
 
         colors = ['red', 'green', 'blue']
-        
+
         fig = plt.figure(3)
         ax = fig.add_subplot(111, projection='3d')
 
@@ -178,9 +209,9 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
 
             original_positions = np.array(
                 [data_Target[data_Target[:, 0] == target[0], 1:4] for target in cluster_targets]).reshape(-1, 3)
-            x = original_positions[:, 0]  
-            y = original_positions[:, 1]  
-            z = cluster_targets[:, 3]  
+            x = original_positions[:, 0]
+            y = original_positions[:, 1]
+            z = cluster_targets[:, 3]
             indices = cluster_targets[:, 0]
 
             ax.scatter(x, y, z, color=colors[cluster_id], label=f'Cluster {cluster_id + 1}')
@@ -209,7 +240,7 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
             updated_clusters.append(updated_cluster)
 
         cluster = updated_clusters
-        
+
         aco_plot.plot_clusters_and_routes(cluster)
 
     else:
@@ -222,7 +253,7 @@ def handle_new_target_event(data_Target, data_UAV, attack, cluster_1, cluster):
         ax.scatter(0, 0, 0, c='r', marker='*', label='飞行器基地')
         ax.text(0 + 0.01, 0, 0, '飞行器基地')
         for i, cluster_group in enumerate(cluster):
-            if i >= len(colors):  
+            if i >= len(colors):
                 color = colors[i % len(colors)]
             else:
                 color = colors[i]

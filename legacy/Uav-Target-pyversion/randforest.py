@@ -1,3 +1,4 @@
+"""历史版本中的randforest 数据脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split

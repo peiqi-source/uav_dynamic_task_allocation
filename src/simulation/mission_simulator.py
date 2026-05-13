@@ -1,3 +1,4 @@
+﻿"""仿真模块中的任务仿真器实现。"""
 from __future__ import annotations
 
 import csv
@@ -42,19 +43,35 @@ class MissionSimulatorConfig:
         UAV 小组到达目标群后，每个时间步最多打击多少个目标。
     """
 
+    # time_step: 时间步数。
     time_step: float = 30.0
+    # max_time: 最大值时间。
     max_time: float = 2200.0
 
+    # default_uav_speed: default无人机speed。
     default_uav_speed: float = 80.0
+    # arrival_tolerance: arrivaltolerance。
     arrival_tolerance: float = 100.0
+    # strike_targets_per_step: 打击目标集合per步数。
     strike_targets_per_step: int = 1
 
+    # stop_when_all_planned_targets_destroyed: stopwhenallplanned目标集合毁伤状态。
     stop_when_all_planned_targets_destroyed: bool = True
 
+    # simulation_log_csv_path: 仿真日志CSV 数据路径。
     simulation_log_csv_path: str = "outputs/simulation/mission_simulation_log.csv"
+    # uav_trajectory_csv_path: 无人机trajectoryCSV 数据路径。
     uav_trajectory_csv_path: str = "outputs/simulation/uav_trajectory_log.csv"
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.time_step <= 0:
             raise MissionSimulatorError("time_step must be positive.")
 
@@ -81,26 +98,53 @@ class ClusterExecutionState:
     到达后按 StrikeOrderPlan 中的 ordered_target_ids 逐个打击目标。
     """
 
+    # cluster_id: 目标簇编号。
     cluster_id: int
+    # current_position: 当前位置坐标。
     current_position: Position
+    # target_center: 目标center。
     target_center: Position
+    # assigned_attack_uav_ids: assigned攻击无人机编号集合。
     assigned_attack_uav_ids: list[int]
+    # assigned_guide_uav_ids: assigned导引无人机编号集合。
     assigned_guide_uav_ids: list[int]
+    # ordered_target_ids: ordered目标编号集合。
     ordered_target_ids: list[int]
 
+    # status: 状态。
     status: str = "en_route"
+    # current_order_index: 当前顺序index。
     current_order_index: int = 0
+    # reached_time: reached时间。
     reached_time: float | None = None
+    # completed_time: completed时间。
     completed_time: float | None = None
 
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def remaining_target_ids(self) -> list[int]:
+        """处理remaining目标编号集合相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            list[int]，表示该函数计算或构建得到的结果。
+        """
         return self.ordered_target_ids[self.current_order_index :]
 
     @property
     def is_completed(self) -> bool:
+        """处理iscompleted相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         return self.status == "completed"
 
 
@@ -108,28 +152,46 @@ class ClusterExecutionState:
 class SimulationStepRecord:
     """单个仿真时间步记录。"""
 
+    # time: 时间。
     time: float
+    # event_types: 事件types。
     event_types: list[str]
+    # replanning_count: 重规划count。
     replanning_count: int
+    # destroyed_target_ids: 毁伤状态目标编号集合。
     destroyed_target_ids: list[int]
+    # disappeared_target_ids: disappeared目标编号集合。
     disappeared_target_ids: list[int]
+    # damaged_uav_ids: damaged无人机编号集合。
     damaged_uav_ids: list[int]
+    # available_target_count: available目标count。
     available_target_count: int
+    # available_uav_count: available无人机count。
     available_uav_count: int
+    # completed_cluster_count: completed目标簇count。
     completed_cluster_count: int
+    # total_cluster_count: total目标簇count。
     total_cluster_count: int
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class UAVTrajectoryRecord:
     """单架 UAV 在某个时间步的轨迹状态记录。"""
 
+    # time: 时间。
     time: float
+    # uav_id: 无人机编号。
     uav_id: int
+    # status: 状态。
     status: str
+    # assigned_cluster_id: assigned目标簇编号。
     assigned_cluster_id: int | None
+    # x: 横坐标。
     x: float
+    # y: 纵坐标。
     y: float
+    # is_damaged: isdamaged。
     is_damaged: bool
 
 
@@ -137,11 +199,17 @@ class UAVTrajectoryRecord:
 class MissionSimulationResult:
     """任务仿真结果。"""
 
+    # final_runtime_state: final运行时状态。
     final_runtime_state: MissionRuntimeState
+    # final_mission_plan: final任务规划方案。
     final_mission_plan: MissionPlan
+    # step_records: 步数records。
     step_records: list[SimulationStepRecord]
+    # uav_trajectory_records: 无人机trajectoryrecords。
     uav_trajectory_records: list[UAVTrajectoryRecord]
+    # replanning_results: 重规划结果集合。
     replanning_results: list[Any]
+    # metadata: 扩展元数据。
     metadata: dict[str, Any]
 
 
@@ -165,14 +233,31 @@ class MissionSimulator:
         replanning_controller: ReplanningController,
         logger: logging.Logger | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 MissionSimulatorConfig。
+            event_manager: event_manager 参数，类型为 DynamicEventManager。
+            replanning_controller: replanning_controller 参数，类型为 ReplanningController。
+            logger: 日志器，类型为 logging.Logger | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
 
+        # config: 配置。
         self.config = config
+        # event_manager: 事件manager。
         self.event_manager = event_manager
+        # replanning_controller: 重规划controller。
         self.replanning_controller = replanning_controller
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
+        # cluster_states: 目标簇states。
         self.cluster_states: dict[int, ClusterExecutionState] = {}
+        # replanning_results: 重规划结果集合。
         self.replanning_results: list[Any] = []
 
     def run(
@@ -889,6 +974,15 @@ class MissionSimulator:
 
     @staticmethod
     def _distance(position_a: Position, position_b: Position) -> float:
+        """处理distance 数据相关业务逻辑。
+
+        参数：
+            position_a: 位置坐标a，类型为 Position。
+            position_b: 位置坐标b，类型为 Position。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         return math.sqrt(
             (position_a.x - position_b.x) ** 2
             + (position_a.y - position_b.y) ** 2

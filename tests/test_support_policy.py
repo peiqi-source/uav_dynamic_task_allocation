@@ -1,3 +1,4 @@
+﻿"""test支援策略测试模块，用于验证对应业务模块的关键行为。"""
 from uav_dynamic_task_allocation.core.contracts import (
     AllocationPlan,
     ClusterAssignment,
@@ -13,6 +14,16 @@ from uav_dynamic_task_allocation.planning.support_policy import (
 
 
 def _assignment(cluster_id: int, uav_id: int, completion: float):
+    """处理assignment 数据相关业务逻辑。
+
+    参数：
+        cluster_id: 目标簇编号，类型为 int。
+        uav_id: 无人机编号，类型为 int。
+        completion: completion 数据，类型为 float。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     target = Target(cluster_id + 1, Position(float(cluster_id), 0), 1, 1, 1)
     uav = UAV(uav_id, Position(0, 0), UAVType.ATTACK, 100, 5)
     cluster = TargetCluster(cluster_id, [target], target.position, 1, 1)
@@ -27,6 +38,14 @@ def _assignment(cluster_id: int, uav_id: int, completion: float):
 
 
 def test_support_policy_produces_fire_support_decision():
+    """处理test支援策略producesfire支援决策相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     receiver = _assignment(0, 1, 0.3)
     donor = _assignment(1, 2, 0.95)
     plan = AllocationPlan(assignments=[receiver, donor])

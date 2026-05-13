@@ -1,3 +1,4 @@
+﻿"""历史版本中的gnnclustering脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
@@ -31,19 +32,19 @@ scaled_features = scaler.fit_transform(features)
 
 from minisom import MiniSom
 
-som_dim = (5, 5)  
-input_len = scaled_features.shape[1]  
+som_dim = (5, 5)
+input_len = scaled_features.shape[1]
 
 som = MiniSom(som_dim[0], som_dim[1], input_len, sigma=1.0, learning_rate=0.5)
 
-som.train(scaled_features, 100)  
+som.train(scaled_features, 100)
 
 import matplotlib.pyplot as plt
 
 weights = som.get_weights()
 plt.figure(figsize=(7, 7))
 for i, x in enumerate(scaled_features):
-    w = som.winner(x)  
+    w = som.winner(x)
     plt.text(w[0], w[1], str(int(data_Target[i][0])), color='red',
              ha='center', va='center')
 

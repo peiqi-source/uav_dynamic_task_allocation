@@ -1,37 +1,38 @@
+﻿"""历史版本中的montecarloanalysis脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 
 
-matplotlib.rcParams['font.family'] = 'SimHei'  
-matplotlib.rcParams['axes.unicode_minus'] = False  
+matplotlib.rcParams['font.family'] = 'SimHei'
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 
-num_simulations = 10000  
-num_targets_per_group = 20  
+num_simulations = 10000
+num_targets_per_group = 20
 
 
-firepower_range = (5, 20)  
-num_drones_range = (5, 10)  
-defense_levels = np.random.randint(80, 150, num_targets_per_group)  
-distances = np.random.uniform(300, 2000, num_targets_per_group)  
+firepower_range = (5, 20)
+num_drones_range = (5, 10)
+defense_levels = np.random.randint(80, 150, num_targets_per_group)
+distances = np.random.uniform(300, 2000, num_targets_per_group)
 
 
 def simulate_damage_probability(num_drones, firepower, defense_levels, distances):
-    scale_factor = 600  
+    scale_factor = 600
     probabilities = (firepower * num_drones * scale_factor) / (defense_levels * (1 + distances))
-    probabilities = np.clip(probabilities, 0, 1)  
-    return probabilities.mean()  
+    probabilities = np.clip(probabilities, 0, 1)
+    return probabilities.mean()
 
 
 overall_probabilities = []
 
 for _ in range(num_simulations):
-    
+
     firepower = np.random.uniform(*firepower_range)
     num_drones = np.random.randint(*num_drones_range)
 
-    
+
     overall_damage_probability = simulate_damage_probability(num_drones, firepower, defense_levels, distances)
     overall_probabilities.append(overall_damage_probability)
 
@@ -52,8 +53,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 
-matplotlib.rcParams['font.family'] = 'SimHei'  
-matplotlib.rcParams['axes.unicode_minus'] = False  
+matplotlib.rcParams['font.family'] = 'SimHei'
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,7 +69,7 @@ attacker_img = mpimg.imread('D:/西工大/2024秋/大论文/图库/攻击机.jpe
 
 num_groups = 3
 num_defense_per_group = 1
-num_high_value_per_group = np.random.randint(6, 8, num_groups)  
+num_high_value_per_group = np.random.randint(6, 8, num_groups)
 num_targets = num_groups * (num_defense_per_group + num_high_value_per_group.sum())
 
 
@@ -84,29 +85,29 @@ target_types = []
 defense_levels = []
 
 for center in group_centers:
-    
+
     positions.append(center)
     target_types.append('defense')
     defense_levels.append(np.random.randint(3, 5))
-    
+
     for _ in range(np.random.randint(6, 8)):
-        
-        offset = np.random.rand(2) * 1400 - 200  
+
+        offset = np.random.rand(2) * 1400 - 200
         positions.append(center + offset)
         target_types.append('high_value')
-        defense_levels.append(2)  
+        defense_levels.append(2)
 
 positions = np.array(positions)
 target_types = np.array(target_types)
 
 total_defense = sum(defense_levels)
-num_scouts = 3  
-num_attackers = 12  
+num_scouts = 3
+num_attackers = 12
 firepower = 39
 
 plt.figure(figsize=(10, 6))
 plt.scatter(positions[target_types == 'defense', 0], positions[target_types == 'defense', 1],
-            marker='^', color='blue', label='防御阵地', s=100)  
+            marker='^', color='blue', label='防御阵地', s=100)
 plt.scatter(positions[target_types == 'high_value', 0], positions[target_types == 'high_value', 1],
             marker='o', color='orange', label='高价值目标', s=100)
 
@@ -123,12 +124,12 @@ plt.scatter(0, -1900, marker='*', color='red', s=300, label='无人机基地')
 plt.annotate("无人机基地", (0, -1900), textcoords="offset points", xytext=(0,10), ha='center')
 
 
-img_size = 600  
-plt.imshow(scout_img, extent=(-600, 150, -1650, -1450), aspect='auto')  
-plt.text(-250, -1460, '侦察机×3', color='green', fontsize=12, ha='center')  
+img_size = 600
+plt.imshow(scout_img, extent=(-600, 150, -1650, -1450), aspect='auto')
+plt.text(-250, -1460, '侦察机×3', color='green', fontsize=12, ha='center')
 
-plt.imshow(attacker_img, extent=(50, 500, -1650, -1450), aspect='auto')  
-plt.text(275, -1460, '攻击机×12', color='purple', fontsize=12, ha='center')  
+plt.imshow(attacker_img, extent=(50, 500, -1650, -1450), aspect='auto')
+plt.text(275, -1460, '攻击机×12', color='purple', fontsize=12, ha='center')
 
 plt.title("目标位置")
 plt.xlabel("X 位置")
@@ -149,7 +150,7 @@ plt.ylabel("数量/强度")
 plt.grid(axis='y')
 plt.show()
 
-resources = [3, 12, 39, 33]  
+resources = [3, 12, 39, 33]
 resource_labels = ['侦察机数量', '攻击机数量', '总火力强度', '目标群防御力总和']
 
 bar_width = 0.2
@@ -180,11 +181,11 @@ scout_img = mpimg.imread('D:/西工大/2024秋/大论文/图库/侦察机.jpg')
 attacker_img = mpimg.imread('D:/西工大/2024秋/大论文/图库/攻击机.jpeg')
 
 marker_dict = {
-        1: ('o', 'r'),  
-        2: ('s', 'g'),  
-        3: ('^', 'b'),  
-        4: ('p', 'm'),  
-        5: ('D', 'y')  
+        1: ('o', 'r'),
+        2: ('s', 'g'),
+        3: ('^', 'b'),
+        4: ('p', 'm'),
+        5: ('D', 'y')
     }
 plt.figure(figsize=(10, 8))
 for data in data_Target:
@@ -192,9 +193,9 @@ for data in data_Target:
     x = data[1] * 10
     y = data[2] * 10
     target_type = int(data[6])
-    marker, color = marker_dict.get(target_type, ('o', 'k'))  
+    marker, color = marker_dict.get(target_type, ('o', 'k'))
     plt.scatter(x, y, marker=marker, c=color)
-    
+
 
 legend_labels = ["地面装甲", "防御阵地", "雷达监测站", "通信枢纽", "指挥部"]
 for i in range(1, 6):
@@ -207,12 +208,12 @@ plt.scatter(0, -15000, marker='*', color='red', s=300, label='无人机基地')
 plt.annotate("无人机基地", (0, -15000), textcoords="offset points", xytext=(0,10), ha='center')
 """
 
-img_size = 600  
-plt.imshow(scout_img, extent=(-600, 150, -1650, -1450), aspect='auto')  
-plt.text(-250, -1460, '侦察机×3', color='green', fontsize=12, ha='center')  
+img_size = 600
+plt.imshow(scout_img, extent=(-600, 150, -1650, -1450), aspect='auto')
+plt.text(-250, -1460, '侦察机×3', color='green', fontsize=12, ha='center')
 
-plt.imshow(attacker_img, extent=(50, 500, -1650, -1450), aspect='auto')  
-plt.text(275, -1460, '攻击机×12', color='purple', fontsize=12, ha='center')  
+plt.imshow(attacker_img, extent=(50, 500, -1650, -1450), aspect='auto')
+plt.text(275, -1460, '攻击机×12', color='purple', fontsize=12, ha='center')
 """
 plt.xlabel('X轴')
 plt.ylabel('Y轴')

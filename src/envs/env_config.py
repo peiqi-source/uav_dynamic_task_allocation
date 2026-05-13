@@ -1,3 +1,4 @@
+"""envs 数据模块中的环境配置实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -29,9 +30,13 @@ class BattlefieldBounds:
     因此边界不能写死在环境代码里，必须由配置文件提供，并允许根据真实数据自动扩展。
     """
 
+    # x_min: 横坐标最小值。
     x_min: float
+    # x_max: 横坐标最大值。
     x_max: float
+    # y_min: 纵坐标最小值。
     y_min: float
+    # y_max: 纵坐标最大值。
     y_max: float
 
     def validate(self) -> None:
@@ -114,9 +119,13 @@ class DynamicEventSchedule:
     后续交给 events/event_manager.py 统一调度。
     """
 
+    # target_disappear_times: 目标disappeartimes。
     target_disappear_times: list[float] = field(default_factory=list)
+    # target_appear_times: 目标appeartimes。
     target_appear_times: list[float] = field(default_factory=list)
+    # attack_uav_destroyed_times: 攻击无人机毁伤状态times。
     attack_uav_destroyed_times: list[float] = field(default_factory=list)
+    # guide_uav_destroyed_times: 导引无人机毁伤状态times。
     guide_uav_destroyed_times: list[float] = field(default_factory=list)
 
 
@@ -130,8 +139,11 @@ class RandomEventProbabilities:
     后续由事件模块根据 enable_dynamic_events 决定是否使用。
     """
 
+    # target_appear: 目标appear。
     target_appear: float = 0.0
+    # target_disappear: 目标disappear。
     target_disappear: float = 0.0
+    # uav_destroyed: 无人机毁伤状态。
     uav_destroyed: float = 0.0
 
     def validate(self) -> None:
@@ -154,10 +166,14 @@ class EnvConfig:
     有默认值、有业务含义”的配置对象，减少后续环境模块中的硬编码和 KeyError。
     """
 
+    # name: 名称。
     name: str = "drone_battle"
 
+    # coordinate_mode: coordinatemode。
     coordinate_mode: str = "battlefield"
+    # coordinate_unit: coordinateunit。
     coordinate_unit: str = "m"
+    # bounds: bounds 数据。
     bounds: BattlefieldBounds = field(
         default_factory=lambda: BattlefieldBounds(
             x_min=-2000.0,
@@ -166,27 +182,41 @@ class EnvConfig:
             y_max=2000.0,
         )
     )
+    # auto_infer_bounds_from_data: autoinferboundsfrom数据。
     auto_infer_bounds_from_data: bool = True
+    # boundary_margin_ratio: boundarymarginratio。
     boundary_margin_ratio: float = 0.05
 
+    # max_time: 最大值时间。
     max_time: float = 2200.0
+    # time_step: 时间步数。
     time_step: float = 30.0
+    # uav_speed: 无人机speed。
     uav_speed: float = 70.0
 
+    # base_position: 基础位置坐标。
     base_position: Position = field(
         default_factory=lambda: Position(x=0.0, y=-16000.0)
     )
 
+    # attack_payload_per_uav: 攻击payloadper无人机。
     attack_payload_per_uav: float = 6.0
+    # communication_covers_battlefield: 通信covers战场。
     communication_covers_battlefield: bool = True
+    # simulation_mode: 仿真mode。
     simulation_mode: str = "engagement_training"
+    # enforce_weapon_range: enforceweapon作用范围。
     enforce_weapon_range: bool = False
+    # update_uav_position_after_attack: update无人机位置坐标after攻击。
     update_uav_position_after_attack: bool = True
 
+    # enable_dynamic_events: enable动态事件集合。
     enable_dynamic_events: bool = False
+    # event_schedule: 事件schedule。
     event_schedule: DynamicEventSchedule = field(
         default_factory=DynamicEventSchedule
     )
+    # random_event_probabilities: 随机事件probabilities。
     random_event_probabilities: RandomEventProbabilities = field(
         default_factory=RandomEventProbabilities
     )

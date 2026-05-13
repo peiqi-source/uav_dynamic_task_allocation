@@ -1,3 +1,4 @@
+﻿"""planning 数据模块中的支援策略实现。"""
 from __future__ import annotations
 
 import csv
@@ -23,13 +24,26 @@ class SupportPolicyError(Exception):
 class SupportPolicyConfig:
     """Configuration for event-driven UAV support decisions."""
 
+    # enabled: enabled 数据。
     enabled: bool = True
+    # completion_threshold: completionthreshold。
     completion_threshold: float = 0.8
+    # donor_min_completion_probability: donor最小值completionprobability。
     donor_min_completion_probability: float = 0.85
+    # max_reassigned_uavs: 最大值reassigneduavs。
     max_reassigned_uavs: int = 1
+    # output_csv_path: 输出CSV 数据路径。
     output_csv_path: str = "outputs/support/support_decisions.csv"
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.max_reassigned_uavs < 0:
             raise SupportPolicyError("max_reassigned_uavs must be non-negative.")
         if not 0.0 <= self.completion_threshold <= 1.0:
@@ -40,19 +54,38 @@ class SupportPolicyConfig:
 class SupportDecision:
     """Decision record produced by the dynamic support policy."""
 
+    # support_required: 支援required。
     support_required: bool
+    # support_type: 支援类型。
     support_type: str
+    # event_id: 事件编号。
     event_id: str
+    # donor_cluster_id: donor目标簇编号。
     donor_cluster_id: int | None
+    # receiver_cluster_id: receiver目标簇编号。
     receiver_cluster_id: int | None
+    # reassigned_uav_ids: reassigned无人机编号集合。
     reassigned_uav_ids: list[int] = field(default_factory=list)
+    # affected_target_ids: affected目标编号集合。
     affected_target_ids: list[int] = field(default_factory=list)
+    # reason: reason 数据。
     reason: str = ""
+    # estimated_completion_rate_before: estimatedcompletion率before。
     estimated_completion_rate_before: float | None = None
+    # estimated_completion_rate_after: estimatedcompletion率after。
     estimated_completion_rate_after: float | None = None
+    # updated_plan: updated规划方案。
     updated_plan: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """将对象转换为字典，便于日志记录、序列化或调试输出。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            dict[str, Any]，表示该函数计算或构建得到的结果。
+        """
         return asdict(self)
 
 
@@ -67,7 +100,16 @@ class SupportPolicy:
     """
 
     def __init__(self, config: SupportPolicyConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 SupportPolicyConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
+        # config: 配置。
         self.config = config
 
     def decide_and_apply(
@@ -75,6 +117,15 @@ class SupportPolicy:
         event: MissionEvent,
         allocation_plan: AllocationPlan,
     ) -> SupportDecision:
+        """处理decideandapply相关业务逻辑。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+            allocation_plan: 资源分配规划方案，类型为 AllocationPlan。
+
+        返回：
+            SupportDecision，表示该函数计算或构建得到的结果。
+        """
         allocation_plan.validate()
 
         if not self.config.enabled:
@@ -136,6 +187,16 @@ class SupportPolicy:
         output_path: str | Path | None = None,
         project_root: str | Path | None = None,
     ) -> Path:
+        """处理writeCSV 数据相关业务逻辑。
+
+        参数：
+            decisions: 决策集合，类型为 list[SupportDecision]。
+            output_path: 输出路径，类型为 str | Path | None。
+            project_root: projectroot，类型为 str | Path | None。
+
+        返回：
+            Path，表示该函数计算或构建得到的结果。
+        """
         path = resolve_path(
             output_path or self.config.output_csv_path,
             project_root=project_root,
@@ -167,6 +228,15 @@ class SupportPolicy:
         event: MissionEvent,
         assignments: list[ClusterAssignment],
     ) -> ClusterAssignment | None:
+        """按照策略从候选集合中选择目标对象，处理receiver 数据相关数据。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+            assignments: assignments 数据，类型为 list[ClusterAssignment]。
+
+        返回：
+            ClusterAssignment | None，表示该函数计算或构建得到的结果。
+        """
         affected_uav_ids = {int(uav_id) for uav_id in event.affected_uav_ids}
         affected_target_ids = {int(target_id) for target_id in event.affected_target_ids}
 
@@ -195,6 +265,16 @@ class SupportPolicy:
         assignments: list[ClusterAssignment],
         support_type: str,
     ) -> ClusterAssignment | None:
+        """按照策略从候选集合中选择目标对象，处理donor 数据相关数据。
+
+        参数：
+            receiver: receiver 数据，类型为 ClusterAssignment。
+            assignments: assignments 数据，类型为 list[ClusterAssignment]。
+            support_type: 支援类型，类型为 str。
+
+        返回：
+            ClusterAssignment | None，表示该函数计算或构建得到的结果。
+        """
         candidates: list[ClusterAssignment] = []
         for assignment in assignments:
             if assignment.cluster_id == receiver.cluster_id:
@@ -225,6 +305,16 @@ class SupportPolicy:
         receiver: ClusterAssignment,
         support_type: str,
     ) -> list[UAV]:
+        """处理reassignuavs相关业务逻辑。
+
+        参数：
+            donor: donor 数据，类型为 ClusterAssignment | None。
+            receiver: receiver 数据，类型为 ClusterAssignment。
+            support_type: 支援类型，类型为 str。
+
+        返回：
+            list[UAV]，表示该函数计算或构建得到的结果。
+        """
         if donor is None or self.config.max_reassigned_uavs == 0:
             return []
 
@@ -244,6 +334,15 @@ class SupportPolicy:
 
     @staticmethod
     def _source_list(assignment: ClusterAssignment, support_type: str) -> list[UAV]:
+        """处理sourcelist相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+            support_type: 支援类型，类型为 str。
+
+        返回：
+            list[UAV]，表示该函数计算或构建得到的结果。
+        """
         if support_type == "fire_support":
             return assignment.assigned_attack_uavs
         if support_type == "recon_support":
@@ -257,6 +356,15 @@ class SupportPolicy:
         event: MissionEvent,
         assignment: ClusterAssignment,
     ) -> str:
+        """处理infer支援类型相关业务逻辑。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            str，表示该函数计算或构建得到的结果。
+        """
         if event.event_type == MissionEventType.ATTACK_UAV_DESTROYED:
             return "fire_support"
         if event.event_type == MissionEventType.GUIDE_UAV_DESTROYED:
@@ -275,6 +383,15 @@ class SupportPolicy:
         return "no_support"
 
     def _has_surplus(self, assignment: ClusterAssignment, support_type: str) -> bool:
+        """处理hassurplus相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+            support_type: 支援类型，类型为 str。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         if support_type == "fire_support":
             return len(assignment.assigned_attack_uavs) > 0
         if support_type == "recon_support":
@@ -288,6 +405,15 @@ class SupportPolicy:
         assignment: ClusterAssignment,
         support_type: str,
     ) -> bool:
+        """处理hascountsurplus相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+            support_type: 支援类型，类型为 str。
+
+        返回：
+            bool，表示该函数计算或构建得到的结果。
+        """
         if support_type == "fire_support":
             return (
                 len(assignment.assigned_attack_uavs)
@@ -297,9 +423,25 @@ class SupportPolicy:
 
     @staticmethod
     def _assessment(assignment: ClusterAssignment) -> dict[str, Any]:
+        """处理assessment 数据相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            dict[str, Any]，表示该函数计算或构建得到的结果。
+        """
         return dict(assignment.metadata.get("resource_assessment", {}))
 
     def _completion_probability(self, assignment: ClusterAssignment) -> float:
+        """处理completionprobability相关业务逻辑。
+
+        参数：
+            assignment: assignment 数据，类型为 ClusterAssignment。
+
+        返回：
+            float，表示该函数计算或构建得到的结果。
+        """
         assessment = self._assessment(assignment)
         if "completion_probability" in assessment:
             return float(assessment["completion_probability"])
@@ -309,9 +451,26 @@ class SupportPolicy:
 
     @staticmethod
     def _event_id(event: MissionEvent) -> str:
+        """处理事件编号相关业务逻辑。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+
+        返回：
+            str，表示该函数计算或构建得到的结果。
+        """
         return f"{event.event_type.value}@{event.event_time:g}"
 
     def _no_support(self, event: MissionEvent, reason: str) -> SupportDecision:
+        """处理no支援相关业务逻辑。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+            reason: reason 数据，类型为 str。
+
+        返回：
+            SupportDecision，表示该函数计算或构建得到的结果。
+        """
         return SupportDecision(
             support_required=False,
             support_type="no_support",
@@ -329,6 +488,18 @@ class SupportPolicy:
         support_type: str,
         reassigned: list[UAV],
     ) -> str:
+        """构建后续流程需要的领域对象或配置对象，处理reason 数据相关数据。
+
+        参数：
+            event: 事件，类型为 MissionEvent。
+            receiver: receiver 数据，类型为 ClusterAssignment。
+            donor: donor 数据，类型为 ClusterAssignment | None。
+            support_type: 支援类型，类型为 str。
+            reassigned: reassigned 数据，类型为 list[UAV]。
+
+        返回：
+            str，表示该函数计算或构建得到的结果。
+        """
         if donor is None:
             return (
                 f"{support_type} requested by {event.event_type.value}; "

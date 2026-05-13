@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的无人机battle环境实现。"""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -42,14 +43,21 @@ class AttackExecutionResult:
     这种解耦方式可以让后续 reward 设计持续调整，而不需要频繁改动环境主逻辑。
     """
 
+    # is_valid_action: isvalid动作。
     is_valid_action: bool
+    # invalid_reason: invalidreason。
     invalid_reason: str | None = None
 
+    # target_was_active_before_action: 目标was可用状态before动作。
     target_was_active_before_action: bool = True
+    # target_destroyed_after_action: 目标毁伤状态after动作。
     target_destroyed_after_action: bool = False
+    # target_damaged_after_action: 目标damagedafter动作。
     target_damaged_after_action: bool = False
 
+    # previous_target_defense: previous目标防御能力。
     previous_target_defense: float | None = None
+    # remaining_target_defense: remaining目标防御能力。
     remaining_target_defense: float | None = None
 
 
@@ -72,9 +80,13 @@ class StepResult:
     但在科研调试和论文实验分析中，info 非常重要，因为它能解释 reward 为什么变大或变小。
     """
 
+    # observation: 观测向量。
     observation: dict[str, Any]
+    # reward: 奖励。
     reward: float
+    # done: 结束标记。
     done: bool
+    # info: info 数据。
     info: dict[str, Any]
 
 
@@ -103,47 +115,50 @@ class DroneBattleEnv:
         env_config: EnvConfig,
         reward_config: RewardConfig | None = None,
     ) -> None:
-        """
-        初始化战场环境。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
 
-        Args:
-            uav_df:
-                已经经过 loaders.py 标准化和 validators.py 校验的 UAV 数据。
-            target_df:
-                已经经过 loaders.py 标准化和 validators.py 校验的 Target 数据。
-            env_config:
-                环境配置对象，包含战场边界、时间步长、最大仿真时间、基地位置等参数。
-            reward_config:
-                奖励函数配置。如果不传入，则使用 RewardConfig 默认值。
+        参数：
+            uav_df: uav_df 参数，类型为 pd.DataFrame。
+            target_df: target_df 参数，类型为 pd.DataFrame。
+            env_config: env_config 参数，类型为 EnvConfig。
+            reward_config: reward_config 参数，类型为 RewardConfig | None。
 
-        注意：
-        这里不直接接收原始 config dict，而是接收结构化的 EnvConfig / RewardConfig。
-        这是为了让环境类不依赖 YAML 的具体字段路径，提高模块稳定性。
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
         """
+        # uav_df: 无人机df。
         self.uav_df = uav_df.copy()
+        # target_df: 目标df。
         self.target_df = target_df.copy()
 
         # 根据真实 UAV / Target 数据自动扩展边界，避免手动配置边界过窄。
+        # env_config: 环境配置。
         self.env_config = env_config.with_inferred_bounds(
             dataframes=[self.uav_df, self.target_df]
         )
 
+        # reward_config: 奖励配置。
         self.reward_config = reward_config or RewardConfig()
+        # reward_calculator: 奖励calculator。
         self.reward_calculator = RewardCalculator(
             env_config=self.env_config,
             reward_config=self.reward_config,
         )
 
+        # state: 状态。
         self.state: BattlefieldState | None = None
 
         # current_time 对应原始 main.py 中的 t。
         # current_step 是强化学习环境里更常用的离散步数。
+        # current_time: 当前时间。
         self.current_time: float = 0.0
+        # episode_reward: 训练回合奖励。
         self.episode_reward: float = 0.0
 
         # 记录已经被选择打击过的目标编号。
         # 这对应论文 reward 中的重复打击惩罚 R_rep。
         # 注意：这里记录的是“已经尝试打击过”，不是“已经摧毁”。
+        # attacked_target_ids: attacked目标编号集合。
         self.attacked_target_ids: set[int] = set()
 
     def reset(self) -> dict[str, Any]:

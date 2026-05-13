@@ -1,3 +1,4 @@
+﻿"""历史版本中的PSO 算法classify脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -5,11 +6,21 @@ from matplotlib import rcParams
 
 def target_clustering_visualization(data_Target, num_clusters, max_iterations):
 
-    
-    rcParams['font.sans-serif'] = ['SimHei']  
-    rcParams['axes.unicode_minus'] = False  
 
-    fitness_values = []  
+    """处理目标clusteringvisualization相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        num_clusters: num目标簇集合。
+        max_iterations: 最大值iterations。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
+    rcParams['font.sans-serif'] = ['SimHei']
+    rcParams['axes.unicode_minus'] = False
+
+    fitness_values = []
 
     type_2_indices = np.where(data_Target[:, 3] == 2)[0]
     num_type_2 = len(type_2_indices)
@@ -19,39 +30,39 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
         clusters = {i: [] for i in range(num_clusters)}
 
         for i in range(len(data_Target)):
-            if data_Target[i, 3] == 2:  
+            if data_Target[i, 3] == 2:
                 cluster_index = np.argmin(np.linalg.norm(initial_centers - data_Target[i, 1:3], axis=1))
                 clusters[cluster_index].append(i)
-            else:  
+            else:
                 distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
                 assigned_cluster = np.argmin(distances)
                 clusters[assigned_cluster].append(i)
 
-        
+
         for i in range(len(data_Target)):
             if not any(i in clusters[c] for c in clusters):
                 distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
                 assigned_cluster = np.argmin(distances)
                 clusters[assigned_cluster].append(i)
 
-        
+
         fitness = 0
         for i in range(num_clusters):
-            if clusters[i]:  
+            if clusters[i]:
                 for index in clusters[i]:
                     fitness += np.min(np.linalg.norm(data_Target[index, 1:3] - initial_centers, axis=1)) ** 2
         fitness_values.append(fitness)
 
-        
+
         new_centers = np.zeros((num_clusters, 2))
         for i in range(num_clusters):
-            if clusters[i]:  
+            if clusters[i]:
                 new_centers[i] = data_Target[clusters[i], 1:3].mean(axis=0)
-            else:  
-                new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]  
+            else:
+                new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]
 
         initial_centers = new_centers
-    
+
     clustered_data = {i + 1: [] for i in range(num_clusters)}
     for cluster_num in range(num_clusters):
         target_indices = clusters[cluster_num]
@@ -64,15 +75,15 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
         if i < len(initial_centers):
             cluster_centers[i + 1] = initial_centers[i] * 10
         else:
-            
+
             cluster_centers[i + 1] = np.array([0, 0])
     """
-    
+
     plt.figure(figsize=(10, 6))
     for i in range(num_clusters):
         cluster_points = data_Target[clusters[i]]
         plt.scatter(cluster_points[:, 1], cluster_points[:, 2], label=f'Cluster {i + 1}', s=50)
-        
+
         for index in clusters[i]:
             plt.annotate(int(index),
                          (cluster_points[clusters[i].index(index), 1], cluster_points[clusters[i].index(index), 2]),
@@ -80,14 +91,14 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
         if i < len(initial_centers):
             plt.scatter(initial_centers[i, 0], initial_centers[i, 1], marker='x', color='black', s=100)
     """
-    
+
     plt.figure(figsize=(12, 8))
-    color_list = ['r', 'g', 'b', 'm', 'y', 'c', 'orange', 'purple']  
+    color_list = ['r', 'g', 'b', 'm', 'y', 'c', 'orange', 'purple']
     for i in range(num_clusters):
         cluster_points = data_Target[clusters[i]]
         color = color_list[i % len(color_list)]
         plt.scatter(cluster_points[:, 1]*10, cluster_points[:, 2]*10, label=f'Cluster {i + 1}', s=50, color=color)
-        
+
         for index in range(len(cluster_points)):
             plt.annotate(int(cluster_points[index, 0]),
                          (cluster_points[index, 1]*10, cluster_points[index, 2]*10),
@@ -99,7 +110,7 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
     plt.title('目标分群结果图')
     plt.xlabel('X 轴')
     plt.ylabel('Y 轴')
-    
+
     plt.savefig("D:\\西工大\\2024秋\\大论文\\图库\\python画图\\svg图片夹\\five\\PSO目标分群结果颜色对应uav.svg", dpi=600, format="svg")
     plt.show()
 
@@ -108,7 +119,7 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
         print(f'群 {i + 1}: 目标数量 = {len(clusters[i])}, 目标标号 = {target_labels}')
 
     """
-    
+
     plt.figure(figsize=(10, 6))
     plt.plot(range(1, len(fitness_values) + 1), fitness_values, marker='o', color='b')
     plt.xlabel('迭代轮数')
@@ -117,9 +128,9 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
     plt.legend()
     plt.show()
 
-    
+
     given_clusters_1 = {
-        1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],  
+        1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],
         2: [7, 12, 13, 8, 20, 18, 37],
         3: [32, 39, 54, 60, 61, 2, 51, 52],
         4: [3, 11, 19, 21, 1, 0, 36],
@@ -144,7 +155,7 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
     plt.grid()
     plt.show()
 
-    
+
     given_clusters_2 = {
         1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],
         2: [7, 12, 13, 8, 20, 18, 37, 1, 0],
@@ -171,7 +182,7 @@ def target_clustering_visualization(data_Target, num_clusters, max_iterations):
     plt.grid()
     plt.show()
 
-    
+
     given_clusters_3 = {
         1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53, 18, 37],
         2: [32, 39, 54, 60, 61, 2, 51, 52, 33, 43, 46, 42],
@@ -206,8 +217,8 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-rcParams['font.sans-serif'] = ['SimHei']  
-rcParams['axes.unicode_minus'] = False   
+rcParams['font.sans-serif'] = ['SimHei']
+rcParams['axes.unicode_minus'] = False
 
 
 
@@ -215,9 +226,9 @@ data_Target = np.loadtxt(open('data_Target_extracted.csv'), delimiter=",", skipr
 print(data_Target)
 
 
-num_clusters = 8  
+num_clusters = 8
 max_iterations = 15
-fitness_values = []  
+fitness_values = []
 
 
 type_2_indices = np.where(data_Target[:, 3] == 2)[0]
@@ -228,40 +239,40 @@ initial_centers = data_Target[type_2_indices, 1:3][:min(num_clusters, num_type_2
 for iteration in range(max_iterations):
     clusters = {i: [] for i in range(num_clusters)}
 
-    
+
     for i in range(len(data_Target)):
-        if data_Target[i, 3] == 2:  
+        if data_Target[i, 3] == 2:
             cluster_index = np.argmin(np.linalg.norm(initial_centers - data_Target[i, 1:3], axis=1))
             clusters[cluster_index].append(i)
-        else:  
+        else:
             distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
             assigned_cluster = np.argmin(distances)
             clusters[assigned_cluster].append(i)
 
-    
+
     for i in range(len(data_Target)):
         if not any(i in clusters[c] for c in clusters):
             distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
             assigned_cluster = np.argmin(distances)
             clusters[assigned_cluster].append(i)
 
-    
+
     fitness = 0
     for i in range(num_clusters):
-        if clusters[i]:  
+        if clusters[i]:
             for index in clusters[i]:
                 fitness += np.min(np.linalg.norm(data_Target[index, 1:3] - initial_centers, axis=1)) ** 2
     fitness_values.append(fitness)
 
-    
+
     new_centers = np.zeros((num_clusters, 2))
     for i in range(num_clusters):
-        if clusters[i]:  
+        if clusters[i]:
             new_centers[i] = data_Target[clusters[i], 1:3].mean(axis=0)
-        else:  
-            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]  
+        else:
+            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]
 
-    
+
 
     if np.all(np.isclose(new_centers, initial_centers)):
         break
@@ -273,7 +284,7 @@ plt.figure(figsize=(10, 6))
 for i in range(num_clusters):
     cluster_points = data_Target[clusters[i]]
     plt.scatter(cluster_points[:, 1], cluster_points[:, 2], label=f'Cluster {i+1}', s=50)
-    
+
     for index in clusters[i]:
         plt.annotate(int(index),
                      (cluster_points[clusters[i].index(index), 1], cluster_points[clusters[i].index(index), 2]),
@@ -305,7 +316,7 @@ plt.show()
 
 
 given_clusters = {
-    1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],  
+    1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],
     2: [7, 12, 13, 8, 20, 18, 37],
     3: [32, 39, 54, 60, 61, 2, 51, 52],
     4: [3, 11, 19, 21, 1, 0, 36],

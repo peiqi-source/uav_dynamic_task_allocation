@@ -1,3 +1,4 @@
+﻿"""训练打击顺序DQN 算法脚本，封装可直接运行的实验、检查或可视化流程。"""
 from __future__ import annotations
 
 import argparse
@@ -532,6 +533,15 @@ def run_no_torch_baseline(
 
 
 def _select_nearest_action(env: StrikeOrderEnv, action_mask) -> int:
+    """按照策略从候选集合中选择目标对象，处理nearest动作相关数据。
+
+    参数：
+        env: 环境，类型为 StrikeOrderEnv。
+        action_mask: 动作掩码。
+
+    返回：
+        int，表示该函数计算或构建得到的结果。
+    """
     valid_action_ids = [
         action_id for action_id, is_valid in enumerate(action_mask)
         if bool(is_valid)
@@ -547,6 +557,14 @@ def _select_nearest_action(env: StrikeOrderEnv, action_mask) -> int:
 
 
 def main() -> None:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+    """
     args = parse_args()
 
     project_root = get_project_root()

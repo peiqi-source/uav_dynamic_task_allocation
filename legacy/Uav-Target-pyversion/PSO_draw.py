@@ -1,19 +1,20 @@
+﻿"""历史版本中的PSO 算法draw脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-rcParams['font.sans-serif'] = ['SimHei']  
-rcParams['axes.unicode_minus'] = False   
+rcParams['font.sans-serif'] = ['SimHei']
+rcParams['axes.unicode_minus'] = False
 
 
 data_Target = np.loadtxt(open('data_Target_extracted.csv'), delimiter=",", skiprows=1)
 print(data_Target)
 
 
-num_clusters = 8  
+num_clusters = 8
 max_iterations = 10
-fitness_values = []  
+fitness_values = []
 
 
 type_2_indices = np.where(data_Target[:, 3] == 2)[0]
@@ -24,40 +25,40 @@ initial_centers = data_Target[type_2_indices, 1:3][:min(num_clusters, num_type_2
 for iteration in range(max_iterations):
     clusters = {i: [] for i in range(num_clusters)}
 
-    
+
     for i in range(len(data_Target)):
-        if data_Target[i, 3] == 2:  
+        if data_Target[i, 3] == 2:
             cluster_index = np.argmin(np.linalg.norm(initial_centers - data_Target[i, 1:3], axis=1))
             clusters[cluster_index].append(i)
-        else:  
+        else:
             distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
             assigned_cluster = np.argmin(distances)
             clusters[assigned_cluster].append(i)
 
-    
+
     for i in range(len(data_Target)):
         if not any(i in clusters[c] for c in clusters):
             distances = np.linalg.norm(data_Target[i, 1:3] - initial_centers, axis=1)
             assigned_cluster = np.argmin(distances)
             clusters[assigned_cluster].append(i)
 
-    
+
     fitness = 0
     for i in range(num_clusters):
-        if clusters[i]:  
+        if clusters[i]:
             for index in clusters[i]:
                 fitness += np.min(np.linalg.norm(data_Target[index, 1:3] - initial_centers, axis=1)) ** 2
     fitness_values.append(fitness)
 
-    
+
     new_centers = np.zeros((num_clusters, 2))
     for i in range(num_clusters):
-        if clusters[i]:  
+        if clusters[i]:
             new_centers[i] = data_Target[clusters[i], 1:3].mean(axis=0)
-        else:  
-            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]  
+        else:
+            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]
 
-    
+
     """
     if np.all(np.isclose(new_centers, initial_centers)):
         break
@@ -69,7 +70,7 @@ plt.figure(figsize=(10, 6))
 for i in range(num_clusters):
     cluster_points = data_Target[clusters[i]]
     plt.scatter(cluster_points[:, 1]*10, cluster_points[:, 2]*10, label=f'Cluster {i+1}', s=50)
-    
+
     for index in clusters[i]:
         plt.annotate(int(index),
                      (cluster_points[clusters[i].index(index), 1]*10, cluster_points[clusters[i].index(index), 2]*10),
@@ -103,7 +104,7 @@ plt.show()
 
 
 given_clusters = {
-    1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],  
+    1: [48, 49, 57, 59, 22, 44, 45, 50, 9, 53],
     2: [7, 12, 13, 8, 20, 18, 37],
     3: [32, 39, 54, 60, 61, 2, 51, 52],
     4: [3, 11, 19, 21, 1, 0, 36],

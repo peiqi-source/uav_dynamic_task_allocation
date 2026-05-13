@@ -1,3 +1,4 @@
+﻿"""planning 数据模块中的重规划controller实现。"""
 from __future__ import annotations
 
 import logging
@@ -70,10 +71,15 @@ class RuntimeBattlefieldSnapshot:
     它不是新的数据模型，只是动态重规划时的适配层。
     """
 
+    # targets: 目标集合。
     targets: list[Target]
+    # uavs: uavs 数据。
     uavs: list[UAV]
+    # attack_uavs: 攻击uavs。
     attack_uavs: list[UAV]
+    # guide_uavs: 导引uavs。
     guide_uavs: list[UAV]
+    # communication_uavs: 通信uavs。
     communication_uavs: list[UAV]
 
 
@@ -95,14 +101,23 @@ class ReplanningResult:
         保存重规划原因、受影响目标 / UAV、执行了哪些阶段等信息。
     """
 
+    # event: 事件。
     event: MissionEvent
+    # previous_mission_plan: previous任务规划方案。
     previous_mission_plan: MissionPlan
+    # updated_mission_plan: updated任务规划方案。
     updated_mission_plan: MissionPlan
+    # decisions: 决策集合。
     decisions: list[PolicyDecision]
+    # replanning_scope: 重规划scope。
     replanning_scope: ReplanningScope
+    # mission_planner_result: 任务规划器结果。
     mission_planner_result: MissionPlannerResult | None = None
+    # strike_order_planner_result: 打击顺序规划阶段结果。
     strike_order_planner_result: StrikeOrderPlannerResult | None = None
+    # support_decision: 支援决策。
     support_decision: SupportDecision | None = None
+    # metadata: 扩展元数据。
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -138,8 +153,21 @@ class ReplanningController:
         algorithm_policy: AlgorithmPolicy,
         logger: logging.Logger | None = None,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            base_config: 全局基础配置，类型为 dict[str, Any]。
+            algorithm_policy: 算法选择策略对象，类型为 AlgorithmPolicy。
+            logger: 日志器，类型为 logging.Logger | None。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # base_config: 全局基础配置。
         self.base_config = base_config
+        # algorithm_policy: 算法选择策略对象。
         self.algorithm_policy = algorithm_policy
+        # logger: 日志器。
         self.logger = logger or logging.getLogger(__name__)
 
     def handle_event(
@@ -850,6 +878,15 @@ class ReplanningController:
         decisions: list[PolicyDecision],
         stage: str,
     ) -> str:
+        """处理阶段method相关业务逻辑。
+
+        参数：
+            decisions: 决策集合，类型为 list[PolicyDecision]。
+            stage: 阶段，类型为 str。
+
+        返回：
+            str，表示该函数计算或构建得到的结果。
+        """
         for decision in decisions:
             if decision.stage == stage:
                 return decision.method

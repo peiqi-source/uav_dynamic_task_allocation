@@ -1,3 +1,4 @@
+﻿"""历史版本中的动态事件guidedroneshot脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import math
 import random
@@ -11,6 +12,20 @@ base_location = np.array([0, -16000])
 
 def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, data_UAV, allocation_result, removed_target_labels, new_target_data):
 
+    """处理handle动态事件集合相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        destroy_target_array: destroy目标array。
+        clustered_data: clustered数据。
+        data_UAV: 数据无人机。
+        allocation_result: 资源分配结果。
+        removed_target_labels: removed目标labels。
+        new_target_data: new目标数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     plot_figure.plot_drones_gui(allocation_result, data_UAV)
 
     destroyed_guide_uavs_info = []
@@ -19,7 +34,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
     num_destroy_guide_uavs = 2
 
     if num_destroy_guide_uavs == 1:
-        
+
         selected_cluster = random.choice([3, 6])
 
         if selected_cluster in allocation_result:
@@ -27,11 +42,11 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             if guide_uav_labels:
                 destroyed_label = guide_uav_labels[0]
                 print(f"无人机集群{selected_cluster}中的标号为{destroyed_label}的导引无人机被摧毁")
-                
+
                 destroyed_guide_uavs_info.append((selected_cluster, destroyed_label))
 
     elif num_destroy_guide_uavs == 2:
-        
+
         selected_clusters = random.choice([(3, 2), (6, 2)])
         selected_clusters = (6, 2)
         for cluster in selected_clusters:
@@ -40,7 +55,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                 if guide_uav_labels:
                     destroyed_label = guide_uav_labels[0]
                     print(f"无人机集群{cluster}中的标号为{destroyed_label}的导引无人机被摧毁")
-                    
+
                     destroyed_guide_uavs_info.append((cluster, destroyed_label))
 
     if destroyed_guide_uavs_info:
@@ -51,12 +66,12 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
 
     for cluster_num, label in zip(all_destroyed_cluster_nums, all_destroyed_labels):
         if cluster_num in allocation_result:
-            
+
             current_guide_uav_labels = allocation_result[cluster_num]["guide_uav_labels"]
-            
+
             if label in current_guide_uav_labels:
                 current_guide_uav_labels.remove(label)
-            
+
             allocation_result[cluster_num]["guide_uav_num"] = len(current_guide_uav_labels)
 
     if num_destroy_guide_uavs == 1:
@@ -77,7 +92,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             while attack_uav_labels_to_redistribute:
                 current_cluster = target_clusters[index % len(target_clusters)]
                 print(f"无人机集群 6 内的攻击无人机 {attack_uav_labels_to_redistribute[0]} 支援到无人机集群 {current_cluster}")
-                
+
                 if current_cluster in allocation_result:
                     current_attack_uav_labels = allocation_result[current_cluster].get('attack_uav_labels', [])
                     current_attack_uav_labels.append(attack_uav_labels_to_redistribute.pop(0))
@@ -88,38 +103,38 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                 'guide_uav_labels': [],
                 'attack_uav_num': 0,
                 'attack_uav_labels': [],
-                'coordinate': (0, 0),  
+                'coordinate': (0, 0),
                 'cluster_center': (0, 0),
                 'real_time_position': (0, 0)
             }
 
             plot_figure.plot_drones_gui_fenpei1(allocation_result, data_UAV)
-            
+
             for cluster_num in allocation_result:
                 if cluster_num == 6:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(5, (0, 0))
                 elif cluster_num == 7:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(6, (0, 0))
                 elif cluster_num == 8:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(7, (0, 0))
                 else:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(cluster_num, (0, 0))
         else:
-            
+
             plot_figure.plot_drones_gui_fenpei_color_3(allocation_result, data_UAV)
 
-            
+
             attack_uav_labels_to_redistribute = allocation_result[3].pop('attack_uav_labels', [])
             target_clusters = [6, 4, 2, 5]
             index = 0
             while attack_uav_labels_to_redistribute:
                 current_cluster = target_clusters[index % len(target_clusters)]
                 print(f"无人机集群 3 内的攻击无人机 {attack_uav_labels_to_redistribute[0]} 支援到无人机集群 {current_cluster}")
-                
+
                 if current_cluster in allocation_result:
                     current_attack_uav_labels = allocation_result[current_cluster].get('attack_uav_labels', [])
                     current_attack_uav_labels.append(attack_uav_labels_to_redistribute.pop(0))
@@ -130,24 +145,24 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                 'guide_uav_labels': [],
                 'attack_uav_num': 0,
                 'attack_uav_labels': [],
-                'coordinate': (0, 0),  
+                'coordinate': (0, 0),
                 'cluster_center': (0, 0),
                 'real_time_position': (0, 0)
             }
             plot_figure.plot_drones_gui_fenpei1(allocation_result, data_UAV)
-            
+
             for cluster_num in allocation_result:
                 if cluster_num == 6:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(3, (0, 0))
                 elif cluster_num == 7:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(6, (0, 0))
                 elif cluster_num == 8:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(7, (0, 0))
                 else:
-                    
+
                     allocation_result[cluster_num]['cluster_center'] = cluster_centers.get(cluster_num, (0, 0))
 
         for cluster_num, cluster_data in clustered_data.items():
@@ -164,14 +179,14 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             plot_figure.plot_drones_gui2_fenpei_color_1(allocation_result, data_UAV)
         else:
             plot_figure.plot_drones_gui2_fenpei_color_2(allocation_result, data_UAV)
-        
+
         attack_uav_labels_to_redistribute = allocation_result[2].pop('attack_uav_labels', [])
         target_clusters = [8, 4, 1]
         index = 0
         while attack_uav_labels_to_redistribute:
             current_cluster = target_clusters[index % len(target_clusters)]
             print(f"无人机集群 2 内的攻击无人机 {attack_uav_labels_to_redistribute[0]} 支援到无人机集群 {current_cluster}")
-            
+
             if current_cluster in allocation_result:
                 current_attack_uav_labels = allocation_result[current_cluster].get('attack_uav_labels', [])
                 current_attack_uav_labels.append(attack_uav_labels_to_redistribute.pop(0))
@@ -182,7 +197,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             'guide_uav_labels': [],
             'attack_uav_num': 0,
             'attack_uav_labels': [],
-            'coordinate': (0, 0),  
+            'coordinate': (0, 0),
             'cluster_center': (0, 0),
             'real_time_position': (0, 0)
         }
@@ -193,7 +208,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             while attack_uav_labels_to_redistribute:
                 current_cluster = target_clusters[index % len(target_clusters)]
                 print(f"无人机集群 6 内的攻击无人机 {attack_uav_labels_to_redistribute[0]} 支援到无人机集群 {current_cluster}")
-                
+
                 if current_cluster in allocation_result:
                     current_attack_uav_labels = allocation_result[current_cluster].get('attack_uav_labels', [])
                     current_attack_uav_labels.append(attack_uav_labels_to_redistribute.pop(0))
@@ -204,7 +219,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                 'guide_uav_labels': [],
                 'attack_uav_num': 0,
                 'attack_uav_labels': [],
-                'coordinate': (0, 0),  
+                'coordinate': (0, 0),
                 'cluster_center': (0, 0),
                 'real_time_position': (0, 0)
             }
@@ -215,7 +230,7 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
             while attack_uav_labels_to_redistribute:
                 current_cluster = target_clusters[index % len(target_clusters)]
                 print(f"无人机集群 3 内的攻击无人机 {attack_uav_labels_to_redistribute[0]} 支援到无人机集群 {current_cluster}")
-                
+
                 if current_cluster in allocation_result:
                     current_attack_uav_labels = allocation_result[current_cluster].get('attack_uav_labels', [])
                     current_attack_uav_labels.append(attack_uav_labels_to_redistribute.pop(0))
@@ -226,11 +241,11 @@ def handle_dynamic_events(data_Target, destroy_target_array, clustered_data, dat
                 'guide_uav_labels': [],
                 'attack_uav_num': 0,
                 'attack_uav_labels': [],
-                'coordinate': (0, 0),  
+                'coordinate': (0, 0),
                 'cluster_center': (0, 0),
                 'real_time_position': (0, 0)
             }
-        
+
         plot_figure.plot_drones_gui_fenpei1(allocation_result, data_UAV)
 
         index = 1

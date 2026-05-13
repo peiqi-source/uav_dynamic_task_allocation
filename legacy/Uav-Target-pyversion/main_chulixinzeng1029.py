@@ -1,3 +1,4 @@
+﻿"""历史版本中的mainchulixinzeng1029脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import UAV
 import matplotlib.pyplot as plt
@@ -11,13 +12,31 @@ import aco_plot
 import pandas as pd
 
 def calculate_angle(x, y):
-    angle = np.arctan2(y, x)  
-    angle_degrees = np.degrees(angle)  
+    """计算指定指标或中间结果，处理angle 数据相关数据。
+
+    参数：
+        x: 横坐标。
+        y: 纵坐标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
+    angle = np.arctan2(y, x)
+    angle_degrees = np.degrees(angle)
     if angle_degrees < 0:
-        angle_degrees += 360  
+        angle_degrees += 360
     return angle_degrees
 
 def assess_combat_resources(data_Target, data_UAV):
+    """处理assesscombat资源集合相关业务逻辑。
+
+    参数：
+        data_Target: 数据目标。
+        data_UAV: 数据无人机。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     total_resources_required = sum(data_Target[:, -1])
     available_resources = sum(data_UAV[:, -1])
     if total_resources_required <= available_resources:
@@ -42,7 +61,7 @@ target_indices = [int(item[0]) for item in cluster_1[1]]
 extracted_rows = []
 
 for index in target_indices:
-    
+
     matching_rows = data_Target[data_Target[:, 0] == index]
     extracted_rows.append(matching_rows)
 
@@ -53,7 +72,7 @@ df.to_csv('data_Target_extracted.csv', index=False)
 
 print("data_Target_extracted = ", data_Target_extracted)
 
-num_clusters = 8  
+num_clusters = 8
 max_iterations = 10
 
 type_2_indices = np.where(data_Target_extracted[:, 3] == 2)[0]
@@ -64,10 +83,10 @@ for iteration in range(max_iterations):
     clusters = {i: [] for i in range(num_clusters)}
 
     for i in range(len(data_Target_extracted)):
-        if data_Target_extracted[i, 3] == 2:  
+        if data_Target_extracted[i, 3] == 2:
             cluster_index = np.argmin(np.linalg.norm(initial_centers - data_Target_extracted[i, 1:3], axis=1))
             clusters[cluster_index].append(i)
-        else:  
+        else:
             distances = np.linalg.norm(data_Target_extracted[i, 1:3] - initial_centers, axis=1)
             assigned_cluster = np.argmin(distances)
             clusters[assigned_cluster].append(i)
@@ -80,10 +99,10 @@ for iteration in range(max_iterations):
 
     new_centers = np.zeros((num_clusters, 2))
     for i in range(num_clusters):
-        if clusters[i]:  
+        if clusters[i]:
             new_centers[i] = data_Target_extracted[clusters[i], 1:3].mean(axis=0)
-        else:  
-            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]  
+        else:
+            new_centers[i] = initial_centers[min(i, len(initial_centers) - 1)]
 
     if np.all(np.isclose(new_centers, initial_centers)):
         break
@@ -117,8 +136,8 @@ for i in range(num_clusters):
 for i in range(num_clusters):
     print(f'最终群 {i+1}: 目标数量 = {len(clusters[i])}, 索引 = {clusters[i]}')
 
-target_data = cluster_1[1]  
-values = np.array(target_data)[:, 3]  
+target_data = cluster_1[1]
+values = np.array(target_data)[:, 3]
 
 fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(111, projection='3d')
@@ -140,7 +159,7 @@ ax.legend()
 plt.show()
 """
 
-num_new_targets = random.randint(1, 3)  
+num_new_targets = random.randint(1, 3)
 new_targets = []
 
 for _ in range(num_new_targets):
@@ -174,28 +193,28 @@ for i, (prediction, new_target_info) in enumerate(zip(predictions, new_targets),
         target_data = data2[data2[:, 0] == new_target_index][:, :6]
         if target_data.size > 0:
             target_data = target_data[0]
-            target_data = np.append(target_data, new_target_info[4])  
+            target_data = np.append(target_data, new_target_info[4])
             destroy_targets.append(target_data)
 
 if destroy_targets:
     destroy_targets = np.array(destroy_targets)
     cluster_1[1] = np.vstack([cluster_1[1], destroy_targets])
 
-    
+
     if not assess_combat_resources(cluster_1[1], data_UAV):
         print(f"进攻资源有限，筛选摧毁目标集!")
-        
+
         num_to_remove = np.sum(predictions == 1)
-        sorted_indices = np.argsort(cluster_1[1][:, 3])  
+        sorted_indices = np.argsort(cluster_1[1][:, 3])
         removed_indices = sorted_indices[:num_to_remove]
-        removed_targets = cluster_1[1][removed_indices, 0]  
+        removed_targets = cluster_1[1][removed_indices, 0]
         cluster_1[1] = np.delete(cluster_1[1], removed_indices, axis=0)
 
         for removed_index in removed_targets:
             print(f"受进攻资源限制，目标 {int(removed_index)} 从摧毁目标集清除!")
 
     targets = cluster_1[1]
-    
+
     plt.figure(1)
     plt.title('摧毁目标集')
     plt.xlabel('X-axis')
@@ -222,12 +241,12 @@ if destroy_targets:
 
     num_clusters = 3
     best_solution, best_value, best_assignment = Particle_algorithm.pso_optimization(targets, num_clusters)
-    
-    
+
+
     print("最佳分配方案:", best_assignment)
 
     colors = ['red', 'green', 'blue']
-    
+
     fig = plt.figure(3)
     ax = fig.add_subplot(111, projection='3d')
 
@@ -239,9 +258,9 @@ if destroy_targets:
 
         original_positions = np.array(
             [data_Target[data_Target[:, 0] == target[0], 1:4] for target in cluster_targets]).reshape(-1, 3)
-        x = original_positions[:, 0]  
-        y = original_positions[:, 1]  
-        z = cluster_targets[:, 3]  
+        x = original_positions[:, 0]
+        y = original_positions[:, 1]
+        z = cluster_targets[:, 3]
         indices = cluster_targets[:, 0]
 
         ax.scatter(x, y, z, color=colors[cluster_id], label=f'Cluster {cluster_id + 1}')
@@ -276,7 +295,7 @@ if destroy_targets:
 else:
     print(f"New target {new_target_index} not added to destroy targets set.")
 
-    
+
     colors = ['red', 'green', 'blue', 'black']
     fig = plt.figure(3)
     ax = fig.add_subplot(111, projection='3d')
@@ -284,7 +303,7 @@ else:
     ax.scatter(0, 0, 0, c='r', marker='*', label='飞行器基地')
     ax.text(0 + 0.01, 0, 0, '飞行器基地')
     for i, cluster_group in enumerate(cluster):
-        if i >= len(colors):  
+        if i >= len(colors):
             color = colors[i % len(colors)]
         else:
             color = colors[i]

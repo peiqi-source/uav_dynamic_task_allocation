@@ -1,3 +1,4 @@
+﻿"""训练PPO 算法clusterer脚本，封装可直接运行的实验、检查或可视化流程。"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,6 +25,14 @@ from uav_dynamic_task_allocation.utils.config import get_project_root, load_and_
 
 
 def _build_training_env(config: dict) -> TargetGroupingEnv:
+    """构建后续流程需要的领域对象或配置对象，处理训练环境相关数据。
+
+    参数：
+        config: 配置，类型为 dict。
+
+    返回：
+        TargetGroupingEnv，表示该函数计算或构建得到的结果。
+    """
     ppo_config = config.get("ppo", {})
     features = np.asarray(
         [
@@ -62,11 +71,30 @@ def _build_training_env(config: dict) -> TargetGroupingEnv:
 
 
 def _checkpoint_dir(project_root: Path, config: dict) -> Path:
+    """处理检查点dir相关业务逻辑。
+
+    参数：
+        project_root: projectroot，类型为 Path。
+        config: 配置，类型为 dict。
+
+    返回：
+        Path，表示该函数计算或构建得到的结果。
+    """
     raw_path = Path(config.get("ppo", {}).get("checkpoint_dir", "checkpoints/ppo_clusterer"))
     return raw_path if raw_path.is_absolute() else project_root / raw_path
 
 
 def _run_no_torch_fallback(project_root: Path, config: dict, env: TargetGroupingEnv) -> Path:
+    """执行对应的流程步骤并返回运行结果，处理notorchfallback相关数据。
+
+    参数：
+        project_root: projectroot，类型为 Path。
+        config: 配置，类型为 dict。
+        env: 环境，类型为 TargetGroupingEnv。
+
+    返回：
+        Path，表示该函数计算或构建得到的结果。
+    """
     result = PPOClusterer(
         PPOClustererConfig(
             checkpoint_dir=str(_checkpoint_dir(project_root, config)),
@@ -108,6 +136,14 @@ def _run_no_torch_fallback(project_root: Path, config: dict, env: TargetGrouping
 
 
 def main() -> None:
+    """处理main 数据相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+    """
     project_root = get_project_root()
     config = load_and_validate_config(project_root / "configs" / "default.yaml")
     env = _build_training_env(config)

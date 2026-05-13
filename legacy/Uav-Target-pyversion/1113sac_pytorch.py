@@ -1,3 +1,4 @@
+﻿"""历史版本中的1113sacpytorch脚本，保留用于算法对照、复现实验或迁移参考。"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,13 +32,40 @@ print("目标总计：", len(data_Target))
 
 # 定义策略网络
 class PolicyNetwork(nn.Module):
+    """PolicyNetwork 类，封装策略神经网络相关的数据结构与业务行为。
+
+    属性：
+        fc1: fc1 数据。
+        fc2: fc2 数据。
+        action_head: 动作head。
+    """
     def __init__(self, state_dim, action_dim):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            state_dim: state_dim 参数。
+            action_dim: action_dim 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(PolicyNetwork, self).__init__()
+        # fc1: fc1 数据。
         self.fc1 = nn.Linear(state_dim, 128)
+        # fc2: fc2 数据。
         self.fc2 = nn.Linear(128, 128)
+        # action_head: 动作head。
         self.action_head = nn.Linear(128, action_dim)
 
     def forward(self, x):
+        """处理forward 数据相关业务逻辑。
+
+        参数：
+            x: 横坐标。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         action_probs = torch.softmax(self.action_head(x), dim=-1)
@@ -46,25 +74,81 @@ class PolicyNetwork(nn.Module):
 
 # 定义价值网络
 class ValueNetwork(nn.Module):
+    """ValueNetwork 类，封装数值神经网络相关的数据结构与业务行为。
+
+    属性：
+        fc1: fc1 数据。
+        fc2: fc2 数据。
+        value_head: 数值head。
+    """
     def __init__(self, state_dim):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            state_dim: state_dim 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(ValueNetwork, self).__init__()
+        # fc1: fc1 数据。
         self.fc1 = nn.Linear(state_dim, 128)
+        # fc2: fc2 数据。
         self.fc2 = nn.Linear(128, 128)
+        # value_head: 数值head。
         self.value_head = nn.Linear(128, 1)
 
     def forward(self, x):
+        """处理forward 数据相关业务逻辑。
+
+        参数：
+            x: 横坐标。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         state_value = self.value_head(x)
         return state_value
 
 class ReplayBuffer:
+    """ReplayBuffer 类，封装replay经验缓冲区相关的数据结构与业务行为。
+
+    属性：
+        capacity: capacity 数据。
+        buffer: 经验缓冲区。
+        position: 位置坐标。
+    """
     def __init__(self, capacity):
+        # 说明：历史脚本沿用早期变量命名，含义请结合上下文和算法流程理解。
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            capacity: capacity 参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # capacity: capacity 数据。
         self.capacity = capacity
+        # buffer: 经验缓冲区。
         self.buffer = []
+        # position: 位置坐标。
         self.position = 0
 
     def push(self, state, action, reward, next_state):
+        """处理push 数据相关业务逻辑。
+
+        参数：
+            state: 状态。
+            action: 动作。
+            reward: 奖励。
+            next_state: 下一步状态。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         if len(self.buffer) < self.capacity:
             self.buffer.append(None)
         assert isinstance(action, int) and 0 <= action < len(action_space), "Invalid action in push"
@@ -72,6 +156,14 @@ class ReplayBuffer:
         self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
+        """处理sample 数据相关业务逻辑。
+
+        参数：
+            batch_size: 批量样本size。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         batch = random.sample(self.buffer, batch_size)
         state, action, reward, next_state = zip(*batch)
         state = np.array(state)
@@ -83,14 +175,39 @@ class ReplayBuffer:
             next_state)
 
     def __len__(self):
+        """处理len 数据相关业务逻辑。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         return len(self.buffer)
 
 def calculate_reward_balance(groups):
+    """计算指定指标或中间结果，处理奖励balance相关数据。
+
+    参数：
+        groups: groups 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     avg_num = sum([g['target_num'] for g in groups.values()]) / len(groups)
     reward_balance = -sum([(g['target_num'] - avg_num) ** 2 for g in groups.values()])
     return reward_balance
 
 def calculate_reward_compactness(groups, positions):
+    """计算指定指标或中间结果，处理奖励compactness相关数据。
+
+    参数：
+        groups: groups 数据。
+        positions: positions 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     reward_compact = 0
     for group in groups.values():
         group_positions = positions[np.array(group['indices'])]
@@ -100,6 +217,15 @@ def calculate_reward_compactness(groups, positions):
     return reward_compact
 
 def get_state(groups, positions):
+    """处理get状态相关业务逻辑。
+
+    参数：
+        groups: groups 数据。
+        positions: positions 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     state = []
     avg_num = sum([g['target_num'] for g in groups.values()]) / len(groups)
     for group in groups.values():
@@ -153,6 +279,14 @@ def get_state(groups, positions):
     return np.array(state).astype(np.float32)
 
 def build_action_space(groups):
+    """构建后续流程需要的领域对象或配置对象，处理动作space相关数据。
+
+    参数：
+        groups: groups 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     action_space = []
     for target_idx in range(1, 63):
         current_group = None

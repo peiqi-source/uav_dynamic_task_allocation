@@ -1,3 +1,4 @@
+﻿"""DQN 算法模块中的attention神经网络实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,14 +20,28 @@ class AttentionDQNUnavailableError(Exception):
 class AttentionDQNNetworkConfig:
     """Network configuration for Attention-DQN strike-order planning."""
 
+    # input_dim: 输入dim。
     input_dim: int
+    # action_dim: 动作dim。
     action_dim: int
+    # hidden_dims: hiddendims。
     hidden_dims: tuple[int, ...] = (256, 256)
+    # attention_hidden_dim: attentionhiddendim。
     attention_hidden_dim: int = 128
+    # dropout: dropout 数据。
     dropout: float = 0.0
+    # feature_priority_indices: featurepriorityindices。
     feature_priority_indices: tuple[int, ...] = ()
 
     def validate(self) -> None:
+        """校验当前对象或输入配置的合法性。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；通过状态变更、文件输出或日志记录体现执行结果。
+        """
         if self.input_dim <= 0:
             raise ValueError("input_dim must be positive.")
         if self.action_dim <= 0:
@@ -61,6 +76,17 @@ if nn is not None:
             action_dim: int | None = None,
             hidden_dim: int = 256,
         ) -> None:
+            """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+            参数：
+                config: 配置对象，类型为 AttentionDQNNetworkConfig | object | None。
+                input_dim: input_dim 参数，类型为 int | None。
+                action_dim: action_dim 参数，类型为 int | None。
+                hidden_dim: hidden_dim 参数，类型为 int。
+
+            返回：
+                无返回值；初始化实例属性并完成对象准备。
+            """
             super().__init__()
             if config is None:
                 if input_dim is None or action_dim is None:
@@ -78,7 +104,9 @@ if nn is not None:
                     dropout=float(getattr(config, "dropout", 0.0)),
                 )
             config.validate()
+            # config: 配置。
             self.config = config
+            # attention: attention 数据。
             self.attention = nn.Sequential(
                 nn.Linear(config.input_dim, config.attention_hidden_dim),
                 nn.ReLU(),
@@ -95,9 +123,19 @@ if nn is not None:
                     layers.append(nn.Dropout(config.dropout))
                 previous_dim = int(hidden)
             layers.append(nn.Linear(previous_dim, config.action_dim))
+            # q_head: qhead。
             self.q_head = nn.Sequential(*layers)
 
         def forward(self, observation, action_mask=None):
+            """处理forward 数据相关业务逻辑。
+
+            参数：
+                observation: 观测向量。
+                action_mask: 动作掩码。
+
+            返回：
+                函数执行结果；具体类型由调用上下文或下游流程决定。
+            """
             weights = self.compute_attention_weights(observation)
             q_values = self.q_head(observation * weights)
             if action_mask is not None:
@@ -106,6 +144,14 @@ if nn is not None:
             return q_values
 
         def compute_attention_weights(self, observation):
+            """计算指定指标或中间结果，处理attention权重集合相关数据。
+
+            参数：
+                observation: 观测向量。
+
+            返回：
+                函数执行结果；具体类型由调用上下文或下游流程决定。
+            """
             return self.attention(observation)
 
 else:
@@ -114,6 +160,14 @@ else:
         """Placeholder that explains the missing optional dependency."""
 
         def __init__(self, *args, **kwargs):
+            """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+            参数：
+                无显式业务参数。
+
+            返回：
+                无返回值；初始化实例属性并完成对象准备。
+            """
             raise AttentionDQNUnavailableError(
                 "PyTorch is required to instantiate AttentionDQNNetwork."
             )

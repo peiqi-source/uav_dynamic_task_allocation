@@ -1,3 +1,4 @@
+﻿"""历史版本中的目标screencore脚本，保留用于算法对照、复现实验或迁移参考。"""
 # 开发时间：2024/5/28 19:31
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,10 +6,32 @@ from sklearn.preprocessing import minmax_scale
 
 
 def Distance(x1, y1, x2, y2):
+    """处理Distance 数据相关业务逻辑。
+
+    参数：
+        x1: 横坐标1。
+        y1: 纵坐标1。
+        x2: 横坐标2。
+        y2: 纵坐标2。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     return np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
 
 
 def Target_ScreenCore(data, R, UAVx, UAVy):
+    """处理目标screencore相关业务逻辑。
+
+    参数：
+        data: 数据。
+        R: R 数据。
+        UAVx: UAVx 数据。
+        UAVy: UAVy 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     DefendedPost = {'num': [], 'x': [], 'y': [], 'type': [], 'defense': [], 'signifcance': [], 'R': [],
                     'distanceUAV': []}
     HVT = {'num': [], 'x': [], 'y': [], 'type': [], 'defense': [], 'signifcance': [], 'distanceUAV': []}

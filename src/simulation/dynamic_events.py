@@ -1,3 +1,4 @@
+﻿"""仿真模块中的动态事件集合实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -31,8 +32,11 @@ class DynamicEventScheduleConfig:
         如果不是，也可以用容差处理。
     """
 
+    # enabled: enabled 数据。
     enabled: bool = False
+    # event_schedule: 事件schedule。
     event_schedule: list[dict[str, Any]] = field(default_factory=list)
+    # trigger_tolerance: triggertolerance。
     trigger_tolerance: float = 1e-6
 
     def validate(self) -> None:
@@ -58,10 +62,21 @@ class DynamicEventManager:
     """
 
     def __init__(self, config: DynamicEventScheduleConfig) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            config: 配置对象，类型为 DynamicEventScheduleConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         config.validate()
 
+        # config: 配置。
         self.config = config
+        # events: 事件集合。
         self.events = self._parse_events(config.event_schedule)
+        # triggered_event_indices: triggered事件indices。
         self.triggered_event_indices: set[int] = set()
 
     def get_events_at_time(self, current_time: float) -> list[MissionEvent]:

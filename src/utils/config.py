@@ -1,3 +1,4 @@
+"""utils 数据模块中的配置实现。"""
 # 为了让类型标注更灵活
 from __future__ import annotations
 from pathlib import Path
@@ -91,16 +92,18 @@ def get_project_root() -> Path:
     """
     获取项目根目录。
 
-    当前文件位置是：
-    src/uav_dynamic_task_allocation/utils/config.py
-
-    所以：
-    parents[0] = utils
-    parents[1] = uav_dynamic_task_allocation
-    parents[2] = src
-    parents[3] = 项目根目录
+    当前项目经历过包结构调整，源码既可能通过旧包名
+    uav_dynamic_task_allocation.utils.config 导入，也可能作为 src/utils/config.py
+    直接参与开发。这里不再依赖固定 parents 层级，而是向上查找
+    pyproject.toml，避免脚本在不同导入方式下定位到错误目录。
     """
-    return Path(__file__).resolve().parents[3]
+    current = Path(__file__).resolve()
+
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+
+    raise ConfigError(f"Project root not found from: {current}")
 
 
 def resolve_path(path_value: str | Path, project_root: str | Path | None = None) -> Path:

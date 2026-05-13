@@ -1,9 +1,21 @@
+﻿"""历史版本中的KMeans 算法步数2core脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import random
 
 
 def Kmeans_step2Core(X = None,K = None,maxIter = None,TOL = None):
 
+    """处理KMeans 算法步数2core相关业务逻辑。
+
+    参数：
+        X: 横坐标。
+        K: K 数据。
+        maxIter: 最大值iter。
+        TOL: TOL 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     vectors_num, dim = X.shape
     R = np.random.permutation(vectors_num)
 

@@ -1,3 +1,4 @@
+"""历史版本中的main 数据脚本，保留用于算法对照、复现实验或迁移参考。"""
 import time
 import math
 import numpy as np

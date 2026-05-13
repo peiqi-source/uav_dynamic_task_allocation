@@ -1,3 +1,4 @@
+﻿"""历史版本中的assess资源集合脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 
 target_data = np.array([
@@ -8,10 +9,27 @@ target_data = np.array([
 ], dtype=float)
 
 def distance_decay_factor(distance):
+    """处理distancedecayfactor相关业务逻辑。
+
+    参数：
+        distance: distance 数据。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     return 1 / (1 + distance)
 
 
 def calculate_group_damage_probability(target_data, own_position):
+    """计算指定指标或中间结果，处理groupdamageprobability相关数据。
+
+    参数：
+        target_data: 目标数据。
+        own_position: own位置坐标。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     total_damage_probability = 0
     total_firepower = 0
 
@@ -44,6 +62,16 @@ group_damage_probability = calculate_group_damage_probability(target_data, own_p
 print(f'目标群的总体毁伤概率: {group_damage_probability:.2f}')
 
 def analyze_resource_redundancy(group_damage_probability, required_probability, redundancy_threshold=0.2):
+    """处理analyze资源redundancy相关业务逻辑。
+
+    参数：
+        group_damage_probability: groupdamageprobability。
+        required_probability: requiredprobability。
+        redundancy_threshold: redundancythreshold。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     if group_damage_probability > required_probability * (1 + redundancy_threshold):
         print(f'目标群的资源存在冗余，当前毁伤概率: {group_damage_probability:.2f}, 需求毁伤概率: {required_probability:.2f}')
 

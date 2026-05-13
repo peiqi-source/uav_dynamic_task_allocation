@@ -1,3 +1,4 @@
+﻿"""历史版本中的tspsolvedraw脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -7,20 +8,20 @@ import plot_figure
 import Kmeans_step1
 import PSO_classify
 
-matplotlib.rcParams['font.family'] = 'SimHei'  
+matplotlib.rcParams['font.family'] = 'SimHei'
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 base = np.array([0, -16000])
 
 target_data = np.array([
-    [3, 156, 6, 2],  
+    [3, 156, 6, 2],
     [6, 885, -386, 1],
     [17, 1167, -262, 3],
     [30, 1135, -282, 2],
     [34, 445, -217, 2],
     [36, 812, 93, 1],
     [39, 365, 176, 3],
-    [67, 543, -493, 5],  
+    [67, 543, -493, 5],
     [68, 351, -524, 2],
     [106, 330, -62, 2],
     [136, 219, -86, 4],
@@ -40,8 +41,16 @@ dist_matrix = distance_matrix(all_points, all_points)
 
 
 def tsp_greedy(dist_matrix):
+    """处理tspgreedy相关业务逻辑。
+
+    参数：
+        dist_matrix: distmatrix。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     n = len(dist_matrix)
-    visited = [0]  
+    visited = [0]
     total_distance = 0
     current_point = 0
 
@@ -53,7 +62,7 @@ def tsp_greedy(dist_matrix):
         visited.append(nearest_point)
         current_point = nearest_point
 
-    
+
     total_distance += dist_matrix[current_point, 0]
     visited.append(0)
     return visited, total_distance
@@ -71,11 +80,11 @@ plt.figure(figsize=(10, 8))
 
 
 marker_dict = {
-    1: ('o', 'r'),  
-    2: ('s', 'g'),  
-    3: ('^', 'b'),  
-    4: ('p', 'm'),  
-    5: ('D', 'y')  
+    1: ('o', 'r'),
+    2: ('s', 'g'),
+    3: ('^', 'b'),
+    4: ('p', 'm'),
+    5: ('D', 'y')
 }
 for i in range(1, len(optimal_order) - 1):
     idx = optimal_order[i]
@@ -89,11 +98,11 @@ plt.scatter(base[0], base[1], color='red', s=100, label='UAV Base')
 plt.text(base[0] + 20, base[1] - 30, 'UAV Base', color='red', fontsize=12)
 
 
-for i in range(0, len(optimal_order) - 1):  
+for i in range(0, len(optimal_order) - 1):
     start, end = all_points[optimal_order[i]], all_points[optimal_order[i + 1]]
     plt.plot([start[0], end[0]], [start[1], end[1]], 'k--')
 
-    
+
     mid_x = (start[0] + end[0]) / 2
     mid_y = (start[1] + end[1]) / 2
     dx = end[0] - start[0]

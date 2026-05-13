@@ -1,3 +1,4 @@
+﻿"""envs 数据模块中的观测向量实现。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,10 +32,15 @@ class ObservationConfig:
     因此这里必须显式规定 max_uavs 和 max_targets。
     """
 
+    # max_uavs: 最大值uavs。
     max_uavs: int = 50
+    # max_targets: 最大值目标集合。
     max_targets: int = 120
+    # include_distance_matrix: includedistancematrix。
     include_distance_matrix: bool = True
+    # include_feature_names: includefeaturenames。
     include_feature_names: bool = True
+    # distance_normalizer: distancenormalizer。
     distance_normalizer: str | float = "auto"
 
     def validate(self) -> None:
@@ -61,9 +67,13 @@ class Observation:
         额外调试信息，例如输入维度、截断数量、归一化参数等。
     """
 
+    # vector: vector 数据。
     vector: np.ndarray
+    # feature_names: featurenames。
     feature_names: list[str]
+    # masks: masks 数据。
     masks: dict[str, np.ndarray]
+    # debug_info: 调试info。
     debug_info: dict[str, Any]
 
 
@@ -91,10 +101,22 @@ class ObservationBuilder:
         env_config: EnvConfig,
         obs_config: ObservationConfig,
     ) -> None:
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            env_config: env_config 参数，类型为 EnvConfig。
+            obs_config: obs_config 参数，类型为 ObservationConfig。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
+        # env_config: 环境配置。
         self.env_config = env_config
+        # obs_config: obs配置。
         self.obs_config = obs_config
         self.obs_config.validate()
 
+        # distance_normalizer: distancenormalizer。
         self.distance_normalizer = self._resolve_distance_normalizer()
 
     def build(self, state: BattlefieldState) -> Observation:

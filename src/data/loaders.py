@@ -1,3 +1,4 @@
+"""数据模块中的loaders 数据实现。"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -175,7 +176,12 @@ def load_all_data(config: dict) -> dict[str, pd.DataFrame]:
 
     uav_data = load_uav_data(uav_file)
     target_data = load_target_data(target_file)
-    battlefield_target_data = load_battlefield_target_data(battlefield_file)
+
+    # battlefield_target_data: 可选的扩展目标样本；缺失时复用主目标表。
+    if battlefield_file.exists():
+        battlefield_target_data = load_battlefield_target_data(battlefield_file)
+    else:
+        battlefield_target_data = target_data.copy()
 
     return {
         "uav": uav_data,

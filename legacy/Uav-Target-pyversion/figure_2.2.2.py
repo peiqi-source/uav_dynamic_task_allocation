@@ -1,3 +1,4 @@
+"""历史版本中的图表222脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import matplotlib.pyplot as plt
 

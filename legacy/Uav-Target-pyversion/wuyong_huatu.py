@@ -1,3 +1,4 @@
+﻿"""历史版本中的wuyonghuatu脚本，保留用于算法对照、复现实验或迁移参考。"""
 import gymnasium as gym
 from stable_baselines3 import A2C
 import matplotlib.pyplot as plt
@@ -29,7 +30,7 @@ while True:
         all_rewards.append(episode_reward)
         episode_reward = 0
         obs, _ = env.reset()
-    if len(all_rewards) >= 1000:  
+    if len(all_rewards) >= 1000:
         break
 
 

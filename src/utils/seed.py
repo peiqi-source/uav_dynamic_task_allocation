@@ -1,3 +1,4 @@
+"""utils 数据模块中的随机种子实现。"""
 from __future__ import annotations
 
 import os

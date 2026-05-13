@@ -1,3 +1,4 @@
+﻿"""历史版本中的1116groupingDQN 算法脚本，保留用于算法对照、复现实验或迁移参考。"""
 import numpy as np
 import gymnasium as gym
 from stable_baselines3 import DQN
@@ -46,14 +47,38 @@ groups = {
 
 
 def std_x(group_indices):
+    """处理标准差横坐标相关业务逻辑。
+
+    参数：
+        group_indices: groupindices。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     return np.std(x_coords[group_indices])
 
 
 def std_y(group_indices):
+    """处理标准差纵坐标相关业务逻辑。
+
+    参数：
+        group_indices: groupindices。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     return np.std(y_coords[group_indices])
 
 
 def distance_to_center(group_indices):
+    """处理distancetocenter相关业务逻辑。
+
+    参数：
+        group_indices: groupindices。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     center_x = np.mean(x_coords[group_indices])
     center_y = np.mean(y_coords[group_indices])
     distances = np.sqrt((x_coords[group_indices] - center_x) ** 2 + (y_coords[group_indices] - center_y) ** 2)
@@ -61,6 +86,14 @@ def distance_to_center(group_indices):
 
 
 def sum_importance_defense(group_indices):
+    """处理sumimportance防御能力相关业务逻辑。
+
+    参数：
+        group_indices: groupindices。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     importance = data_Target[:, -1]
     defense = data_Target[:, -2]
     ratios = importance[group_indices] / (defense[group_indices] + 1e-10)  # 加上一个极小值避免除数为0
@@ -68,6 +101,14 @@ def sum_importance_defense(group_indices):
 
 
 def get_state():
+    """处理get状态相关业务逻辑。
+
+    参数：
+        无显式业务参数。
+
+    返回：
+        函数执行结果；具体类型由调用上下文或下游流程决定。
+    """
     state_features = []
     all_target_counts = []
     all_sum_imp_def_values = []
@@ -182,16 +223,46 @@ def reward_function(state):
 
 
 class TargetGroupingEnv(gym.Env):
+    """TargetGroupingEnv 类，封装目标grouping环境相关的数据结构与业务行为。
+
+    属性：
+        action_space: 动作space。
+        observation_space: 观测向量space。
+        state: 状态。
+        reward_history: 奖励history。
+    """
     def __init__(self):
+        """初始化对象并保存运行所需的配置、依赖和内部状态。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            无返回值；初始化实例属性并完成对象准备。
+        """
         super(TargetGroupingEnv, self).__init__()
+        # action_space: 动作space。
         self.action_space = gym.spaces.Discrete(action_space_size)
+        # observation_space: 观测向量space。
         self.observation_space = gym.spaces.Box(low=-2, high=2, shape=(len(get_state()),), dtype=np.float32)
+        # state: 状态。
         self.state = get_state()
 
+        # reward_history: 奖励history。
         self.reward_history = deque(maxlen=10)
 
     def calculate_change(self, target_index, source_group, target_group):
 
+        """计算指定指标或中间结果，处理change 数据相关数据。
+
+        参数：
+            target_index: 目标index。
+            source_group: sourcegroup。
+            target_group: 目标group。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         original_groups = {k: v.copy() for k, v in groups.items()}
 
         temp_groups = self._move_target_temp(target_index, source_group, target_group)
@@ -210,6 +281,14 @@ class TargetGroupingEnv(gym.Env):
         return variance_sum
 
     def step(self, action):
+        """推进环境或仿真流程的一个时间步。
+
+        参数：
+            action: 动作。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         print("本次选择的动作是：", action)
         source_group, target_group = parse_action(action)
         print("原群是：", source_group, "目标群是：", target_group)
@@ -278,6 +357,15 @@ class TargetGroupingEnv(gym.Env):
         return self.state, reward, done, truncated, {}
 
     def reset(self, seed=None, options=None):
+        """重置对象状态，为新的回合或流程做准备。
+
+        参数：
+            seed: 随机种子。
+            options: options 数据。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         global groups
         groups = {
             1: np.array([0, 1, 8, 18, 20, 36]),
@@ -294,6 +382,16 @@ class TargetGroupingEnv(gym.Env):
         return self.state, {}
 
     def _move_target_temp(self, target_index, source_group, target_group):
+        """处理move目标temp相关业务逻辑。
+
+        参数：
+            target_index: 目标index。
+            source_group: sourcegroup。
+            target_group: 目标group。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         temp_groups = {k: v.copy() for k, v in groups.items()}
         temp_groups[source_group] = np.delete(temp_groups[source_group],
                                               np.where(temp_groups[source_group] == target_index))
@@ -301,9 +399,26 @@ class TargetGroupingEnv(gym.Env):
         return temp_groups
 
     def _restore_groups(self, original_groups, temp_groups):
+        """处理restoregroups相关业务逻辑。
+
+        参数：
+            original_groups: originalgroups。
+            temp_groups: tempgroups。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         groups.update(original_groups)
 
     def _check_done(self):
+        """执行模块级健康检查或契约检查，处理结束标记相关数据。
+
+        参数：
+            无显式业务参数。
+
+        返回：
+            函数执行结果；具体类型由调用上下文或下游流程决定。
+        """
         if len(self.reward_history) < self.reward_history.maxlen:
             return False
 
