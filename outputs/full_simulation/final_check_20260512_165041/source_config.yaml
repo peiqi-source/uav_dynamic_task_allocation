@@ -1,0 +1,876 @@
+project:
+  name: uav_dynamic_task_allocation
+  version: 0.1.0
+  description: UAV swarm dynamic task allocation research framework
+  seed: 42
+  device: auto
+  output_dir: outputs
+  log_dir: logs
+
+experiment:
+  name: debug_experiment
+  seed: 42
+  device: auto
+
+paths:
+  data_dir: data
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  log_dir: logs
+  output_dir: outputs
+  checkpoint_dir: checkpoints
+  experiment_dir: experiments
+
+data:
+  uav_file: data/raw/UAV.csv
+  target_file: data/raw/Target.csv
+  battlefield_file: data/raw/battlefield_target_data.csv
+  uav_csv: data/raw/UAV.csv
+  target_csv: data/raw/Target.csv
+  battlefield_target_csv: data/raw/battlefield_target_data.csv
+  normalize: true
+
+env:
+  name: drone_battle
+
+  # 坐标模式说明：
+  # toy：对应原始 drone_battle_env.py 中 0~100 的简化强化学习环境；
+  # battlefield：对应 main.py 和论文中的真实战场仿真数据。
+  coordinate_mode: battlefield
+  coordinate_unit: m
+
+  # 战场边界设置。
+  # 注意：这里不是强行裁剪数据，而是给环境提供边界参考。
+  # 如果 auto_infer_bounds_from_data 为 true，环境会根据 UAV 和 Target 数据自动扩展边界。
+  x_min: -2000.0
+  x_max: 40000.0
+  y_min: -170000.0
+  y_max: 2000.0
+  auto_infer_bounds_from_data: true
+  boundary_margin_ratio: 0.05
+
+  # 时间推进参数。
+  # 对应原始 main.py 中的 t、v、update_interval 和 while t < 2200。
+  max_time: 2200.0
+  time_step: 30.0
+  uav_speed: 70.0
+
+  # 基地位置。
+  # 原始 main.py 中使用 base_location = [0, -16000]。
+  base_x: 0.0
+  base_y: -16000.0
+
+  # 攻击无人机载荷。
+  # 原始 main.py 中 attack_payload_per_uav = 6；
+  # 论文仿真参数表中攻击无人机载弹量也是 6。
+  attack_payload_per_uav: 6.0
+
+  # 通信假设。
+  # 论文中假设通信无人机覆盖战场范围，这里先记录为环境假设，
+  # 后面做通信约束时再进一步使用。
+  communication_covers_battlefield: true
+
+  # 是否启用动态事件。
+  # 当前环境先读取这些参数，但正式动态事件处理会在 events/ 模块中单独实现。
+  enable_dynamic_events: false
+
+  # 确定性动态事件时间表。
+  # 这些值主要参考原始 main.py 的事件触发时间。
+  event_schedule:
+    target_disappear_times: [300.0]
+    target_appear_times: [600.0, 1920.0]
+    attack_uav_destroyed_times: [2010.0]
+    guide_uav_destroyed_times: [2100.0]
+
+  # 随机动态事件概率。
+  # 这些值主要对应原始 drone_battle_env.py 的简化随机事件设定。
+  random_event_probabilities:
+    target_appear: 0.10
+    target_disappear: 0.05
+    uav_destroyed: 0.05
+
+  # 当前 DQN 训练模式。
+  # engagement_training 表示假设 UAV 已进入目标群附近，
+  # DQN 只学习目标群内打击次序，不用初始基地距离做硬性拦截。
+  simulation_mode: engagement_training
+
+  # 是否在 env.step() 中强制检查武器/工作距离。
+  # 当前先设为 false，否则 UAV 从基地到目标距离太远，会导致所有动作 out_of_range。
+  enforce_weapon_range: false
+
+  # 是否在一次有效打击后，将 UAV 当前位置更新到目标位置。
+  # 这对应原 attack_order_dqn.py 中 current_location = next_target 的逻辑。
+  update_uav_position_after_attack: true
+
+observation:
+  # 固定最大 UAV 数量。
+  # 用于构造神经网络固定长度输入。真实 UAV 数量不足时会 padding。
+  max_uavs: 50
+
+  # 固定最大 Target 数量。
+  # 动态场景中可能新增目标，因此这里要比初始目标数量更宽松。
+  max_targets: 120
+
+  # 是否在 observation 中加入 UAV-Target 距离矩阵特征。
+  # 该特征会显著增加输入维度，但对打击次序决策很有用。
+  include_distance_matrix: true
+
+  # 是否返回 feature_names，方便调试每一维代表什么。
+  # 训练时可以关闭，调试时建议开启。
+  include_feature_names: true
+
+  # 数值归一化时使用的最大距离。
+  # auto 表示根据战场边界对角线自动计算。
+  distance_normalizer: auto
+
+reward:
+  # 奖励函数模式。
+  # paper 表示优先复现论文中的距离奖励、重复打击惩罚、优先级奖励结构。
+  mode: paper
+
+  # 是否使用归一化距离。
+  # 论文中距离项是负距离奖励，但真实战场坐标尺度较大，
+  # 直接使用原始距离会导致距离项绝对值过大，压制目标优先级奖励。
+  # 因此工程实现中默认使用归一化距离。
+  use_normalized_distance: true
+  distance_normalizer: auto
+  distance_weight: 1.0
+
+  # 重复打击惩罚。
+  # 对应论文中的 R_rep，高惩罚用于避免重复访问或重复打击同一目标。
+  repetition_penalty: -10.0
+
+  # 优先级奖励权重。
+  # 当前使用 target.significance 作为 target.value_score。
+  priority_weight: 1.0
+  target_value_normalizer: 100.0
+
+  # 非法动作惩罚。
+  # 这些不是论文奖励公式的核心项，而是工程环境中必须处理的异常动作反馈。
+  invalid_action_penalty: -10.0
+  inactive_uav_penalty: -5.0
+  inactive_target_penalty: -10.0
+  non_attack_uav_penalty: -2.0
+  out_of_range_penalty: -1.0
+  out_of_bounds_penalty: -2.0
+
+  # 工程扩展项。
+  # 为了不脱离论文，默认设为 0。
+  # 后面需要强化“摧毁目标”或“削弱防御”的学习信号时再打开。
+  destroy_bonus: 0.0
+  damage_reward_weight: 0.0
+
+action_space:
+  # 固定动作空间模式。
+  # fixed_slot 表示使用 uav_slot × target_slot 的固定编号方式。
+  mode: fixed_slot
+
+  # 固定最大 UAV 和 Target 数量。
+  # 默认与 observation.max_uavs / observation.max_targets 保持一致。
+  max_uavs: 50
+  max_targets: 120
+
+  # 是否只允许攻击无人机参与打击动作。
+  # 当前任务是对地目标打击，所以默认为 true。
+  attack_uav_only: true
+
+  # 是否要求 UAV 能够覆盖目标。
+  # 如果为 true，超出工作距离的动作会被 mask 掉。
+  require_reachable: false
+
+  # 如果当前没有任何合法动作，是否允许 fallback 到非法动作。
+  # 训练 DQN 时建议 false，避免智能体学习无意义动作。
+  allow_noop_when_no_valid_action: false
+
+dqn:
+  network_type: dqn
+  learning_rate: 0.0005
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay: 5000
+  replay_buffer_size: 10000
+  batch_size: 32
+  target_update_interval: 100
+  checkpoint_dir: checkpoints/dqn
+
+  network:
+    # 当前先采用论文中 DQN 的 MLP 思路：
+    # 输入状态特征，经过全连接隐藏层，输出每个动作的 Q 值。
+    hidden_dims: [256, 256]
+
+    # ReLU 对应论文中常用的非线性激活。
+    activation: relu
+
+    # 当前默认不使用 dropout。
+    # 强化学习中 dropout 不一定总是有利，因此先保留配置入口。
+    dropout: 0.0
+
+    # 是否在隐藏层后使用 LayerNorm。
+    # 这是工程上的稳定性增强项，不是论文核心结构，默认关闭。
+    use_layer_norm: false
+
+  agent:
+    # 折扣因子 gamma，对应 DQN 目标值 y = r + gamma * max Q(s', a')。
+    gamma: 0.99
+
+    # 学习率。
+    learning_rate: 0.0005
+
+    # 每次从 ReplayBuffer 采样多少条经验用于一次网络更新。
+    batch_size: 32
+
+    # 目标网络同步间隔。
+    # DQN 通常使用 policy network 和 target network 两套网络，
+    # target network 周期性从 policy network 复制参数，用于稳定训练。
+    target_update_interval: 100
+
+    # epsilon-greedy 探索参数。
+    # 训练初期 epsilon 高，鼓励随机探索；后期 epsilon 降低，更多利用当前 Q 网络。
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 5000
+
+    # 梯度裁剪，避免 Q 网络更新时梯度爆炸。
+    gradient_clip_norm: 10.0
+
+    # 当前先使用 Adam。
+    optimizer: adam
+
+  trainer:
+    # 训练 episode 数。
+    # 当前先用较小值测试训练流程，正式训练时可以改大。
+    num_episodes: 5
+
+    # 每个 episode 最多执行多少步。
+    # 如果为空或 auto，默认使用 env_config.max_steps。
+    max_steps_per_episode: auto
+
+    # replay buffer 容量。
+    replay_buffer_capacity: 10000
+
+    # 预热步数。
+    # 在 buffer 中至少积累一定样本后再开始更新网络。
+    warmup_steps: 32
+
+    # 每隔多少环境步更新一次 DQN。
+    train_every_steps: 1
+
+    # 每次环境 step 后执行几次网络更新。
+    updates_per_train_step: 1
+
+    # 每隔多少个 episode 输出一次详细日志。
+    log_interval: 1
+
+    # 当前测试阶段先不保存 checkpoint。
+    save_checkpoint: true
+
+  checkpoint:
+    # 是否启用 checkpoint 保存。
+    enabled: true
+
+    # DQN 模型保存目录。
+    checkpoint_dir: checkpoints/dqn
+
+    # 最近一次模型文件名。
+    latest_filename: latest.pt
+
+    # 最优模型文件名。
+    best_filename: best.pt
+
+    # 是否保存 optimizer 状态。
+    # 如果想继续训练，必须保存 optimizer；如果只做评估，可以不需要。
+    save_optimizer: true
+
+    # 是否保存 replay buffer。
+    # 当前先不保存 replay buffer，后面训练规模变大后再单独做。
+    save_replay_buffer: false
+
+  metrics:
+    # 是否保存 DQN 训练指标。
+    enabled: true
+
+    # 指标保存目录。
+    metrics_dir: outputs/metrics
+
+    # episode 级训练指标 CSV 文件。
+    metrics_filename: dqn_training_metrics.csv
+
+    # 每次运行是否覆盖旧指标文件。
+    # 调试阶段建议 true；正式长训练时可以改成 false。
+    overwrite: true
+
+    # 是否额外保存 jsonl 文件。
+    # jsonl 比 CSV 更适合保存嵌套信息，后面调试会方便。
+    save_jsonl: true
+    jsonl_filename: dqn_training_metrics.jsonl
+
+strike_order:
+  # 单个目标群最多考虑多少个目标。
+  # DQN 输出层维度会等于这个值。
+  max_targets_per_cluster: 50
+
+  # observation 是否包含每个目标到当前位置的距离特征。
+  include_distance_features: true
+
+  # 距离归一化尺度。
+  # auto 表示根据当前目标群范围自动估计。
+  distance_normalizer: auto
+
+  reward:
+    # reward 模式。
+    # inverse_distance 更接近原 attack_order_dqn.py 中 100 / distance 的思想。
+    mode: inverse_distance
+
+    # 原代码中类似 reward = 100 / distance。
+    distance_reward_scale: 100.0
+
+    # 重复访问目标惩罚，对齐原代码中的 -10 思路。
+    repeat_penalty: -10.0
+
+    # 完成整个目标群排序后的奖励。
+    completion_bonus: 10.0
+
+    # 目标重要性奖励权重。
+    # 为了不偏离原代码，默认先设小一点。
+    priority_weight: 0.1
+
+    # 目标价值归一化尺度。
+    target_value_normalizer: 100.0
+
+strike_order_dqn:
+  network:
+    hidden_dims: [256, 256]
+    activation: relu
+    dropout: 0.0
+    use_layer_norm: false
+
+  agent:
+    gamma: 0.99
+    learning_rate: 0.0005
+    batch_size: 32
+    target_update_interval: 100
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 3000
+    gradient_clip_norm: 10.0
+    optimizer: adam
+
+  trainer:
+    num_episodes: 100
+    max_steps_per_episode: auto
+    replay_buffer_capacity: 10000
+    warmup_steps: 100
+    train_every_steps: 1
+    updates_per_train_step: 1
+    log_interval: 1
+    save_checkpoint: true
+    cluster_sampling: random
+
+  cluster_dataset:
+    # 当前先用真实 target 数据临时构造 debug clusters。
+    # 后面 target_clustering.py 完成后，会替换成 PSO / PPO 输出的 TargetClusterSet。
+    num_debug_clusters: 5
+    targets_per_cluster: 6
+
+  checkpoint:
+    enabled: true
+    checkpoint_dir: checkpoints/strike_order_dqn
+    latest_filename: latest.pt
+    best_filename: best.pt
+    save_optimizer: true
+    save_replay_buffer: false
+
+  metrics:
+    enabled: true
+    metrics_dir: outputs/metrics
+    metrics_filename: strike_order_dqn_metrics.csv
+    overwrite: true
+    save_jsonl: true
+    jsonl_filename: strike_order_dqn_metrics.jsonl
+
+algorithm:
+  name: dqn
+  gamma: 0.99
+  learning_rate: 0.001
+  batch_size: 64
+  hidden_dim: 128
+
+training:
+  episodes: 1000
+  eval_interval: 50
+  save_interval: 100
+  log_interval: 10
+
+logging:
+  level: INFO
+  use_tensorboard: true
+  save_log_file: true
+
+output:
+  save_metrics: true
+  save_figures: true
+  save_assignments: true
+
+target_screening:
+  # 源代码中 type=2 被当作 DefendedPost / 防御阵地
+  defense_post_type: 2
+
+  # 源代码中 type=1 被当作 HVT / 高价值目标
+  high_value_target_type: 1
+
+  # 源代码 Target_ScreenCore.py 中 R = 20
+  defense_radius: 20.0
+
+  # 源代码中 UAVx=0, UAVy=0，用于计算目标到参考点距离
+  reference_position: [0.0, 0.0]
+
+  # 是否启用防御阵地对高价值目标的影响修正
+  use_defended_post_adjustment: true
+
+  score:
+    # 对齐原代码 reward = 0.1*(0.9^defense) + 10*0.5*significance
+    #              + 80*0.4*(0.9^distance_norm) + abs(angle)
+    defense_decay_weight: 0.1
+    significance_weight: 5.0
+    distance_decay_weight: 32.0
+    angle_weight: 1.0
+    defense_decay_base: 0.9
+    distance_decay_base: 0.9
+
+  selection:
+    # 目前先 all，因为源代码后面还会用 Kmeans_step1 继续划分摧毁目标集
+    # 可选：all, top_k, top_ratio, threshold
+    method: all
+    top_k: 20
+    top_ratio: 0.5
+    threshold: 0.5
+
+  output:
+    debug_csv_path: outputs/intermediate/target_screening_scores.csv
+
+destroy_target_selection:
+  # 可选：
+  # weighted_kmeans
+  # random_forest
+  # top_k
+  # threshold
+  method: weighted_kmeans
+
+  num_clusters: 2
+  max_iter: 300
+  tolerance: 0.0004
+  random_seed: 42
+
+  feature_weights:
+    normalized_distance: 0.4
+    score: 0.6
+
+  choose_cluster_by: highest_score_cluster
+
+  random_forest:
+    model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+    # 预测概率大于该阈值时，判定为摧毁目标
+    probability_threshold: 0.5
+
+    # 如果模型没有选出任何目标，用 fallback 防止流程断掉
+    fallback_method: top_k
+    fallback_top_k: 5
+
+    # RF 使用的特征
+    feature_names:
+      - score
+      - normalized_distance
+      - angle
+      - adjusted_defense
+      - adjusted_significance
+
+  rule:
+    top_k: 8
+    threshold: 0.5
+
+  output:
+    debug_csv_path: outputs/intermediate/destroy_target_selection.csv
+
+
+destroy_target_rf_training:
+  # 注意：
+  # label_csv 才是正式监督学习方式。
+  # kmeans_bootstrap 只是调试阶段用 KMeans 结果作为伪标签，不适合作为最终论文结论。
+  label_source: kmeans_bootstrap
+
+  label_csv_path: data/processed/destroy_target_labels.csv
+  target_id_column: target_id
+  label_column: is_destroy_target
+
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+  n_estimators: 200
+  max_depth: null
+  test_size: 0.25
+  random_seed: 42
+
+  output:
+    report_path: outputs/evaluation/destroy_target_rf_report.txt
+    feature_importance_csv: outputs/evaluation/destroy_target_rf_feature_importance.csv
+
+target_clustering:
+  # 可选：
+  # kmeans：工程稳定 baseline
+  # pso：对齐源代码 PSO_classify 的分群思想
+  method: pso
+
+  # 目标群数量。
+  # 如果摧毁目标数量少于 num_clusters，会自动减少 cluster 数。
+  num_clusters: 3
+  auto_adjust_num_clusters: true
+
+  # 分群特征。
+  # 当前先使用空间坐标 x/y，后续可以扩展 significance、defense、score。
+  feature_names:
+    - x
+    - y
+
+  # KMeans 配置
+  kmeans:
+    max_iter: 300
+    tolerance: 0.0004
+    random_seed: 42
+
+  # PSO 配置
+  pso:
+    num_particles: 30
+    max_iter: 100
+    inertia_weight: 0.7
+    cognitive_weight: 1.5
+    social_weight: 1.5
+    compactness_weight: 1.0
+    balance_weight: 0.1
+    value_weight: 0.2
+    defense_weight: 0.2
+    convergence_threshold: 0.000001
+    initialize_with_high_value_targets: true
+    random_seed: 42
+
+  output:
+    debug_csv_path: outputs/intermediate/target_clustering.csv
+
+resource_allocation:
+  # 可选：
+  # rule_based：先对齐源代码 main.py 中的资源分配逻辑
+  # greedy：后续扩展
+  # auction：后续扩展
+  # pso：后续扩展
+  # ppo：后续扩展
+  method: rule_based
+
+  # 源代码中类似 attack_payload_per_uav = 6
+  attack_payload_per_uav: 6
+
+  # 每个目标群默认分配多少导引 / 侦察 UAV
+  guide_uavs_per_cluster: 1
+
+  # 当前先默认不强制分配通信 UAV
+  communication_uavs_per_cluster: 0
+
+  # 如果攻击 UAV 不足，是否允许部分分配
+  allow_partial_allocation: true
+  enable_monte_carlo_assessment: true
+
+  # 目标群分配优先级
+  # defense_desc：防御总值高的目标群优先
+  # significance_desc：重要性总值高的目标群优先
+  # num_targets_desc：目标数量多的目标群优先
+  # cluster_id_asc：按 cluster_id 顺序
+  cluster_priority: defense_desc
+
+  # UAV 分配顺序
+  # uav_id_asc：按 UAV ID 从小到大分配
+  uav_sorting: uav_id_asc
+
+  # 默认起飞基地 / 任务开始位置
+  base_position: [0.0, -16000.0]
+
+  output:
+    debug_csv_path: outputs/intermediate/resource_allocation.csv
+
+algorithms:
+  destroy_selector:
+    method: rf
+  clustering:
+    initial_method: pso
+    dynamic_method: ppo
+  resource_assessment:
+    method: monte_carlo
+  strike_order:
+    method: attention_dqn
+  replanning:
+    enable_support_policy: true
+
+rf:
+  n_estimators: 200
+  max_depth: null
+  train_ratio: 0.75
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+pso:
+  num_particles: 30
+  max_iterations: 100
+  inertia_weight: 0.7
+  cognitive_factor: 1.5
+  social_factor: 1.5
+  convergence_threshold: 0.000001
+  weights:
+    compactness: 1.0
+    balance: 0.1
+    value: 0.2
+    defense: 0.2
+
+ppo:
+  learning_rate: 0.0003
+  gamma: 0.99
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  value_loss_coef: 0.5
+  batch_size: 64
+  update_epochs: 4
+  max_episodes: 20
+  checkpoint_dir: checkpoints/ppo_clusterer
+
+monte_carlo:
+  num_simulations: 300
+  completion_threshold: 0.8
+  uav_loss_probability: 0.05
+  target_defense_noise: 0.1
+  hit_probability_noise: 0.05
+  output_csv_path: outputs/resource_assessment/monte_carlo_results.csv
+  figure_path: outputs/resource_assessment/monte_carlo_completion_distribution.png
+
+support_policy:
+  enabled: true
+  completion_threshold: 0.8
+  donor_min_completion_probability: 0.85
+  max_reassigned_uavs: 1
+  output_csv_path: outputs/support/support_decisions.csv
+
+simulation:
+  max_time_steps: 2200
+  time_step: 30
+  enable_dynamic_events: false
+  event_config:
+    event_schedule: []
+
+visualization:
+  save_figures: true
+  figure_dir: outputs/simulation/figures
+
+
+scenario:
+  # static / dynamic
+  mode: static
+
+  time_step: 30
+  max_time: 2200
+
+  dynamic_events:
+    enabled: false
+    event_schedule: []
+
+
+algorithm_policy:
+  # 默认算法。当前没有特殊规则时使用这里。
+  default:
+    target_screening: source_aligned
+    destroy_target_selection: weighted_kmeans
+    target_clustering: kmeans
+    resource_allocation: rule_based
+    strike_order_planning: dqn
+
+  # 静态场景：一次性规划，不触发重规划。
+  static:
+    target_screening: source_aligned
+    destroy_target_selection: weighted_kmeans
+    target_clustering: pso
+    resource_allocation: rule_based
+    strike_order_planning: dqn
+
+  # 动态场景。
+  dynamic:
+    # 动态任务刚开始时的初始规划。
+    initial_planning:
+      target_screening: source_aligned
+      destroy_target_selection: random_forest
+      target_clustering: pso
+      resource_allocation: rule_based
+      strike_order_planning: dqn
+
+    # 动态事件发生后的算法切换规则。
+    events:
+      target_appeared:
+        replanning_scope: global
+        stages:
+          target_screening: source_aligned
+          destroy_target_selection: random_forest
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: dqn
+
+      target_disappeared:
+        replanning_scope: affected_clusters
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: dqn
+
+      attack_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: dqn
+
+      guide_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: dqn
+
+      communication_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: keep_existing
+
+      resource_shortage:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: dqn
+
+mission_planner:
+  output:
+    debug_csv_path: outputs/intermediate/mission_planner_summary.csv
+
+strike_order_planner:
+  # 可选：
+  # dqn
+  # nearest_neighbor
+  # random
+  method: dqn
+
+  # DQN checkpoint 类型：best / latest
+  checkpoint_type: best
+
+  # 如果 DQN checkpoint 不存在，是否允许退回到最近邻策略
+  allow_fallback: true
+  fallback_method: nearest_neighbor
+
+  # DQN 排序阶段的起点。
+  # cluster_center：假设 UAV 小组已经进入目标群任务区
+  # assignment_real_time_position：使用资源分配中的实时位置
+  # assignment_start_position：使用资源分配中的起飞位置
+  start_position_source: cluster_center
+
+  device: auto
+  random_seed: 42
+
+  output:
+    debug_csv_path: outputs/intermediate/strike_order_planner.csv
+
+scenario:
+  mode: static   # static / dynamic
+
+  time_step: 30
+  max_time: 2200
+
+  dynamic_events:
+    enabled: false
+
+    # 动态事件时间表。
+    # 当前先作为配置结构，static 模式下不会触发。
+    event_schedule:
+      - time: 300
+        type: target_disappeared
+        affected_target_ids: [3]
+        description: Target 3 disappeared during mission execution.
+
+      - time: 600
+        type: target_appeared
+        affected_target_ids: [21]
+        description: New target appeared. Full target loading will be handled later.
+
+      - time: 900
+        type: attack_uav_destroyed
+        affected_uav_ids: [11]
+        description: Attack UAV 11 was destroyed.
+
+      - time: 1200
+        type: guide_uav_destroyed
+        affected_uav_ids: [5]
+        description: Guide UAV 5 was destroyed.
+
+mission_simulator:
+  default_uav_speed: 80.0
+  arrival_tolerance: 100.0
+  strike_targets_per_step: 1
+  stop_when_all_planned_targets_destroyed: true
+
+  output:
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+
+mission_metrics:
+  input_csv_path: outputs/simulation/mission_simulation_log.csv
+
+  output:
+    summary_csv_path: outputs/simulation/mission_simulation_summary.csv
+    timeline_csv_path: outputs/simulation/mission_simulation_timeline_metrics.csv
+    figure_dir: outputs/simulation/figures
+
+mission_visualization:
+  input:
+    uav_trajectory_csv_path: outputs/simulation/uav_trajectory_log.csv
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+
+  output:
+    figure_dir: outputs/simulation/figures
+
+  max_uavs_to_plot: 20
+  only_assigned_uavs: true
+
+full_simulation:
+  run_name: debug_full_simulation
+
+  output_root: outputs/full_simulation
+  create_timestamped_run_dir: true
+
+  run_metrics: true
+  run_visualization: true
+
+  # 是否在脚本中强制注入 demo 动态事件。
+  # 正式实验建议设为 false，直接使用 scenario.dynamic_events.event_schedule。
+  use_demo_dynamic_events: false
+
+  demo_dynamic_events:
+    - time: 150
+      type: target_disappeared
+      affected_target_ids: [3]
+      description: Demo target 3 disappeared before strike.
+
+    - time: 210
+      type: attack_uav_destroyed
+      affected_uav_ids: [11]
+      description: Demo attack UAV 11 destroyed during mission.

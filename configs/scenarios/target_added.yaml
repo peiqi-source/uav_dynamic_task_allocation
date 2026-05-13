@@ -1,0 +1,20 @@
+name: target_added
+scenario:
+  mode: dynamic
+  dynamic_events:
+    enabled: true
+    event_schedule:
+      - time: 600
+        type: target_appeared
+        affected_target_ids: [21]
+        description: New high-value target appeared during mission execution.
+        new_targets:
+          - target_id: 21
+            x: 18500.0
+            y: -78000.0
+            target_type: 1
+            defense: 10.0
+            significance: 12.0
+full_simulation:
+  run_metrics: true
+  run_visualization: true

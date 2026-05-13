@@ -1,0 +1,221 @@
+{
+  "run_dir": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static",
+  "planner_metadata": {
+    "scenario_mode": "static",
+    "num_all_targets": 20,
+    "num_candidate_targets": 20,
+    "num_destroy_targets": 7,
+    "num_target_clusters": 3,
+    "num_assignments": 3,
+    "num_strike_order_plans": 3,
+    "strike_order_method_used": "nearest_neighbor",
+    "stage_methods": {
+      "target_screening": "source_aligned",
+      "destroy_target_selection": "random_forest",
+      "target_clustering": "pso",
+      "resource_allocation": "rule_based",
+      "strike_order_planning": "attention_dqn"
+    },
+    "initial_support_decisions": [
+      {
+        "support_required": true,
+        "support_type": "communication_support",
+        "event_id": "resource_shortage@0",
+        "donor_cluster_id": null,
+        "receiver_cluster_id": 2,
+        "reassigned_uav_ids": [],
+        "affected_target_ids": [
+          3,
+          6,
+          9
+        ],
+        "reason": "communication_support requested by resource_shortage; no donor cluster with surplus resource was available.",
+        "estimated_completion_rate_before": 0.24333333333333335,
+        "estimated_completion_rate_after": 0.24333333333333335,
+        "updated_plan": {
+          "receiver_attack_uav_ids": [
+            12,
+            13
+          ],
+          "receiver_guide_uav_ids": [
+            1
+          ],
+          "support_type": "communication_support"
+        }
+      }
+    ]
+  },
+  "simulation_metadata": {
+    "final_time": 1830.0,
+    "num_steps": 61,
+    "num_replanning": 0,
+    "destroyed_target_ids": [
+      1,
+      2,
+      3,
+      6,
+      9,
+      11,
+      17
+    ],
+    "disappeared_target_ids": [],
+    "damaged_uav_ids": [],
+    "completed_cluster_ids": [
+      2,
+      0,
+      1
+    ]
+  },
+  "final_runtime_state": {
+    "current_time": 1830.0,
+    "num_active_targets_total": 20,
+    "num_available_targets": 13,
+    "num_disappeared_targets": 0,
+    "num_destroyed_targets": 7,
+    "num_active_uavs_total": 41,
+    "num_available_uavs": 41,
+    "num_damaged_uavs": 0,
+    "available_target_ids": [
+      4,
+      5,
+      7,
+      8,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      18,
+      19,
+      20
+    ],
+    "disappeared_target_ids": [],
+    "destroyed_target_ids": [
+      1,
+      2,
+      3,
+      6,
+      9,
+      11,
+      17
+    ],
+    "available_uav_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ],
+    "damaged_uav_ids": [],
+    "target_status_counts": {
+      "destroyed": 7,
+      "active": 13
+    },
+    "uav_status_counts": {
+      "en_route": 3,
+      "available": 34,
+      "striking": 4
+    },
+    "num_triggered_events": 0
+  },
+  "num_replanning_results": 0,
+  "figure_paths": [
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\destroyed_targets_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\available_targets_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\available_uavs_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\replanning_count_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\cluster_completion_ratio_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\event_count_over_time.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\uav_spatial_trajectories.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\uav_status_timeline.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\event_replanning_timeline.png",
+    "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\experiments\\static\\simulation\\figures\\target_final_status_map.png"
+  ],
+  "num_initial_support_decisions": 1,
+  "initial_support_decisions": [
+    {
+      "support_required": true,
+      "support_type": "communication_support",
+      "event_id": "resource_shortage@0",
+      "donor_cluster_id": null,
+      "receiver_cluster_id": 2,
+      "reassigned_uav_ids": [],
+      "affected_target_ids": [
+        3,
+        6,
+        9
+      ],
+      "reason": "communication_support requested by resource_shortage; no donor cluster with surplus resource was available.",
+      "estimated_completion_rate_before": 0.24333333333333335,
+      "estimated_completion_rate_after": 0.24333333333333335,
+      "updated_plan": {
+        "receiver_attack_uav_ids": [
+          12,
+          13
+        ],
+        "receiver_guide_uav_ids": [
+          1
+        ],
+        "support_type": "communication_support"
+      }
+    }
+  ],
+  "metrics_summary": {
+    "total_time": 1830.0,
+    "num_steps": 61,
+    "num_replanning": 0,
+    "total_event_count": 0,
+    "event_type_counts": "{}",
+    "final_destroyed_count": 7,
+    "final_destroyed_target_ids": "[1, 2, 3, 6, 9, 11, 17]",
+    "final_disappeared_count": 0,
+    "final_disappeared_target_ids": "[]",
+    "final_damaged_uav_count": 0,
+    "final_damaged_uav_ids": "[]",
+    "final_available_target_count": 13,
+    "final_available_uav_count": 41,
+    "final_completed_cluster_count": 3,
+    "final_total_cluster_count": 3,
+    "final_cluster_completion_ratio": 1.0,
+    "mission_completed_by_cluster": true,
+    "total_destroyed_this_step_sum": 7,
+    "average_destroyed_per_step": 0.11475409836065574
+  }
+}

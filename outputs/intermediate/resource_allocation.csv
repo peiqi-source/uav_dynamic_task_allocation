@@ -1,0 +1,4 @@
+﻿cluster_id,target_ids,num_targets,defense_sum,significance_sum,cluster_center_x,cluster_center_y,required_attack_uav_count,assigned_attack_uav_count,assigned_attack_uav_ids,assigned_guide_uav_ids,assigned_communication_uav_ids,resource_shortage,metadata
+2,"[3, 6, 9]",3,7.0,4.0,34.0,23.333333333333332,2,2,"[12, 13]",[1],[],False,"{'num_targets': 3, 'compactness': 13.468583940218382}"
+0,"[1, 11]",2,5.0,3.0,-28.5,21.5,1,1,[14],[2],[],False,"{'num_targets': 2, 'compactness': 17.7341478509682}"
+1,[2],1,4.0,2.0,1.0,74.0,1,1,[15],[3],[],False,"{'num_targets': 1, 'compactness': 0.0}"

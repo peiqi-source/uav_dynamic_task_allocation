@@ -1,86 +1,138 @@
-# uav\_dynamic\_task\_allocation
+# UAV Dynamic Task Allocation
 
-\# UAV Dynamic Task Allocation
+This repository implements an event-driven UAV swarm task-level autonomous
+decision system. The current engineering flow is aligned with the paper
+pipeline:
 
+1. Load UAV and target data from CSV files.
+2. Build the battlefield state.
+3. Screen candidate targets.
+4. Select destroy-target set with Random Forest.
+5. Build initial target regions with PSO.
+6. Regroup targets after dynamic events with PPO, with PSO fallback.
+7. Allocate UAV resources.
+8. Assess resource sufficiency with Monte Carlo simulation.
+9. Plan intra-cluster strike order with Attention-DQN, with heuristic fallback.
+10. Simulate dynamic events, support decisions, replanning, trajectories,
+    metrics and figures.
 
+The main entry point is:
 
-This project is a modular research engineering framework for UAV swarm dynamic task allocation, target grouping, reinforcement learning-based decision making, dynamic event response, and result visualization.
+```bash
+python scripts/run_full_simulation.py
+```
 
+## Quick Validation
 
+Run from the project root:
 
-\## Project Structure
+```bash
+pip install -e .
 
+python scripts/check_config.py
+python scripts/check_data.py
+python scripts/check_entities.py
+python scripts/check_contracts.py
+python scripts/check_destroy_target_selection.py
+python scripts/check_target_clustering.py
+python scripts/check_resource_allocation.py
+python scripts/check_monte_carlo_resource_evaluator.py
+python scripts/check_strike_order_env.py
+python scripts/check_support_policy.py
+python scripts/check_replanning_controller.py
+python scripts/check_mission_simulator.py
 
+python scripts/run_full_simulation.py
+python scripts/run_all_experiments.py
+pytest -q
+```
 
-\- `configs/`: configuration files
+The system is designed to run on CPU. If PyTorch or model checkpoints are not
+available, the main workflow falls back safely:
 
-\- `data/`: raw and processed data
+- RF checkpoint missing: use configured RF fallback rule.
+- PPO checkpoint missing or PyTorch unavailable: fall back to PSO clustering.
+- Attention-DQN checkpoint missing or PyTorch unavailable: fall back to the
+  configured heuristic strike-order method.
 
-\- `src/`: source code
+All fallback behavior is logged.
 
-\- `scripts/`: executable scripts
+## Scenario Experiments
 
-\- `tests/`: unit tests
+Scenario configurations are stored in `configs/scenarios/`.
 
-\- `experiments/`: experiment records
+```bash
+python scripts/run_static_scenario.py
+python scripts/run_target_removed_scenario.py
+python scripts/run_target_added_scenario.py
+python scripts/run_uav_lost_scenario.py
+python scripts/run_comprehensive_dynamic_scenario.py
+python scripts/run_all_experiments.py
+```
 
-\- `outputs/`: figures, tables, and results
+The five supported scenarios are:
 
-\- `logs/`: running logs
+- `static`: RF + PSO + Monte Carlo + Attention-DQN + MissionSimulator.
+- `target_removed`: target disappearance, local release and replanning.
+- `target_added`: new high-value target, RF decision, PPO regrouping,
+  Monte Carlo assessment and replanning.
+- `uav_lost`: attack, recon/guide and communication UAV loss, support policy
+  and resource reassignment.
+- `comprehensive_dynamic`: target removed, target added and UAV loss events.
 
-\- `checkpoints/`: saved models
+Batch experiment summary:
 
-\- `legacy/`: original scripts before refactoring
+```text
+outputs/experiments/all_experiments_summary.csv
+```
 
+## Training And Evaluation
 
+```bash
+python scripts/train_destroy_target_rf.py
+python scripts/compare_destroy_target_selection.py
 
-\## Current Stage
+python scripts/train_ppo_clusterer.py
+python scripts/evaluate_ppo_clusterer.py
 
+python scripts/train_strike_order_dqn.py
+python scripts/evaluate_strike_order_dqn.py
+```
 
+Main checkpoints:
 
-The current stage focuses on refactoring legacy research scripts into a clean, configurable, and reproducible engineering project.
+- `checkpoints/random_forest/destroy_target_rf.joblib`
+- `checkpoints/ppo_clusterer/`
+- `checkpoints/strike_order_dqn/`
 
+## Outputs
 
+A full simulation run writes to:
 
-1. 数据层
-CSV
-  ↓
-DataFrame
-  ↓
-UAV / Target
+```text
+outputs/full_simulation/<run_name_timestamp>/
+```
 
-2. 状态层
-UAV / Target
-  ↓
-BattlefieldState
+Scenario experiments write to:
 
-3. 环境层
-BattlefieldState + EnvConfig
-  ↓
-DroneBattleEnv
+```text
+outputs/experiments/<scenario_name>/
+```
 
-4. 观测层
-BattlefieldState
-  ↓
-ObservationBuilder
-  ↓
-obs vector
+Each run stores:
 
-5. 动作层
-action_id
-  ↓
-ActionSpace
-  ↓
-{"uav_id": ..., "target_id": ...}
+- `effective_config.yaml`
+- `mission_planner_summary.csv`
+- `simulation/mission_simulation_log.csv`
+- `simulation/mission_simulation_summary.csv`
+- `simulation/mission_simulation_timeline_metrics.csv`
+- `simulation/uav_trajectory_log.csv`
+- `simulation/dynamic_events.csv`
+- `simulation/support_decisions.csv`
+- `simulation/resource_assessment.csv`
+- `simulation/resource_assessment_samples.csv`
+- `simulation/figures/*.png`
+- `final_summary.json`
 
-6. 奖励层
-env.step(action)
-  ↓
-RewardCalculator
-  ↓
-reward / reward_breakdown
-
-7. 经验层
-obs, action_id, reward, next_obs, done
-  ↓
-ReplayBuffer
+See `docs/experiment_reproduction.md` for the paper-to-code mapping and
+reproduction checklist.

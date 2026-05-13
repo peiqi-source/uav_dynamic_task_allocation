@@ -1,0 +1,16 @@
+name: static
+scenario:
+  mode: static
+  dynamic_events:
+    enabled: false
+    event_schedule: []
+full_simulation:
+  run_metrics: true
+  run_visualization: true
+algorithm_policy:
+  static:
+    target_screening: source_aligned
+    destroy_target_selection: random_forest
+    target_clustering: pso
+    resource_allocation: rule_based
+    strike_order_planning: attention_dqn

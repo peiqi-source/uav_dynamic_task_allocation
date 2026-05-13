@@ -1,0 +1,7 @@
+{
+  "checkpoint_type": "no_torch_baseline",
+  "method": "nearest_neighbor",
+  "requested_network_type": "attention_dqn",
+  "num_clusters": 5,
+  "metrics_csv": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\metrics\\strike_order_dqn_no_torch_baseline.csv"
+}

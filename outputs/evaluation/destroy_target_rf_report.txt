@@ -1,0 +1,22 @@
+Destroy Target Random Forest Report
+===================================
+
+label_source: kmeans_bootstrap
+feature_names: ['score', 'normalized_distance', 'angle', 'adjusted_defense', 'adjusted_significance']
+label_counts: {1: 6, 0: 14}
+use_holdout_split: True
+
+classification_report:
+              precision    recall  f1-score   support
+
+           0     1.0000    0.7500    0.8571         4
+           1     0.5000    1.0000    0.6667         1
+
+    accuracy                         0.8000         5
+   macro avg     0.7500    0.8750    0.7619         5
+weighted avg     0.9000    0.8000    0.8190         5
+
+
+confusion_matrix:
+[[3 1]
+ [0 1]]

@@ -1,0 +1,3 @@
+﻿event_time,event_type,affected_target_ids,affected_uav_ids,metadata
+150.0,target_disappeared,[3],[],{'description': 'Demo target 3 disappeared before strike.'}
+210.0,attack_uav_destroyed,[],[11],{'description': 'Demo attack UAV 11 destroyed during mission.'}

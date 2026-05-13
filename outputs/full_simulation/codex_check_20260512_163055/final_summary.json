@@ -1,0 +1,158 @@
+{
+  "run_dir": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\full_simulation\\codex_check_20260512_163055",
+  "planner_metadata": {
+    "scenario_mode": "dynamic",
+    "num_all_targets": 20,
+    "num_candidate_targets": 20,
+    "num_destroy_targets": 5,
+    "num_target_clusters": 3,
+    "num_assignments": 3,
+    "num_strike_order_plans": 3,
+    "strike_order_method_used": "nearest_neighbor",
+    "stage_methods": {
+      "target_screening": "source_aligned",
+      "destroy_target_selection": "random_forest",
+      "target_clustering": "pso",
+      "resource_allocation": "rule_based",
+      "strike_order_planning": "dqn"
+    }
+  },
+  "simulation_metadata": {
+    "final_time": 1800.0,
+    "num_steps": 60,
+    "num_replanning": 2,
+    "destroyed_target_ids": [
+      1,
+      2,
+      9,
+      11
+    ],
+    "disappeared_target_ids": [
+      3
+    ],
+    "damaged_uav_ids": [
+      11
+    ],
+    "completed_cluster_ids": [
+      0,
+      2,
+      1
+    ]
+  },
+  "final_runtime_state": {
+    "current_time": 1800.0,
+    "num_active_targets_total": 20,
+    "num_available_targets": 15,
+    "num_disappeared_targets": 1,
+    "num_destroyed_targets": 4,
+    "num_active_uavs_total": 41,
+    "num_available_uavs": 40,
+    "num_damaged_uavs": 1,
+    "available_target_ids": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "disappeared_target_ids": [
+      3
+    ],
+    "destroyed_target_ids": [
+      1,
+      2,
+      9,
+      11
+    ],
+    "available_uav_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ],
+    "damaged_uav_ids": [
+      11
+    ],
+    "target_status_counts": {
+      "destroyed": 4,
+      "disappeared": 1,
+      "active": 15
+    },
+    "uav_status_counts": {
+      "en_route": 3,
+      "available": 34,
+      "damaged": 1,
+      "striking": 3
+    },
+    "num_triggered_events": 2
+  },
+  "num_replanning_results": 2,
+  "figure_paths": [],
+  "metrics_summary": {
+    "total_time": 1800.0,
+    "num_steps": 60,
+    "num_replanning": 2,
+    "total_event_count": 2,
+    "event_type_counts": "{\"target_disappeared\": 1, \"attack_uav_destroyed\": 1}",
+    "final_destroyed_count": 4,
+    "final_destroyed_target_ids": "[1, 2, 9, 11]",
+    "final_disappeared_count": 1,
+    "final_disappeared_target_ids": "[3]",
+    "final_damaged_uav_count": 1,
+    "final_damaged_uav_ids": "[11]",
+    "final_available_target_count": 15,
+    "final_available_uav_count": 40,
+    "final_completed_cluster_count": 3,
+    "final_total_cluster_count": 3,
+    "final_cluster_completion_ratio": 1.0,
+    "mission_completed_by_cluster": true,
+    "total_destroyed_this_step_sum": 4,
+    "average_destroyed_per_step": 0.06666666666666667
+  }
+}

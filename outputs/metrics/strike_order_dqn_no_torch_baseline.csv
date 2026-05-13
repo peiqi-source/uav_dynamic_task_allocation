@@ -1,0 +1,6 @@
+﻿cluster_id,method,total_reward,total_path_distance,ordered_target_ids
+0,nearest_neighbor_no_torch_baseline,27.15430895066569,143.75447345561832,"[4, 3, 2, 1]"
+1,nearest_neighbor_no_torch_baseline,30.135987974687502,164.60582761657668,"[5, 7, 8, 6]"
+2,nearest_neighbor_no_torch_baseline,18.486365510503862,209.3632227065794,"[12, 10, 11, 9]"
+3,nearest_neighbor_no_torch_baseline,26.288679406490516,121.91912521010097,"[13, 15, 14, 16]"
+4,nearest_neighbor_no_torch_baseline,21.76935026904001,169.56104208358724,"[19, 18, 20, 17]"

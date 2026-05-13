@@ -1,0 +1,13 @@
+name: target_removed
+scenario:
+  mode: dynamic
+  dynamic_events:
+    enabled: true
+    event_schedule:
+      - time: 300
+        type: target_disappeared
+        affected_target_ids: [3]
+        description: Target 3 disappeared during mission execution.
+full_simulation:
+  run_metrics: true
+  run_visualization: true

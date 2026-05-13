@@ -1,0 +1,3 @@
+﻿support_required,support_type,event_id,donor_cluster_id,receiver_cluster_id,reassigned_uav_ids,affected_target_ids,reason,estimated_completion_rate_before,estimated_completion_rate_after,updated_plan
+True,fire_support,target_disappeared@150,,0,[],"[1, 11, 17]",fire_support requested by target_disappeared; no donor cluster with surplus resource was available.,0.15,0.15,"{'receiver_attack_uav_ids': [12], 'receiver_guide_uav_ids': [1], 'support_type': 'fire_support'}"
+True,fire_support,attack_uav_destroyed@210,,0,[],"[1, 11, 17]",fire_support requested by attack_uav_destroyed; no donor cluster with surplus resource was available.,0.15,0.15,"{'receiver_attack_uav_ids': [12], 'receiver_guide_uav_ids': [1], 'support_type': 'fire_support'}"

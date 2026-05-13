@@ -1,0 +1,23 @@
+name: uav_lost
+scenario:
+  mode: dynamic
+  dynamic_events:
+    enabled: true
+    event_schedule:
+      - time: 600
+        type: attack_uav_destroyed
+        affected_uav_ids: [11]
+        description: Attack UAV 11 was destroyed.
+      - time: 900
+        type: guide_uav_destroyed
+        affected_uav_ids: [5]
+        description: Recon/guide UAV 5 was destroyed.
+      - time: 1200
+        type: communication_uav_destroyed
+        affected_uav_ids: [6]
+        description: Communication UAV 6 was destroyed.
+full_simulation:
+  run_metrics: true
+  run_visualization: true
+mission_simulator:
+  stop_when_all_planned_targets_destroyed: false

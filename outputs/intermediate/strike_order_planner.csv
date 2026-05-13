@@ -1,0 +1,4 @@
+﻿cluster_id,method,ordered_target_ids,total_path_distance,expected_reward,start_x,start_y,path_positions,metadata
+0,nearest_neighbor,[11],0.0,10000010.001,-12.0,15.0,"[[-12.0, 15.0], [-12.0, 15.0]]","{'num_targets': 1, 'target_ids': [11]}"
+1,nearest_neighbor,"[1, 2]",97.58073580374355,14.615565964260092,-22.0,51.0,"[[-22.0, 51.0], [-45.0, 28.0], [1.0, 74.0]]","{'num_targets': 2, 'target_ids': [1, 2]}"
+2,nearest_neighbor,"[6, 9, 3]",56.78469344937258,40.422953788902696,34.0,23.333333333333332,"[[34.0, 23.333333333333332], [38.0, 21.0], [29.0, 7.0], [35.0, 42.0]]","{'num_targets': 3, 'target_ids': [3, 6, 9]}"

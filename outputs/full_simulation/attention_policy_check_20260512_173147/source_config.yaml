@@ -1,0 +1,886 @@
+﻿project:
+  name: uav_dynamic_task_allocation
+  version: 0.1.0
+  description: UAV swarm dynamic task allocation research framework
+  seed: 42
+  device: auto
+  output_dir: outputs
+  log_dir: logs
+
+experiment:
+  name: debug_experiment
+  seed: 42
+  device: auto
+
+paths:
+  data_dir: data
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  log_dir: logs
+  output_dir: outputs
+  checkpoint_dir: checkpoints
+  experiment_dir: experiments
+
+data:
+  uav_file: data/raw/UAV.csv
+  target_file: data/raw/Target.csv
+  battlefield_file: data/raw/battlefield_target_data.csv
+  uav_csv: data/raw/UAV.csv
+  target_csv: data/raw/Target.csv
+  battlefield_target_csv: data/raw/battlefield_target_data.csv
+  normalize: true
+
+env:
+  name: drone_battle
+
+  # 鍧愭爣妯″紡璇存槑锛?
+  # toy锛氬搴斿師濮?drone_battle_env.py 涓?0~100 鐨勭畝鍖栧己鍖栧涔犵幆澧冿紱
+  # battlefield锛氬搴?main.py 鍜岃鏂囦腑鐨勭湡瀹炴垬鍦轰豢鐪熸暟鎹€?
+  coordinate_mode: battlefield
+  coordinate_unit: m
+
+  # 鎴樺満杈圭晫璁剧疆銆?
+  # 娉ㄦ剰锛氳繖閲屼笉鏄己琛岃鍓暟鎹紝鑰屾槸缁欑幆澧冩彁渚涜竟鐣屽弬鑰冦€?
+  # 濡傛灉 auto_infer_bounds_from_data 涓?true锛岀幆澧冧細鏍规嵁 UAV 鍜?Target 鏁版嵁鑷姩鎵╁睍杈圭晫銆?
+  x_min: -2000.0
+  x_max: 40000.0
+  y_min: -170000.0
+  y_max: 2000.0
+  auto_infer_bounds_from_data: true
+  boundary_margin_ratio: 0.05
+
+  # 鏃堕棿鎺ㄨ繘鍙傛暟銆?
+  # 瀵瑰簲鍘熷 main.py 涓殑 t銆乿銆乽pdate_interval 鍜?while t < 2200銆?
+  max_time: 2200.0
+  time_step: 30.0
+  uav_speed: 70.0
+
+  # 鍩哄湴浣嶇疆銆?
+  # 鍘熷 main.py 涓娇鐢?base_location = [0, -16000]銆?
+  base_x: 0.0
+  base_y: -16000.0
+
+  # 鏀诲嚮鏃犱汉鏈鸿浇鑽枫€?
+  # 鍘熷 main.py 涓?attack_payload_per_uav = 6锛?
+  # 璁烘枃浠跨湡鍙傛暟琛ㄤ腑鏀诲嚮鏃犱汉鏈鸿浇寮归噺涔熸槸 6銆?
+  attack_payload_per_uav: 6.0
+
+  # 閫氫俊鍋囪銆?
+  # 璁烘枃涓亣璁鹃€氫俊鏃犱汉鏈鸿鐩栨垬鍦鸿寖鍥达紝杩欓噷鍏堣褰曚负鐜鍋囪锛?
+  # 鍚庨潰鍋氶€氫俊绾︽潫鏃跺啀杩涗竴姝ヤ娇鐢ㄣ€?
+  communication_covers_battlefield: true
+
+  # 鏄惁鍚敤鍔ㄦ€佷簨浠躲€?
+  # 褰撳墠鐜鍏堣鍙栬繖浜涘弬鏁帮紝浣嗘寮忓姩鎬佷簨浠跺鐞嗕細鍦?events/ 妯″潡涓崟鐙疄鐜般€?
+  enable_dynamic_events: false
+
+  # 纭畾鎬у姩鎬佷簨浠舵椂闂磋〃銆?
+  # 杩欎簺鍊间富瑕佸弬鑰冨師濮?main.py 鐨勪簨浠惰Е鍙戞椂闂淬€?
+  event_schedule:
+    target_disappear_times: [300.0]
+    target_appear_times: [600.0, 1920.0]
+    attack_uav_destroyed_times: [2010.0]
+    guide_uav_destroyed_times: [2100.0]
+
+  # 闅忔満鍔ㄦ€佷簨浠舵鐜囥€?
+  # 杩欎簺鍊间富瑕佸搴斿師濮?drone_battle_env.py 鐨勭畝鍖栭殢鏈轰簨浠惰瀹氥€?
+  random_event_probabilities:
+    target_appear: 0.10
+    target_disappear: 0.05
+    uav_destroyed: 0.05
+
+  # 褰撳墠 DQN 璁粌妯″紡銆?
+  # engagement_training 琛ㄧず鍋囪 UAV 宸茶繘鍏ョ洰鏍囩兢闄勮繎锛?
+  # DQN 鍙涔犵洰鏍囩兢鍐呮墦鍑绘搴忥紝涓嶇敤鍒濆鍩哄湴璺濈鍋氱‖鎬ф嫤鎴€?
+  simulation_mode: engagement_training
+
+  # 鏄惁鍦?env.step() 涓己鍒舵鏌ユ鍣?宸ヤ綔璺濈銆?
+  # 褰撳墠鍏堣涓?false锛屽惁鍒?UAV 浠庡熀鍦板埌鐩爣璺濈澶繙锛屼細瀵艰嚧鎵€鏈夊姩浣?out_of_range銆?
+  enforce_weapon_range: false
+
+  # 鏄惁鍦ㄤ竴娆℃湁鏁堟墦鍑诲悗锛屽皢 UAV 褰撳墠浣嶇疆鏇存柊鍒扮洰鏍囦綅缃€?
+  # 杩欏搴斿師 attack_order_dqn.py 涓?current_location = next_target 鐨勯€昏緫銆?
+  update_uav_position_after_attack: true
+
+observation:
+  # 鍥哄畾鏈€澶?UAV 鏁伴噺銆?
+  # 鐢ㄤ簬鏋勯€犵缁忕綉缁滃浐瀹氶暱搴﹁緭鍏ャ€傜湡瀹?UAV 鏁伴噺涓嶈冻鏃朵細 padding銆?
+  max_uavs: 50
+
+  # 鍥哄畾鏈€澶?Target 鏁伴噺銆?
+  # 鍔ㄦ€佸満鏅腑鍙兘鏂板鐩爣锛屽洜姝よ繖閲岃姣斿垵濮嬬洰鏍囨暟閲忔洿瀹芥澗銆?
+  max_targets: 120
+
+  # 鏄惁鍦?observation 涓姞鍏?UAV-Target 璺濈鐭╅樀鐗瑰緛銆?
+  # 璇ョ壒寰佷細鏄捐憲澧炲姞杈撳叆缁村害锛屼絾瀵规墦鍑绘搴忓喅绛栧緢鏈夌敤銆?
+  include_distance_matrix: true
+
+  # 鏄惁杩斿洖 feature_names锛屾柟渚胯皟璇曟瘡涓€缁翠唬琛ㄤ粈涔堛€?
+  # 璁粌鏃跺彲浠ュ叧闂紝璋冭瘯鏃跺缓璁紑鍚€?
+  include_feature_names: true
+
+  # 鏁板€煎綊涓€鍖栨椂浣跨敤鐨勬渶澶ц窛绂汇€?
+  # auto 琛ㄧず鏍规嵁鎴樺満杈圭晫瀵硅绾胯嚜鍔ㄨ绠椼€?
+  distance_normalizer: auto
+
+reward:
+  # 濂栧姳鍑芥暟妯″紡銆?
+  # paper 琛ㄧず浼樺厛澶嶇幇璁烘枃涓殑璺濈濂栧姳銆侀噸澶嶆墦鍑绘儵缃氥€佷紭鍏堢骇濂栧姳缁撴瀯銆?
+  mode: paper
+
+  # 鏄惁浣跨敤褰掍竴鍖栬窛绂汇€?
+  # 璁烘枃涓窛绂婚」鏄礋璺濈濂栧姳锛屼絾鐪熷疄鎴樺満鍧愭爣灏哄害杈冨ぇ锛?
+  # 鐩存帴浣跨敤鍘熷璺濈浼氬鑷磋窛绂婚」缁濆鍊艰繃澶э紝鍘嬪埗鐩爣浼樺厛绾у鍔便€?
+  # 鍥犳宸ョ▼瀹炵幇涓粯璁や娇鐢ㄥ綊涓€鍖栬窛绂汇€?
+  use_normalized_distance: true
+  distance_normalizer: auto
+  distance_weight: 1.0
+
+  # 閲嶅鎵撳嚮鎯╃綒銆?
+  # 瀵瑰簲璁烘枃涓殑 R_rep锛岄珮鎯╃綒鐢ㄤ簬閬垮厤閲嶅璁块棶鎴栭噸澶嶆墦鍑诲悓涓€鐩爣銆?
+  repetition_penalty: -10.0
+
+  # 浼樺厛绾у鍔辨潈閲嶃€?
+  # 褰撳墠浣跨敤 target.significance 浣滀负 target.value_score銆?
+  priority_weight: 1.0
+  target_value_normalizer: 100.0
+
+  # 闈炴硶鍔ㄤ綔鎯╃綒銆?
+  # 杩欎簺涓嶆槸璁烘枃濂栧姳鍏紡鐨勬牳蹇冮」锛岃€屾槸宸ョ▼鐜涓繀椤诲鐞嗙殑寮傚父鍔ㄤ綔鍙嶉銆?
+  invalid_action_penalty: -10.0
+  inactive_uav_penalty: -5.0
+  inactive_target_penalty: -10.0
+  non_attack_uav_penalty: -2.0
+  out_of_range_penalty: -1.0
+  out_of_bounds_penalty: -2.0
+
+  # 宸ョ▼鎵╁睍椤广€?
+  # 涓轰簡涓嶈劚绂昏鏂囷紝榛樿璁句负 0銆?
+  # 鍚庨潰闇€瑕佸己鍖栤€滄懅姣佺洰鏍団€濇垨鈥滃墛寮遍槻寰♀€濈殑瀛︿範淇″彿鏃跺啀鎵撳紑銆?
+  destroy_bonus: 0.0
+  damage_reward_weight: 0.0
+
+action_space:
+  # 鍥哄畾鍔ㄤ綔绌洪棿妯″紡銆?
+  # fixed_slot 琛ㄧず浣跨敤 uav_slot 脳 target_slot 鐨勫浐瀹氱紪鍙锋柟寮忋€?
+  mode: fixed_slot
+
+  # 鍥哄畾鏈€澶?UAV 鍜?Target 鏁伴噺銆?
+  # 榛樿涓?observation.max_uavs / observation.max_targets 淇濇寔涓€鑷淬€?
+  max_uavs: 50
+  max_targets: 120
+
+  # 鏄惁鍙厑璁告敾鍑绘棤浜烘満鍙備笌鎵撳嚮鍔ㄤ綔銆?
+  # 褰撳墠浠诲姟鏄鍦扮洰鏍囨墦鍑伙紝鎵€浠ラ粯璁や负 true銆?
+  attack_uav_only: true
+
+  # 鏄惁瑕佹眰 UAV 鑳藉瑕嗙洊鐩爣銆?
+  # 濡傛灉涓?true锛岃秴鍑哄伐浣滆窛绂荤殑鍔ㄤ綔浼氳 mask 鎺夈€?
+  require_reachable: false
+
+  # 濡傛灉褰撳墠娌℃湁浠讳綍鍚堟硶鍔ㄤ綔锛屾槸鍚﹀厑璁?fallback 鍒伴潪娉曞姩浣溿€?
+  # 璁粌 DQN 鏃跺缓璁?false锛岄伩鍏嶆櫤鑳戒綋瀛︿範鏃犳剰涔夊姩浣溿€?
+  allow_noop_when_no_valid_action: false
+
+dqn:
+  network_type: dqn
+  learning_rate: 0.0005
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay: 5000
+  replay_buffer_size: 10000
+  batch_size: 32
+  target_update_interval: 100
+  checkpoint_dir: checkpoints/dqn
+
+  network:
+    # 褰撳墠鍏堥噰鐢ㄨ鏂囦腑 DQN 鐨?MLP 鎬濊矾锛?
+    # 杈撳叆鐘舵€佺壒寰侊紝缁忚繃鍏ㄨ繛鎺ラ殣钘忓眰锛岃緭鍑烘瘡涓姩浣滅殑 Q 鍊笺€?
+    hidden_dims: [256, 256]
+
+    # ReLU 瀵瑰簲璁烘枃涓父鐢ㄧ殑闈炵嚎鎬ф縺娲汇€?
+    activation: relu
+
+    # 褰撳墠榛樿涓嶄娇鐢?dropout銆?
+    # 寮哄寲瀛︿範涓?dropout 涓嶄竴瀹氭€绘槸鏈夊埄锛屽洜姝ゅ厛淇濈暀閰嶇疆鍏ュ彛銆?
+    dropout: 0.0
+
+    # 鏄惁鍦ㄩ殣钘忓眰鍚庝娇鐢?LayerNorm銆?
+    # 杩欐槸宸ョ▼涓婄殑绋冲畾鎬у寮洪」锛屼笉鏄鏂囨牳蹇冪粨鏋勶紝榛樿鍏抽棴銆?
+    use_layer_norm: false
+
+  agent:
+    # 鎶樻墸鍥犲瓙 gamma锛屽搴?DQN 鐩爣鍊?y = r + gamma * max Q(s', a')銆?
+    gamma: 0.99
+
+    # 瀛︿範鐜囥€?
+    learning_rate: 0.0005
+
+    # 姣忔浠?ReplayBuffer 閲囨牱澶氬皯鏉＄粡楠岀敤浜庝竴娆＄綉缁滄洿鏂般€?
+    batch_size: 32
+
+    # 鐩爣缃戠粶鍚屾闂撮殧銆?
+    # DQN 閫氬父浣跨敤 policy network 鍜?target network 涓ゅ缃戠粶锛?
+    # target network 鍛ㄦ湡鎬т粠 policy network 澶嶅埗鍙傛暟锛岀敤浜庣ǔ瀹氳缁冦€?
+    target_update_interval: 100
+
+    # epsilon-greedy 鎺㈢储鍙傛暟銆?
+    # 璁粌鍒濇湡 epsilon 楂橈紝榧撳姳闅忔満鎺㈢储锛涘悗鏈?epsilon 闄嶄綆锛屾洿澶氬埄鐢ㄥ綋鍓?Q 缃戠粶銆?
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 5000
+
+    # 姊害瑁佸壀锛岄伩鍏?Q 缃戠粶鏇存柊鏃舵搴︾垎鐐搞€?
+    gradient_clip_norm: 10.0
+
+    # 褰撳墠鍏堜娇鐢?Adam銆?
+    optimizer: adam
+
+  trainer:
+    # 璁粌 episode 鏁般€?
+    # 褰撳墠鍏堢敤杈冨皬鍊兼祴璇曡缁冩祦绋嬶紝姝ｅ紡璁粌鏃跺彲浠ユ敼澶с€?
+    num_episodes: 5
+
+    # 姣忎釜 episode 鏈€澶氭墽琛屽灏戞銆?
+    # 濡傛灉涓虹┖鎴?auto锛岄粯璁や娇鐢?env_config.max_steps銆?
+    max_steps_per_episode: auto
+
+    # replay buffer 瀹归噺銆?
+    replay_buffer_capacity: 10000
+
+    # 棰勭儹姝ユ暟銆?
+    # 鍦?buffer 涓嚦灏戠Н绱竴瀹氭牱鏈悗鍐嶅紑濮嬫洿鏂扮綉缁溿€?
+    warmup_steps: 32
+
+    # 姣忛殧澶氬皯鐜姝ユ洿鏂颁竴娆?DQN銆?
+    train_every_steps: 1
+
+    # 姣忔鐜 step 鍚庢墽琛屽嚑娆＄綉缁滄洿鏂般€?
+    updates_per_train_step: 1
+
+    # 姣忛殧澶氬皯涓?episode 杈撳嚭涓€娆¤缁嗘棩蹇椼€?
+    log_interval: 1
+
+    # 褰撳墠娴嬭瘯闃舵鍏堜笉淇濆瓨 checkpoint銆?
+    save_checkpoint: true
+
+  checkpoint:
+    # 鏄惁鍚敤 checkpoint 淇濆瓨銆?
+    enabled: true
+
+    # DQN 妯″瀷淇濆瓨鐩綍銆?
+    checkpoint_dir: checkpoints/dqn
+
+    # 鏈€杩戜竴娆℃ā鍨嬫枃浠跺悕銆?
+    latest_filename: latest.pt
+
+    # 鏈€浼樻ā鍨嬫枃浠跺悕銆?
+    best_filename: best.pt
+
+    # 鏄惁淇濆瓨 optimizer 鐘舵€併€?
+    # 濡傛灉鎯崇户缁缁冿紝蹇呴』淇濆瓨 optimizer锛涘鏋滃彧鍋氳瘎浼帮紝鍙互涓嶉渶瑕併€?
+    save_optimizer: true
+
+    # 鏄惁淇濆瓨 replay buffer銆?
+    # 褰撳墠鍏堜笉淇濆瓨 replay buffer锛屽悗闈㈣缁冭妯″彉澶у悗鍐嶅崟鐙仛銆?
+    save_replay_buffer: false
+
+  metrics:
+    # 鏄惁淇濆瓨 DQN 璁粌鎸囨爣銆?
+    enabled: true
+
+    # 鎸囨爣淇濆瓨鐩綍銆?
+    metrics_dir: outputs/metrics
+
+    # episode 绾ц缁冩寚鏍?CSV 鏂囦欢銆?
+    metrics_filename: dqn_training_metrics.csv
+
+    # 姣忔杩愯鏄惁瑕嗙洊鏃ф寚鏍囨枃浠躲€?
+    # 璋冭瘯闃舵寤鸿 true锛涙寮忛暱璁粌鏃跺彲浠ユ敼鎴?false銆?
+    overwrite: true
+
+    # 鏄惁棰濆淇濆瓨 jsonl 鏂囦欢銆?
+    # jsonl 姣?CSV 鏇撮€傚悎淇濆瓨宓屽淇℃伅锛屽悗闈㈣皟璇曚細鏂逛究銆?
+    save_jsonl: true
+    jsonl_filename: dqn_training_metrics.jsonl
+
+strike_order:
+  # 鍗曚釜鐩爣缇ゆ渶澶氳€冭檻澶氬皯涓洰鏍囥€?
+  # DQN 杈撳嚭灞傜淮搴︿細绛変簬杩欎釜鍊笺€?
+  max_targets_per_cluster: 50
+
+  # observation 鏄惁鍖呭惈姣忎釜鐩爣鍒板綋鍓嶄綅缃殑璺濈鐗瑰緛銆?
+  include_distance_features: true
+
+  # 璺濈褰掍竴鍖栧昂搴︺€?
+  # auto 琛ㄧず鏍规嵁褰撳墠鐩爣缇よ寖鍥磋嚜鍔ㄤ及璁°€?
+  distance_normalizer: auto
+
+  reward:
+    # reward 妯″紡銆?
+    # inverse_distance 鏇存帴杩戝師 attack_order_dqn.py 涓?100 / distance 鐨勬€濇兂銆?
+    mode: inverse_distance
+
+    # 鍘熶唬鐮佷腑绫讳技 reward = 100 / distance銆?
+    distance_reward_scale: 100.0
+
+    # 閲嶅璁块棶鐩爣鎯╃綒锛屽榻愬師浠ｇ爜涓殑 -10 鎬濊矾銆?
+    repeat_penalty: -10.0
+
+    # 瀹屾垚鏁翠釜鐩爣缇ゆ帓搴忓悗鐨勫鍔便€?
+    completion_bonus: 10.0
+
+    # 鐩爣閲嶈鎬у鍔辨潈閲嶃€?
+    # 涓轰簡涓嶅亸绂诲師浠ｇ爜锛岄粯璁ゅ厛璁惧皬涓€鐐广€?
+    priority_weight: 0.1
+
+    # 鐩爣浠峰€煎綊涓€鍖栧昂搴︺€?
+    target_value_normalizer: 100.0
+
+strike_order_dqn:
+  network:
+    network_type: attention_dqn
+    hidden_dims: [256, 256]
+    activation: relu
+    dropout: 0.0
+    use_layer_norm: false
+
+  agent:
+    gamma: 0.99
+    learning_rate: 0.0005
+    batch_size: 32
+    target_update_interval: 100
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 3000
+    gradient_clip_norm: 10.0
+    optimizer: adam
+
+  trainer:
+    num_episodes: 100
+    max_steps_per_episode: auto
+    replay_buffer_capacity: 10000
+    warmup_steps: 100
+    train_every_steps: 1
+    updates_per_train_step: 1
+    log_interval: 1
+    save_checkpoint: true
+    cluster_sampling: random
+
+  cluster_dataset:
+    # 褰撳墠鍏堢敤鐪熷疄 target 鏁版嵁涓存椂鏋勯€?debug clusters銆?
+    # 鍚庨潰 target_clustering.py 瀹屾垚鍚庯紝浼氭浛鎹㈡垚 PSO / PPO 杈撳嚭鐨?TargetClusterSet銆?
+    num_debug_clusters: 5
+    targets_per_cluster: 6
+
+  checkpoint:
+    enabled: true
+    checkpoint_dir: checkpoints/strike_order_dqn
+    latest_filename: latest.pt
+    best_filename: best.pt
+    save_optimizer: true
+    save_replay_buffer: false
+
+  metrics:
+    enabled: true
+    metrics_dir: outputs/metrics
+    metrics_filename: strike_order_dqn_metrics.csv
+    overwrite: true
+    save_jsonl: true
+    jsonl_filename: strike_order_dqn_metrics.jsonl
+
+algorithm:
+  name: dqn
+  gamma: 0.99
+  learning_rate: 0.001
+  batch_size: 64
+  hidden_dim: 128
+
+training:
+  episodes: 1000
+  eval_interval: 50
+  save_interval: 100
+  log_interval: 10
+
+logging:
+  level: INFO
+  use_tensorboard: true
+  save_log_file: true
+
+output:
+  save_metrics: true
+  save_figures: true
+  save_assignments: true
+
+target_screening:
+  # 婧愪唬鐮佷腑 type=2 琚綋浣?DefendedPost / 闃插尽闃靛湴
+  defense_post_type: 2
+
+  # 婧愪唬鐮佷腑 type=1 琚綋浣?HVT / 楂樹环鍊肩洰鏍?
+  high_value_target_type: 1
+
+  # 婧愪唬鐮?Target_ScreenCore.py 涓?R = 20
+  defense_radius: 20.0
+
+  # 婧愪唬鐮佷腑 UAVx=0, UAVy=0锛岀敤浜庤绠楃洰鏍囧埌鍙傝€冪偣璺濈
+  reference_position: [0.0, 0.0]
+
+  # 鏄惁鍚敤闃插尽闃靛湴瀵归珮浠峰€肩洰鏍囩殑褰卞搷淇
+  use_defended_post_adjustment: true
+
+  score:
+    # 瀵归綈鍘熶唬鐮?reward = 0.1*(0.9^defense) + 10*0.5*significance
+    #              + 80*0.4*(0.9^distance_norm) + abs(angle)
+    defense_decay_weight: 0.1
+    significance_weight: 5.0
+    distance_decay_weight: 32.0
+    angle_weight: 1.0
+    defense_decay_base: 0.9
+    distance_decay_base: 0.9
+
+  selection:
+    # 鐩墠鍏?all锛屽洜涓烘簮浠ｇ爜鍚庨潰杩樹細鐢?Kmeans_step1 缁х画鍒掑垎鎽ф瘉鐩爣闆?
+    # 鍙€夛細all, top_k, top_ratio, threshold
+    method: all
+    top_k: 20
+    top_ratio: 0.5
+    threshold: 0.5
+
+  output:
+    debug_csv_path: outputs/intermediate/target_screening_scores.csv
+
+destroy_target_selection:
+  # 鍙€夛細
+  # weighted_kmeans
+  # random_forest
+  # top_k
+  # threshold
+  method: weighted_kmeans
+
+  num_clusters: 2
+  max_iter: 300
+  tolerance: 0.0004
+  random_seed: 42
+
+  feature_weights:
+    normalized_distance: 0.4
+    score: 0.6
+
+  choose_cluster_by: highest_score_cluster
+
+  random_forest:
+    model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+    # 棰勬祴姒傜巼澶т簬璇ラ槇鍊兼椂锛屽垽瀹氫负鎽ф瘉鐩爣
+    probability_threshold: 0.5
+
+    # 濡傛灉妯″瀷娌℃湁閫夊嚭浠讳綍鐩爣锛岀敤 fallback 闃叉娴佺▼鏂帀
+    fallback_method: top_k
+    fallback_top_k: 5
+
+    # RF 浣跨敤鐨勭壒寰?
+    feature_names:
+      - score
+      - normalized_distance
+      - angle
+      - adjusted_defense
+      - adjusted_significance
+
+  rule:
+    top_k: 8
+    threshold: 0.5
+
+  output:
+    debug_csv_path: outputs/intermediate/destroy_target_selection.csv
+
+
+destroy_target_rf_training:
+  # 娉ㄦ剰锛?
+  # label_csv 鎵嶆槸姝ｅ紡鐩戠潱瀛︿範鏂瑰紡銆?
+  # kmeans_bootstrap 鍙槸璋冭瘯闃舵鐢?KMeans 缁撴灉浣滀负浼爣绛撅紝涓嶉€傚悎浣滀负鏈€缁堣鏂囩粨璁恒€?
+  label_source: kmeans_bootstrap
+
+  label_csv_path: data/processed/destroy_target_labels.csv
+  target_id_column: target_id
+  label_column: is_destroy_target
+
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+  n_estimators: 200
+  max_depth: null
+  test_size: 0.25
+  random_seed: 42
+
+  output:
+    report_path: outputs/evaluation/destroy_target_rf_report.txt
+    feature_importance_csv: outputs/evaluation/destroy_target_rf_feature_importance.csv
+
+target_clustering:
+  # 鍙€夛細
+  # kmeans锛氬伐绋嬬ǔ瀹?baseline
+  # pso锛氬榻愭簮浠ｇ爜 PSO_classify 鐨勫垎缇ゆ€濇兂
+  method: pso
+
+  # 鐩爣缇ゆ暟閲忋€?
+  # 濡傛灉鎽ф瘉鐩爣鏁伴噺灏戜簬 num_clusters锛屼細鑷姩鍑忓皯 cluster 鏁般€?
+  num_clusters: 3
+  auto_adjust_num_clusters: true
+
+  # 鍒嗙兢鐗瑰緛銆?
+  # 褰撳墠鍏堜娇鐢ㄧ┖闂村潗鏍?x/y锛屽悗缁彲浠ユ墿灞?significance銆乨efense銆乻core銆?
+  feature_names:
+    - x
+    - y
+
+  # KMeans 閰嶇疆
+  kmeans:
+    max_iter: 300
+    tolerance: 0.0004
+    random_seed: 42
+
+  # PSO 閰嶇疆
+  pso:
+    num_particles: 30
+    max_iter: 100
+    inertia_weight: 0.7
+    cognitive_weight: 1.5
+    social_weight: 1.5
+    compactness_weight: 1.0
+    balance_weight: 0.1
+    value_weight: 0.2
+    defense_weight: 0.2
+    convergence_threshold: 0.000001
+    initialize_with_high_value_targets: true
+    random_seed: 42
+
+  output:
+    debug_csv_path: outputs/intermediate/target_clustering.csv
+
+resource_allocation:
+  # 鍙€夛細
+  # rule_based锛氬厛瀵归綈婧愪唬鐮?main.py 涓殑璧勬簮鍒嗛厤閫昏緫
+  # greedy锛氬悗缁墿灞?
+  # auction锛氬悗缁墿灞?
+  # pso锛氬悗缁墿灞?
+  # ppo锛氬悗缁墿灞?
+  method: rule_based
+
+  # 婧愪唬鐮佷腑绫讳技 attack_payload_per_uav = 6
+  attack_payload_per_uav: 6
+
+  # 姣忎釜鐩爣缇ら粯璁ゅ垎閰嶅灏戝寮?/ 渚﹀療 UAV
+  guide_uavs_per_cluster: 1
+
+  # 褰撳墠鍏堥粯璁や笉寮哄埗鍒嗛厤閫氫俊 UAV
+  communication_uavs_per_cluster: 0
+
+  # 濡傛灉鏀诲嚮 UAV 涓嶈冻锛屾槸鍚﹀厑璁搁儴鍒嗗垎閰?
+  allow_partial_allocation: true
+  enable_monte_carlo_assessment: true
+
+  # 鐩爣缇ゅ垎閰嶄紭鍏堢骇
+  # defense_desc锛氶槻寰℃€诲€奸珮鐨勭洰鏍囩兢浼樺厛
+  # significance_desc锛氶噸瑕佹€ф€诲€奸珮鐨勭洰鏍囩兢浼樺厛
+  # num_targets_desc锛氱洰鏍囨暟閲忓鐨勭洰鏍囩兢浼樺厛
+  # cluster_id_asc锛氭寜 cluster_id 椤哄簭
+  cluster_priority: defense_desc
+
+  # UAV 鍒嗛厤椤哄簭
+  # uav_id_asc锛氭寜 UAV ID 浠庡皬鍒板ぇ鍒嗛厤
+  uav_sorting: uav_id_asc
+
+  # 榛樿璧烽鍩哄湴 / 浠诲姟寮€濮嬩綅缃?
+  base_position: [0.0, -16000.0]
+
+  output:
+    debug_csv_path: outputs/intermediate/resource_allocation.csv
+
+algorithms:
+  destroy_selector:
+    method: rf
+  clustering:
+    initial_method: pso
+    dynamic_method: ppo
+  resource_assessment:
+    method: monte_carlo
+  strike_order:
+    method: attention_dqn
+  replanning:
+    enable_support_policy: true
+
+rf:
+  n_estimators: 200
+  max_depth: null
+  train_ratio: 0.75
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+
+pso:
+  num_particles: 30
+  max_iterations: 100
+  inertia_weight: 0.7
+  cognitive_factor: 1.5
+  social_factor: 1.5
+  convergence_threshold: 0.000001
+  weights:
+    compactness: 1.0
+    balance: 0.1
+    value: 0.2
+    defense: 0.2
+
+ppo:
+  learning_rate: 0.0003
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  value_loss_coef: 0.5
+  batch_size: 64
+  update_epochs: 4
+  max_episodes: 20
+  max_steps: 30
+  max_targets_per_cluster: 32
+  illegal_action_penalty: -1.0
+  count_balance_weight: 1.0
+  compactness_weight: 1.0
+  workload_balance_weight: 1.0
+  dynamic_event_bonus: 0.05
+  checkpoint_dir: checkpoints/ppo_clusterer
+
+monte_carlo:
+  num_simulations: 300
+  completion_threshold: 0.8
+  uav_loss_probability: 0.05
+  target_defense_noise: 0.1
+  hit_probability_noise: 0.05
+  distance_consumption_weight: 0.05
+  output_csv_path: outputs/resource_assessment/monte_carlo_results.csv
+  figure_path: outputs/resource_assessment/monte_carlo_completion_distribution.png
+
+support_policy:
+  enabled: true
+  completion_threshold: 0.8
+  donor_min_completion_probability: 0.85
+  max_reassigned_uavs: 1
+  output_csv_path: outputs/support/support_decisions.csv
+
+simulation:
+  max_time_steps: 2200
+  time_step: 30
+  enable_dynamic_events: false
+  event_config:
+    event_schedule: []
+
+visualization:
+  save_figures: true
+  figure_dir: outputs/simulation/figures
+
+
+scenario:
+  # static / dynamic
+  mode: static
+
+  time_step: 30
+  max_time: 2200
+
+  dynamic_events:
+    enabled: false
+    event_schedule: []
+
+
+algorithm_policy:
+  # 榛樿绠楁硶銆傚綋鍓嶆病鏈夌壒娈婅鍒欐椂浣跨敤杩欓噷銆?
+  default:
+    target_screening: source_aligned
+    destroy_target_selection: weighted_kmeans
+    target_clustering: kmeans
+    resource_allocation: rule_based
+    strike_order_planning: attention_dqn
+
+  # 闈欐€佸満鏅細涓€娆℃€ц鍒掞紝涓嶈Е鍙戦噸瑙勫垝銆?
+  static:
+    target_screening: source_aligned
+    destroy_target_selection: weighted_kmeans
+    target_clustering: pso
+    resource_allocation: rule_based
+    strike_order_planning: attention_dqn
+
+  # 鍔ㄦ€佸満鏅€?
+  dynamic:
+    # 鍔ㄦ€佷换鍔″垰寮€濮嬫椂鐨勫垵濮嬭鍒掋€?
+    initial_planning:
+      target_screening: source_aligned
+      destroy_target_selection: random_forest
+      target_clustering: pso
+      resource_allocation: rule_based
+      strike_order_planning: attention_dqn
+
+    # 鍔ㄦ€佷簨浠跺彂鐢熷悗鐨勭畻娉曞垏鎹㈣鍒欍€?
+    events:
+      target_appeared:
+        replanning_scope: global
+        stages:
+          target_screening: source_aligned
+          destroy_target_selection: random_forest
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+
+      target_disappeared:
+        replanning_scope: affected_clusters
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+
+      attack_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+
+      guide_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+
+      communication_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: keep_existing
+
+      resource_shortage:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+
+mission_planner:
+  output:
+    debug_csv_path: outputs/intermediate/mission_planner_summary.csv
+
+strike_order_planner:
+  # 鍙€夛細
+  # dqn / attention_dqn
+  # nearest_neighbor
+  # random
+  method: attention_dqn
+
+  # DQN checkpoint 绫诲瀷锛歜est / latest
+  checkpoint_type: best
+
+  # 濡傛灉 DQN checkpoint 涓嶅瓨鍦紝鏄惁鍏佽閫€鍥炲埌鏈€杩戦偦绛栫暐
+  allow_fallback: true
+  fallback_method: nearest_neighbor
+
+  # DQN 鎺掑簭闃舵鐨勮捣鐐广€?
+  # cluster_center锛氬亣璁?UAV 灏忕粍宸茬粡杩涘叆鐩爣缇や换鍔″尯
+  # assignment_real_time_position锛氫娇鐢ㄨ祫婧愬垎閰嶄腑鐨勫疄鏃朵綅缃?
+  # assignment_start_position锛氫娇鐢ㄨ祫婧愬垎閰嶄腑鐨勮捣椋炰綅缃?
+  start_position_source: cluster_center
+
+  device: auto
+  random_seed: 42
+
+  output:
+    debug_csv_path: outputs/intermediate/strike_order_planner.csv
+
+scenario:
+  mode: static   # static / dynamic
+
+  time_step: 30
+  max_time: 2200
+
+  dynamic_events:
+    enabled: false
+
+    # 鍔ㄦ€佷簨浠舵椂闂磋〃銆?
+    # 褰撳墠鍏堜綔涓洪厤缃粨鏋勶紝static 妯″紡涓嬩笉浼氳Е鍙戙€?
+    event_schedule:
+      - time: 300
+        type: target_disappeared
+        affected_target_ids: [3]
+        description: Target 3 disappeared during mission execution.
+
+      - time: 600
+        type: target_appeared
+        affected_target_ids: [21]
+        description: New target appeared. Full target loading will be handled later.
+
+      - time: 900
+        type: attack_uav_destroyed
+        affected_uav_ids: [11]
+        description: Attack UAV 11 was destroyed.
+
+      - time: 1200
+        type: guide_uav_destroyed
+        affected_uav_ids: [5]
+        description: Guide UAV 5 was destroyed.
+
+mission_simulator:
+  default_uav_speed: 80.0
+  arrival_tolerance: 100.0
+  strike_targets_per_step: 1
+  stop_when_all_planned_targets_destroyed: true
+
+  output:
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+
+mission_metrics:
+  input_csv_path: outputs/simulation/mission_simulation_log.csv
+
+  output:
+    summary_csv_path: outputs/simulation/mission_simulation_summary.csv
+    timeline_csv_path: outputs/simulation/mission_simulation_timeline_metrics.csv
+    figure_dir: outputs/simulation/figures
+
+mission_visualization:
+  input:
+    uav_trajectory_csv_path: outputs/simulation/uav_trajectory_log.csv
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+
+  output:
+    figure_dir: outputs/simulation/figures
+
+  max_uavs_to_plot: 20
+  only_assigned_uavs: true
+
+full_simulation:
+  run_name: debug_full_simulation
+
+  output_root: outputs/full_simulation
+  create_timestamped_run_dir: true
+
+  run_metrics: true
+  run_visualization: true
+
+  # 鏄惁鍦ㄨ剼鏈腑寮哄埗娉ㄥ叆 demo 鍔ㄦ€佷簨浠躲€?
+  # 姝ｅ紡瀹為獙寤鸿璁句负 false锛岀洿鎺ヤ娇鐢?scenario.dynamic_events.event_schedule銆?
+  use_demo_dynamic_events: false
+
+  demo_dynamic_events:
+    - time: 150
+      type: target_disappeared
+      affected_target_ids: [3]
+      description: Demo target 3 disappeared before strike.
+
+    - time: 210
+      type: attack_uav_destroyed
+      affected_uav_ids: [11]
+      description: Demo attack UAV 11 destroyed during mission.

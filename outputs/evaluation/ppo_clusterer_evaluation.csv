@@ -1,0 +1,4 @@
+﻿method,method_used,score,compactness,count_balance,workload_balance,labels
+initial_env,initial_labels,2.109205174121992,0.7758718407886588,1.0,0.3333333333333333,"[0, 0, 1, 1, 0, 1]"
+ppo_dynamic,ppo_fallback_pso,,,,,"[1, 1, 0, 0, 1, 0]"
+pso_static_reference,pso,,,,,"[1, 1, 0, 0, 1, 0]"

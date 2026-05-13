@@ -1,0 +1,2 @@
+﻿event_time,event_type,affected_target_ids,affected_uav_ids,metadata
+0.0,resource_shortage,"[1, 2, 3, 6, 9, 11, 17]",[],"{'source': 'initial_monte_carlo_resource_assessment', 'risky_cluster_ids': [2, 0, 1], 'completion_threshold': 0.8}"

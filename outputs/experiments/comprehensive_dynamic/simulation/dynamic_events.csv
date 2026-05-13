@@ -1,0 +1,6 @@
+﻿event_time,event_type,affected_target_ids,affected_uav_ids,metadata
+0.0,resource_shortage,"[1, 2, 3, 6, 9, 11, 17]",[],"{'source': 'initial_monte_carlo_resource_assessment', 'risky_cluster_ids': [2, 0, 1], 'completion_threshold': 0.8}"
+300.0,target_disappeared,[3],[],{'description': 'Target 3 disappeared.'}
+600.0,target_appeared,[21],[],"{'description': 'New target appeared.', 'new_targets': [{'target_id': 21, 'x': 18500.0, 'y': -78000.0, 'target_type': 1, 'defense': 10.0, 'significance': 12.0}]}"
+900.0,attack_uav_destroyed,[],[11],{'description': 'Attack UAV 11 was destroyed.'}
+1200.0,communication_uav_destroyed,[],[6],{'description': 'Communication UAV 6 was destroyed.'}

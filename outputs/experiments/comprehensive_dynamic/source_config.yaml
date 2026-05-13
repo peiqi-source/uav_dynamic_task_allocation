@@ -1,0 +1,548 @@
+project:
+  name: uav_dynamic_task_allocation
+  version: 0.1.0
+  description: UAV swarm dynamic task allocation research framework
+  seed: 42
+  device: auto
+  output_dir: outputs
+  log_dir: logs
+experiment:
+  name: debug_experiment
+  seed: 42
+  device: auto
+paths:
+  data_dir: data
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  log_dir: logs
+  output_dir: outputs
+  checkpoint_dir: checkpoints
+  experiment_dir: experiments
+data:
+  uav_file: data/raw/UAV.csv
+  target_file: data/raw/Target.csv
+  battlefield_file: data/raw/battlefield_target_data.csv
+  uav_csv: data/raw/UAV.csv
+  target_csv: data/raw/Target.csv
+  battlefield_target_csv: data/raw/battlefield_target_data.csv
+  normalize: true
+env:
+  name: drone_battle
+  coordinate_mode: battlefield
+  coordinate_unit: m
+  x_min: -2000.0
+  x_max: 40000.0
+  y_min: -170000.0
+  y_max: 2000.0
+  auto_infer_bounds_from_data: true
+  boundary_margin_ratio: 0.05
+  max_time: 2200.0
+  time_step: 30.0
+  uav_speed: 70.0
+  base_x: 0.0
+  base_y: -16000.0
+  attack_payload_per_uav: 6.0
+  communication_covers_battlefield: true
+  enable_dynamic_events: false
+  event_schedule:
+    target_disappear_times:
+    - 300.0
+    target_appear_times:
+    - 600.0
+    - 1920.0
+    attack_uav_destroyed_times:
+    - 2010.0
+    guide_uav_destroyed_times:
+    - 2100.0
+  random_event_probabilities:
+    target_appear: 0.1
+    target_disappear: 0.05
+    uav_destroyed: 0.05
+  simulation_mode: engagement_training
+  enforce_weapon_range: false
+  update_uav_position_after_attack: true
+observation:
+  max_uavs: 50
+  max_targets: 120
+  include_distance_matrix: true
+  include_feature_names: true
+  distance_normalizer: auto
+reward:
+  mode: paper
+  use_normalized_distance: true
+  distance_normalizer: auto
+  distance_weight: 1.0
+  repetition_penalty: -10.0
+  priority_weight: 1.0
+  target_value_normalizer: 100.0
+  invalid_action_penalty: -10.0
+  inactive_uav_penalty: -5.0
+  inactive_target_penalty: -10.0
+  non_attack_uav_penalty: -2.0
+  out_of_range_penalty: -1.0
+  out_of_bounds_penalty: -2.0
+  destroy_bonus: 0.0
+  damage_reward_weight: 0.0
+action_space:
+  mode: fixed_slot
+  max_uavs: 50
+  max_targets: 120
+  attack_uav_only: true
+  require_reachable: false
+  allow_noop_when_no_valid_action: false
+dqn:
+  network_type: dqn
+  learning_rate: 0.0005
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay: 5000
+  replay_buffer_size: 10000
+  batch_size: 32
+  target_update_interval: 100
+  checkpoint_dir: checkpoints/dqn
+  network:
+    hidden_dims:
+    - 256
+    - 256
+    activation: relu
+    dropout: 0.0
+    use_layer_norm: false
+  agent:
+    gamma: 0.99
+    learning_rate: 0.0005
+    batch_size: 32
+    target_update_interval: 100
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 5000
+    gradient_clip_norm: 10.0
+    optimizer: adam
+  trainer:
+    num_episodes: 5
+    max_steps_per_episode: auto
+    replay_buffer_capacity: 10000
+    warmup_steps: 32
+    train_every_steps: 1
+    updates_per_train_step: 1
+    log_interval: 1
+    save_checkpoint: true
+  checkpoint:
+    enabled: true
+    checkpoint_dir: checkpoints/dqn
+    latest_filename: latest.pt
+    best_filename: best.pt
+    save_optimizer: true
+    save_replay_buffer: false
+  metrics:
+    enabled: true
+    metrics_dir: outputs/metrics
+    metrics_filename: dqn_training_metrics.csv
+    overwrite: true
+    save_jsonl: true
+    jsonl_filename: dqn_training_metrics.jsonl
+strike_order:
+  max_targets_per_cluster: 50
+  include_distance_features: true
+  distance_normalizer: auto
+  reward:
+    mode: inverse_distance
+    distance_reward_scale: 100.0
+    repeat_penalty: -10.0
+    completion_bonus: 10.0
+    priority_weight: 0.1
+    target_value_normalizer: 100.0
+strike_order_dqn:
+  network:
+    network_type: attention_dqn
+    hidden_dims:
+    - 256
+    - 256
+    activation: relu
+    dropout: 0.0
+    use_layer_norm: false
+  agent:
+    gamma: 0.99
+    learning_rate: 0.0005
+    batch_size: 32
+    target_update_interval: 100
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay_steps: 3000
+    gradient_clip_norm: 10.0
+    optimizer: adam
+  trainer:
+    num_episodes: 100
+    max_steps_per_episode: auto
+    replay_buffer_capacity: 10000
+    warmup_steps: 100
+    train_every_steps: 1
+    updates_per_train_step: 1
+    log_interval: 1
+    save_checkpoint: true
+    cluster_sampling: random
+  cluster_dataset:
+    num_debug_clusters: 5
+    targets_per_cluster: 6
+  checkpoint:
+    enabled: true
+    checkpoint_dir: checkpoints/strike_order_dqn
+    latest_filename: latest.pt
+    best_filename: best.pt
+    save_optimizer: true
+    save_replay_buffer: false
+  metrics:
+    enabled: true
+    metrics_dir: outputs/metrics
+    metrics_filename: strike_order_dqn_metrics.csv
+    overwrite: true
+    save_jsonl: true
+    jsonl_filename: strike_order_dqn_metrics.jsonl
+algorithm:
+  name: dqn
+  gamma: 0.99
+  learning_rate: 0.001
+  batch_size: 64
+  hidden_dim: 128
+training:
+  episodes: 1000
+  eval_interval: 50
+  save_interval: 100
+  log_interval: 10
+logging:
+  level: INFO
+  use_tensorboard: true
+  save_log_file: true
+output:
+  save_metrics: true
+  save_figures: true
+  save_assignments: true
+target_screening:
+  defense_post_type: 2
+  high_value_target_type: 1
+  defense_radius: 20.0
+  reference_position:
+  - 0.0
+  - 0.0
+  use_defended_post_adjustment: true
+  score:
+    defense_decay_weight: 0.1
+    significance_weight: 5.0
+    distance_decay_weight: 32.0
+    angle_weight: 1.0
+    defense_decay_base: 0.9
+    distance_decay_base: 0.9
+  selection:
+    method: all
+    top_k: 20
+    top_ratio: 0.5
+    threshold: 0.5
+  output:
+    debug_csv_path: outputs/intermediate/target_screening_scores.csv
+destroy_target_selection:
+  method: weighted_kmeans
+  num_clusters: 2
+  max_iter: 300
+  tolerance: 0.0004
+  random_seed: 42
+  feature_weights:
+    normalized_distance: 0.4
+    score: 0.6
+  choose_cluster_by: highest_score_cluster
+  random_forest:
+    model_path: checkpoints/random_forest/destroy_target_rf.joblib
+    probability_threshold: 0.5
+    fallback_method: top_k
+    fallback_top_k: 5
+    feature_names:
+    - score
+    - normalized_distance
+    - angle
+    - adjusted_defense
+    - adjusted_significance
+  rule:
+    top_k: 8
+    threshold: 0.5
+  output:
+    debug_csv_path: outputs/intermediate/destroy_target_selection.csv
+destroy_target_rf_training:
+  label_source: kmeans_bootstrap
+  label_csv_path: data/processed/destroy_target_labels.csv
+  target_id_column: target_id
+  label_column: is_destroy_target
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+  n_estimators: 200
+  max_depth: null
+  test_size: 0.25
+  random_seed: 42
+  output:
+    report_path: outputs/evaluation/destroy_target_rf_report.txt
+    feature_importance_csv: outputs/evaluation/destroy_target_rf_feature_importance.csv
+target_clustering:
+  method: pso
+  num_clusters: 3
+  auto_adjust_num_clusters: true
+  feature_names:
+  - x
+  - y
+  kmeans:
+    max_iter: 300
+    tolerance: 0.0004
+    random_seed: 42
+  pso:
+    num_particles: 30
+    max_iter: 100
+    inertia_weight: 0.7
+    cognitive_weight: 1.5
+    social_weight: 1.5
+    compactness_weight: 1.0
+    balance_weight: 0.1
+    value_weight: 0.2
+    defense_weight: 0.2
+    convergence_threshold: 1.0e-06
+    initialize_with_high_value_targets: true
+    random_seed: 42
+  output:
+    debug_csv_path: outputs/intermediate/target_clustering.csv
+resource_allocation:
+  method: rule_based
+  attack_payload_per_uav: 6
+  guide_uavs_per_cluster: 1
+  communication_uavs_per_cluster: 0
+  allow_partial_allocation: true
+  enable_monte_carlo_assessment: true
+  cluster_priority: defense_desc
+  uav_sorting: uav_id_asc
+  base_position:
+  - 0.0
+  - -16000.0
+  output:
+    debug_csv_path: outputs/intermediate/resource_allocation.csv
+algorithms:
+  destroy_selector:
+    method: rf
+  clustering:
+    initial_method: pso
+    dynamic_method: ppo
+  resource_assessment:
+    method: monte_carlo
+  strike_order:
+    method: attention_dqn
+  replanning:
+    enable_support_policy: true
+rf:
+  n_estimators: 200
+  max_depth: null
+  train_ratio: 0.75
+  model_path: checkpoints/random_forest/destroy_target_rf.joblib
+pso:
+  num_particles: 30
+  max_iterations: 100
+  inertia_weight: 0.7
+  cognitive_factor: 1.5
+  social_factor: 1.5
+  convergence_threshold: 1.0e-06
+  weights:
+    compactness: 1.0
+    balance: 0.1
+    value: 0.2
+    defense: 0.2
+ppo:
+  learning_rate: 0.0003
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  value_loss_coef: 0.5
+  batch_size: 64
+  update_epochs: 4
+  max_episodes: 20
+  max_steps: 30
+  max_targets_per_cluster: 32
+  illegal_action_penalty: -1.0
+  count_balance_weight: 1.0
+  compactness_weight: 1.0
+  workload_balance_weight: 1.0
+  dynamic_event_bonus: 0.05
+  checkpoint_dir: checkpoints/ppo_clusterer
+  fallback_method: pso
+monte_carlo:
+  num_simulations: 300
+  completion_threshold: 0.8
+  uav_loss_probability: 0.05
+  target_defense_noise: 0.1
+  hit_probability_noise: 0.05
+  distance_consumption_weight: 0.05
+  output_csv_path: outputs/resource_assessment/monte_carlo_results.csv
+  figure_path: outputs/resource_assessment/monte_carlo_completion_distribution.png
+support_policy:
+  enabled: true
+  completion_threshold: 0.8
+  donor_min_completion_probability: 0.85
+  max_reassigned_uavs: 1
+  output_csv_path: outputs/support/support_decisions.csv
+simulation:
+  max_time_steps: 2200
+  time_step: 30
+  enable_dynamic_events: false
+  event_config:
+    event_schedule: []
+visualization:
+  save_figures: true
+  figure_dir: outputs/simulation/figures
+scenario:
+  mode: dynamic
+  time_step: 30
+  max_time: 2200
+  dynamic_events:
+    enabled: true
+    event_schedule:
+    - time: 300
+      type: target_disappeared
+      affected_target_ids:
+      - 3
+      description: Target 3 disappeared.
+    - time: 600
+      type: target_appeared
+      affected_target_ids:
+      - 21
+      description: New target appeared.
+      new_targets:
+      - target_id: 21
+        x: 18500.0
+        y: -78000.0
+        target_type: 1
+        defense: 10.0
+        significance: 12.0
+    - time: 900
+      type: attack_uav_destroyed
+      affected_uav_ids:
+      - 11
+      description: Attack UAV 11 was destroyed.
+    - time: 1200
+      type: communication_uav_destroyed
+      affected_uav_ids:
+      - 6
+      description: Communication UAV 6 was destroyed.
+algorithm_policy:
+  default:
+    target_screening: source_aligned
+    destroy_target_selection: weighted_kmeans
+    target_clustering: kmeans
+    resource_allocation: rule_based
+    strike_order_planning: attention_dqn
+  static:
+    target_screening: source_aligned
+    destroy_target_selection: random_forest
+    target_clustering: pso
+    resource_allocation: rule_based
+    strike_order_planning: attention_dqn
+  dynamic:
+    initial_planning:
+      target_screening: source_aligned
+      destroy_target_selection: random_forest
+      target_clustering: pso
+      resource_allocation: rule_based
+      strike_order_planning: attention_dqn
+    events:
+      target_appeared:
+        replanning_scope: global
+        stages:
+          target_screening: source_aligned
+          destroy_target_selection: random_forest
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+      target_disappeared:
+        replanning_scope: affected_clusters
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: ppo
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+      attack_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+      guide_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+      communication_uav_destroyed:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: keep_existing
+      resource_shortage:
+        replanning_scope: resource_only
+        stages:
+          target_screening: keep_existing
+          destroy_target_selection: keep_existing
+          target_clustering: keep_existing
+          resource_allocation: rule_based
+          strike_order_planning: attention_dqn
+mission_planner:
+  output:
+    debug_csv_path: outputs/intermediate/mission_planner_summary.csv
+strike_order_planner:
+  method: attention_dqn
+  checkpoint_type: best
+  allow_fallback: true
+  fallback_method: nearest_neighbor
+  start_position_source: cluster_center
+  device: auto
+  random_seed: 42
+  output:
+    debug_csv_path: outputs/intermediate/strike_order_planner.csv
+mission_simulator:
+  default_uav_speed: 80.0
+  arrival_tolerance: 100.0
+  strike_targets_per_step: 1
+  stop_when_all_planned_targets_destroyed: false
+  output:
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+mission_metrics:
+  input_csv_path: outputs/simulation/mission_simulation_log.csv
+  output:
+    summary_csv_path: outputs/simulation/mission_simulation_summary.csv
+    timeline_csv_path: outputs/simulation/mission_simulation_timeline_metrics.csv
+    figure_dir: outputs/simulation/figures
+mission_visualization:
+  input:
+    uav_trajectory_csv_path: outputs/simulation/uav_trajectory_log.csv
+    simulation_log_csv_path: outputs/simulation/mission_simulation_log.csv
+  output:
+    figure_dir: outputs/simulation/figures
+  max_uavs_to_plot: 20
+  only_assigned_uavs: true
+full_simulation:
+  run_name: comprehensive_dynamic
+  output_root: outputs/experiments
+  create_timestamped_run_dir: false
+  run_metrics: true
+  run_visualization: true
+  use_demo_dynamic_events: false
+  demo_dynamic_events:
+  - time: 150
+    type: target_disappeared
+    affected_target_ids:
+    - 3
+    description: Demo target 3 disappeared before strike.
+  - time: 210
+    type: attack_uav_destroyed
+    affected_uav_ids:
+    - 11
+    description: Demo attack UAV 11 destroyed during mission.
+name: comprehensive_dynamic

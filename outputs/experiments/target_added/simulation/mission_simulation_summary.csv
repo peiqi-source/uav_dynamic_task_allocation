@@ -1,0 +1,2 @@
+﻿total_time,num_steps,num_replanning,total_event_count,event_type_counts,final_destroyed_count,final_destroyed_target_ids,final_disappeared_count,final_disappeared_target_ids,final_damaged_uav_count,final_damaged_uav_ids,final_available_target_count,final_available_uav_count,final_completed_cluster_count,final_total_cluster_count,final_cluster_completion_ratio,mission_completed_by_cluster,total_destroyed_this_step_sum,average_destroyed_per_step
+900.0,30,1,1,"{""target_appeared"": 1}",1,[21],0,[],0,[],20,41,1,1,1.0,True,1,0.03333333333333333

@@ -1,0 +1,6 @@
+﻿stage,method,should_run,keep_existing,scenario_mode,replanning_scope,event_type,reason
+target_screening,source_aligned,True,False,static,none,,static_initial_planning
+destroy_target_selection,weighted_kmeans,True,False,static,none,,static_initial_planning
+target_clustering,pso,True,False,static,none,,static_initial_planning
+resource_allocation,rule_based,True,False,static,none,,static_initial_planning
+strike_order_planning,dqn,True,False,static,none,,static_initial_planning

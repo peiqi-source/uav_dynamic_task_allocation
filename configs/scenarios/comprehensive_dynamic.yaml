@@ -1,0 +1,34 @@
+name: comprehensive_dynamic
+scenario:
+  mode: dynamic
+  dynamic_events:
+    enabled: true
+    event_schedule:
+      - time: 300
+        type: target_disappeared
+        affected_target_ids: [3]
+        description: Target 3 disappeared.
+      - time: 600
+        type: target_appeared
+        affected_target_ids: [21]
+        description: New target appeared.
+        new_targets:
+          - target_id: 21
+            x: 18500.0
+            y: -78000.0
+            target_type: 1
+            defense: 10.0
+            significance: 12.0
+      - time: 900
+        type: attack_uav_destroyed
+        affected_uav_ids: [11]
+        description: Attack UAV 11 was destroyed.
+      - time: 1200
+        type: communication_uav_destroyed
+        affected_uav_ids: [6]
+        description: Communication UAV 6 was destroyed.
+full_simulation:
+  run_metrics: true
+  run_visualization: true
+mission_simulator:
+  stop_when_all_planned_targets_destroyed: false
