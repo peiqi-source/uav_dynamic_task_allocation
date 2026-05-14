@@ -1,0 +1,4 @@
+﻿model_name,accuracy,precision_macro,recall_macro,f1_macro,precision_weighted,recall_weighted,f1_weighted,train_size,test_size,label_source,feature_names
+Decision Tree,0.94,0.9166666666666667,0.9571428571428571,0.9321573948439621,0.95,0.94,0.9413839891451832,150,50,kmeans_bootstrap,score|normalized_distance|angle|adjusted_defense|adjusted_significance
+KNN,0.86,0.875,0.7857142857142857,0.8133333333333335,0.865,0.86,0.8506666666666667,150,50,kmeans_bootstrap,score|normalized_distance|angle|adjusted_defense|adjusted_significance
+RF,0.96,0.972972972972973,0.9333333333333333,0.9503968253968254,0.9621621621621621,0.96,0.9591269841269842,150,50,kmeans_bootstrap,score|normalized_distance|angle|adjusted_defense|adjusted_significance

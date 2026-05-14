@@ -19,6 +19,13 @@ from uav_dynamic_task_allocation.algorithms.supervised.random_forest.metrics imp
 from uav_dynamic_task_allocation.algorithms.supervised.random_forest.trainer import (
     RandomForestDestroyTargetTrainer,
 )
+from uav_dynamic_task_allocation.algorithms.supervised.random_forest.visualization import (
+    plot_confusion_matrix,
+    plot_destroy_target_3d_value_map,
+    plot_destroy_target_map,
+    plot_feature_importance,
+    plot_score_distribution,
+)
 from uav_dynamic_task_allocation.core.entities import build_battlefield_state
 from uav_dynamic_task_allocation.data.loaders import load_all_data
 from uav_dynamic_task_allocation.preprocessing.target_screening import (
@@ -202,6 +209,56 @@ def run_destroy_target_rf_training(config_path: str | Path) -> None:
         ),
         project_root=project_root,
     )
+    confusion_matrix_figure_path = resolve_path(
+        str(
+            get_config_value(
+                config,
+                "destroy_target_rf_training.output.confusion_matrix_figure",
+                default="outputs/evaluation/figures/rf_confusion_matrix.png",
+            )
+        ),
+        project_root=project_root,
+    )
+    feature_importance_figure_path = resolve_path(
+        str(
+            get_config_value(
+                config,
+                "destroy_target_rf_training.output.feature_importance_figure",
+                default="outputs/evaluation/figures/rf_feature_importance.png",
+            )
+        ),
+        project_root=project_root,
+    )
+    destroy_target_map_figure_path = resolve_path(
+        str(
+            get_config_value(
+                config,
+                "destroy_target_rf_training.output.destroy_target_map_figure",
+                default="outputs/evaluation/figures/rf_destroy_target_map.png",
+            )
+        ),
+        project_root=project_root,
+    )
+    score_distribution_figure_path = resolve_path(
+        str(
+            get_config_value(
+                config,
+                "destroy_target_rf_training.output.score_distribution_figure",
+                default="outputs/evaluation/figures/rf_score_distribution.png",
+            )
+        ),
+        project_root=project_root,
+    )
+    destroy_target_3d_value_map_figure_path = resolve_path(
+        str(
+            get_config_value(
+                config,
+                "destroy_target_rf_training.output.destroy_target_3d_value_map_figure",
+                default="outputs/evaluation/figures/rf_destroy_target_3d_value_map.png",
+            )
+        ),
+        project_root=project_root,
+    )
 
     trainer = RandomForestDestroyTargetTrainer(
         n_estimators=n_estimators,
@@ -235,10 +292,55 @@ def run_destroy_target_rf_training(config_path: str | Path) -> None:
     )
     save_report_text(report_text, report_path)
 
+    training_df = dataset.feature_df.copy()
+    label_map = {
+        int(target_id): int(label)
+        for target_id, label in zip(dataset.target_ids, dataset.y, strict=False)
+    }
+    training_df["is_destroy_target"] = training_df["target_id"].map(label_map)
+
+    plot_confusion_matrix(
+        matrix=result.confusion_matrix,
+        output_path=confusion_matrix_figure_path,
+    )
+    plot_feature_importance(
+        feature_names=feature_names,
+        importances=result.model.feature_importances_,
+        output_path=feature_importance_figure_path,
+    )
+    plot_destroy_target_map(
+        training_df=training_df,
+        output_path=destroy_target_map_figure_path,
+        base_position=_get_base_position(config),
+    )
+    plot_score_distribution(
+        training_df=training_df,
+        output_path=score_distribution_figure_path,
+    )
+    plot_destroy_target_3d_value_map(
+        training_df=training_df,
+        output_path=destroy_target_3d_value_map_figure_path,
+        value_column="score",
+    )
+
     logger.info("RF model saved to: %s", model_path)
     logger.info("RF report saved to: %s", report_path)
     logger.info("RF feature importance saved to: %s", importance_path)
     logger.info("RF training data saved to: %s", training_data_path)
+    logger.info("RF confusion matrix figure saved to: %s", confusion_matrix_figure_path)
+    logger.info(
+        "RF feature importance figure saved to: %s",
+        feature_importance_figure_path,
+    )
+    logger.info("RF destroy target map saved to: %s", destroy_target_map_figure_path)
+    logger.info(
+        "RF score distribution figure saved to: %s",
+        score_distribution_figure_path,
+    )
+    logger.info(
+        "RF 3D destroy target value map saved to: %s",
+        destroy_target_3d_value_map_figure_path,
+    )
     logger.info("Destroy target RF training finished successfully.")
 
 
@@ -272,6 +374,22 @@ def _label_counts(y) -> dict[int, int]:
         label = int(value)
         counts[label] = counts.get(label, 0) + 1
     return counts
+
+
+def _get_base_position(config: dict) -> tuple[float, float]:
+    """从配置读取基地坐标，默认使用 (0, -16000)。"""
+    base_position = get_config_value(
+        config,
+        "resource_allocation.base_position",
+        default=None,
+    )
+    if base_position is not None and len(base_position) >= 2:
+        return float(base_position[0]), float(base_position[1])
+
+    return (
+        float(get_config_value(config, "env.base_x", default=0.0)),
+        float(get_config_value(config, "env.base_y", default=-16000.0)),
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,30 @@
+Decision Tree Destroy Target Classification Report
+================================================
+
+label_source: kmeans_bootstrap
+feature_names: ['score', 'normalized_distance', 'angle', 'adjusted_defense', 'adjusted_significance']
+use_holdout_split: True
+train_size: 150
+test_size: 50
+accuracy: 0.940000
+precision_macro: 0.916667
+recall_macro: 0.957143
+f1_macro: 0.932157
+precision_weighted: 0.950000
+recall_weighted: 0.940000
+f1_weighted: 0.941384
+
+classification_report:
+              precision    recall  f1-score   support
+
+ Non-destroy     1.0000    0.9143    0.9552        35
+     Destroy     0.8333    1.0000    0.9091        15
+
+    accuracy                         0.9400        50
+   macro avg     0.9167    0.9571    0.9322        50
+weighted avg     0.9500    0.9400    0.9414        50
+
+
+confusion_matrix:
+[[32  3]
+ [ 0 15]]

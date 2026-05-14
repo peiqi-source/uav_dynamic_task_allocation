@@ -17,6 +17,13 @@ from uav_dynamic_task_allocation.algorithms.supervised.random_forest.trainer imp
     RandomForestDestroyTargetTrainer,
     RandomForestTrainingResult,
 )
+from uav_dynamic_task_allocation.algorithms.supervised.random_forest.visualization import (
+    plot_confusion_matrix,
+    plot_destroy_target_3d_value_map,
+    plot_destroy_target_map,
+    plot_feature_importance,
+    plot_score_distribution,
+)
 
 __all__ = [
     "RandomForestDataset",
@@ -27,7 +34,11 @@ __all__ = [
     "build_labels_from_csv",
     "build_labels_from_kmeans_bootstrap",
     "load_random_forest_model",
+    "plot_confusion_matrix",
+    "plot_destroy_target_3d_value_map",
+    "plot_destroy_target_map",
+    "plot_feature_importance",
+    "plot_score_distribution",
     "save_random_forest_model",
     "save_training_data",
 ]
-

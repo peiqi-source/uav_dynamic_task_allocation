@@ -278,6 +278,25 @@ destroy_target_rf_training:
   output:
     report_path: outputs/evaluation/destroy_target_rf_report.txt
     feature_importance_csv: outputs/evaluation/destroy_target_rf_feature_importance.csv
+    confusion_matrix_figure: outputs/evaluation/figures/rf_confusion_matrix.png
+    feature_importance_figure: outputs/evaluation/figures/rf_feature_importance.png
+    destroy_target_map_figure: outputs/evaluation/figures/rf_destroy_target_map.png
+    score_distribution_figure: outputs/evaluation/figures/rf_score_distribution.png
+    destroy_target_3d_value_map_figure: outputs/evaluation/figures/rf_destroy_target_3d_value_map.png
+destroy_target_classifier_comparison:
+  decision_tree:
+    max_depth: 14
+  knn:
+    n_neighbors: 5
+    weights: distance
+    metric: minkowski
+  output:
+    comparison_csv: outputs/evaluation/destroy_target_classifier_comparison.csv
+    decision_tree_report: outputs/evaluation/baselines/decision_tree_report.txt
+    knn_report: outputs/evaluation/baselines/knn_report.txt
+    decision_tree_confusion_matrix_figure: outputs/evaluation/figures/decision_tree_confusion_matrix.png
+    knn_confusion_matrix_figure: outputs/evaluation/figures/knn_confusion_matrix.png
+    comparison_metrics_figure: outputs/evaluation/figures/classifier_comparison_metrics.png
 target_clustering:
   method: pso
   num_clusters: 3
