@@ -22,6 +22,10 @@ class TargetGroupingEnvConfig:
     move_penalty: float = -0.01
     improvement_bonus: float = 0.05
     patience: int = 8
+    reward_clip_min: float = -1.0
+    reward_clip_max: float = 1.0
+    use_reward_clipping: bool = True
+    use_score_delta_reward: bool = True
 
     # Backward-compatible alias used by the older toy trainer config.
     dynamic_event_bonus: float | None = None
@@ -35,6 +39,8 @@ class TargetGroupingEnvConfig:
             raise ValueError("max_targets_per_cluster must be positive.")
         if self.patience <= 0:
             raise ValueError("patience must be positive.")
+        if self.reward_clip_min > self.reward_clip_max:
+            raise ValueError("reward_clip_min must be <= reward_clip_max.")
 
 
 class TargetGroupingEnv:
@@ -166,8 +172,11 @@ class TargetGroupingEnv:
 
         if not self._is_legal_action(source_cluster, source_slot, destination_cluster):
             self.current_step += 1
-            reward = float(self.config.illegal_action_penalty)
+            raw_reward = float(self.config.illegal_action_penalty)
+            reward = self._clip_reward(raw_reward)
             info["reason"] = "illegal_action"
+            info["raw_reward"] = raw_reward
+            info["clipped_reward"] = reward
             done = self._is_done()
             info.update(self.get_metrics())
             return self._observation(), reward, done, info
@@ -185,11 +194,13 @@ class TargetGroupingEnv:
         else:
             self.no_improvement_steps += 1
 
-        reward = (
-            improvement
+        base_reward = improvement if self.config.use_score_delta_reward else after_score
+        raw_reward = (
+            base_reward
             + (self.config.improvement_bonus if improvement > 0 else 0.0)
             + self.config.move_penalty
         )
+        reward = self._clip_reward(raw_reward)
 
         self.current_step += 1
         done = self._is_done()
@@ -199,6 +210,8 @@ class TargetGroupingEnv:
                 "moved_target_index": target_index,
                 "score_after": after_score,
                 "improvement": improvement,
+                "raw_reward": raw_reward,
+                "clipped_reward": reward,
                 "improved_best": improved_best,
             }
         )
@@ -230,14 +243,28 @@ class TargetGroupingEnv:
 
     def _illegal_step(self, reason: str):
         self.current_step += 1
-        reward = float(self.config.illegal_action_penalty)
+        raw_reward = float(self.config.illegal_action_penalty)
+        reward = self._clip_reward(raw_reward)
         done = self._is_done()
         info: dict[str, Any] = {
             "legal_action": False,
             "reason": reason,
+            "raw_reward": raw_reward,
+            "clipped_reward": reward,
         }
         info.update(self.get_metrics())
         return self._observation(), reward, done, info
+
+    def _clip_reward(self, reward: float) -> float:
+        if not self.config.use_reward_clipping:
+            return float(reward)
+        return float(
+            np.clip(
+                reward,
+                self.config.reward_clip_min,
+                self.config.reward_clip_max,
+            )
+        )
 
     def _is_done(self) -> bool:
         return bool(

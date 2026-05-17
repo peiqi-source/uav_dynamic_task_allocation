@@ -10,12 +10,19 @@ from uav_dynamic_task_allocation.algorithms.rl.ppo.agent import (
 )
 from uav_dynamic_task_allocation.algorithms.rl.ppo.buffer import PPORolloutBuffer
 from uav_dynamic_task_allocation.algorithms.rl.ppo.checkpoint import save_ppo_checkpoint
-from uav_dynamic_task_allocation.algorithms.rl.ppo.metrics import write_ppo_metrics
+from uav_dynamic_task_allocation.algorithms.rl.ppo.metrics import (
+    add_moving_average_metrics,
+    write_ppo_metrics,
+)
 from uav_dynamic_task_allocation.algorithms.rl.ppo.network import PPONetworkConfig, torch
 from uav_dynamic_task_allocation.algorithms.rl.ppo.visualization import (
     plot_training_losses,
+    plot_event_type_reward_boxplot,
+    plot_event_type_score_boxplot,
     plot_training_reward,
+    plot_training_reward_smoothed,
     plot_training_score,
+    plot_training_score_smoothed,
 )
 from uav_dynamic_task_allocation.allocation.pso_clusterer import PSOClustererConfig
 from uav_dynamic_task_allocation.core.entities import build_battlefield_state
@@ -95,10 +102,22 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
             feature_names=feature_names,
             num_clusters=num_clusters,
             random_seed=seed,
+            sampling_mode=str(
+                get_config_value(
+                    config,
+                    "ppo_clusterer_training.scenario_generator.sampling_mode",
+                    "random",
+                )
+            ),
             probabilities=get_config_value(
                 config,
                 "ppo_clusterer_training.scenario_generator.probabilities",
                 None,
+            ),
+            curriculum=get_config_value(
+                config,
+                "ppo_clusterer_training.scenario_generator.curriculum",
+                {},
             ),
             target_removed=get_config_value(
                 config,
@@ -139,6 +158,7 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
 
     if torch is None:
         rows = [_no_torch_row(sample_scenario, sample_env)]
+        rows = add_moving_average_metrics(rows)
         write_ppo_metrics(rows, output_paths["training_metrics_csv"])
         _save_training_figures(output_paths)
         save_ppo_checkpoint(
@@ -167,14 +187,23 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
     )
 
     max_episodes = int(training_config.get("max_episodes", 500))
+    entropy_schedule = _entropy_schedule(config)
     rows: list[dict[str, Any]] = []
 
     for episode in range(1, max_episodes + 1):
+        current_entropy_coef = _entropy_coef_for_episode(
+            episode=episode,
+            default_entropy_coef=agent.config.entropy_coef,
+            schedule=entropy_schedule,
+        )
+        agent.entropy_coef = current_entropy_coef
         scenario = scenario_generator.generate_episode_scenario(episode)
         env = _build_env(scenario, env_config)
         observation = env.reset()
         buffer = PPORolloutBuffer()
         total_reward = 0.0
+        raw_reward_total = 0.0
+        clipped_reward_total = 0.0
         done = False
 
         while not done:
@@ -182,7 +211,7 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
             if not action_mask.any():
                 break
             action, log_prob, value = agent.select_action(observation, action_mask)
-            next_observation, reward, done, _ = env.step_index(action)
+            next_observation, reward, done, info = env.step_index(action)
             buffer.add(
                 observation=observation,
                 action=action,
@@ -193,6 +222,8 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
                 action_mask=action_mask,
             )
             total_reward += reward
+            raw_reward_total += float(info.get("raw_reward", reward))
+            clipped_reward_total += float(info.get("clipped_reward", reward))
             observation = next_observation
 
         update_metrics = agent.update(buffer)
@@ -203,6 +234,8 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
             "event_type": scenario.event_type,
             "num_targets": len(scenario.targets),
             "total_reward": total_reward,
+            "raw_reward": raw_reward_total,
+            "clipped_reward": clipped_reward_total,
             "final_score": env_metrics["final_score"],
             "count_balance": env_metrics["count_balance"],
             "compactness": env_metrics["compactness"],
@@ -213,6 +246,7 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
             "policy_loss": update_metrics["policy_loss"],
             "value_loss": update_metrics["value_loss"],
             "entropy": update_metrics["entropy"],
+            "entropy_coef": current_entropy_coef,
         }
         rows.append(row)
 
@@ -226,6 +260,7 @@ def run_ppo_clusterer_training(config_path: str | Path) -> None:
                 env_metrics["final_score"],
             )
 
+    rows = add_moving_average_metrics(rows)
     write_ppo_metrics(rows, output_paths["training_metrics_csv"])
     _save_training_figures(output_paths)
 
@@ -306,6 +341,18 @@ def _env_config(config: dict[str, Any], num_clusters: int) -> TargetGroupingEnvC
             get_config_value(config, f"{prefix}.improvement_bonus", 0.05)
         ),
         patience=int(get_config_value(config, f"{prefix}.patience", 8)),
+        reward_clip_min=float(
+            get_config_value(config, f"{prefix}.reward_clip_min", -1.0)
+        ),
+        reward_clip_max=float(
+            get_config_value(config, f"{prefix}.reward_clip_max", 1.0)
+        ),
+        use_reward_clipping=bool(
+            get_config_value(config, f"{prefix}.use_reward_clipping", True)
+        ),
+        use_score_delta_reward=bool(
+            get_config_value(config, f"{prefix}.use_score_delta_reward", True)
+        ),
     )
 
 
@@ -354,6 +401,8 @@ def _no_torch_row(scenario, env: TargetGroupingEnv) -> dict[str, Any]:
         "event_type": scenario.event_type,
         "num_targets": len(scenario.targets),
         "total_reward": 0.0,
+        "raw_reward": 0.0,
+        "clipped_reward": 0.0,
         "final_score": metrics["final_score"],
         "count_balance": metrics["count_balance"],
         "compactness": metrics["compactness"],
@@ -364,6 +413,7 @@ def _no_torch_row(scenario, env: TargetGroupingEnv) -> dict[str, Any]:
         "policy_loss": 0.0,
         "value_loss": 0.0,
         "entropy": 0.0,
+        "entropy_coef": 0.0,
     }
 
 
@@ -402,6 +452,38 @@ def _output_paths(config: dict[str, Any], project_root: Path) -> dict[str, Path]
             ),
             project_root=project_root,
         ),
+        "reward_smoothed_figure": resolve_path(
+            get_config_value(
+                config,
+                f"{prefix}.reward_smoothed_figure",
+                "outputs/evaluation/figures/ppo_training_reward_smoothed.png",
+            ),
+            project_root=project_root,
+        ),
+        "score_smoothed_figure": resolve_path(
+            get_config_value(
+                config,
+                f"{prefix}.score_smoothed_figure",
+                "outputs/evaluation/figures/ppo_training_score_smoothed.png",
+            ),
+            project_root=project_root,
+        ),
+        "event_reward_boxplot": resolve_path(
+            get_config_value(
+                config,
+                f"{prefix}.event_reward_boxplot",
+                "outputs/evaluation/figures/ppo_event_reward_boxplot.png",
+            ),
+            project_root=project_root,
+        ),
+        "event_score_boxplot": resolve_path(
+            get_config_value(
+                config,
+                f"{prefix}.event_score_boxplot",
+                "outputs/evaluation/figures/ppo_event_score_boxplot.png",
+            ),
+            project_root=project_root,
+        ),
     }
 
 
@@ -410,3 +492,33 @@ def _save_training_figures(output_paths: dict[str, Path]) -> None:
     plot_training_reward(metrics_csv, output_paths["reward_figure"])
     plot_training_score(metrics_csv, output_paths["score_figure"])
     plot_training_losses(metrics_csv, output_paths["losses_figure"])
+    plot_training_reward_smoothed(metrics_csv, output_paths["reward_smoothed_figure"])
+    plot_training_score_smoothed(metrics_csv, output_paths["score_smoothed_figure"])
+    plot_event_type_reward_boxplot(metrics_csv, output_paths["event_reward_boxplot"])
+    plot_event_type_score_boxplot(metrics_csv, output_paths["event_score_boxplot"])
+
+
+def _entropy_schedule(config: dict[str, Any]) -> dict[str, Any]:
+    return dict(
+        get_config_value(
+            config,
+            "ppo_clusterer_training.agent.entropy_coef_schedule",
+            {},
+        )
+        or {}
+    )
+
+
+def _entropy_coef_for_episode(
+    episode: int,
+    default_entropy_coef: float,
+    schedule: dict[str, Any],
+) -> float:
+    if not bool(schedule.get("enabled", False)):
+        return float(default_entropy_coef)
+
+    initial = float(schedule.get("initial", default_entropy_coef))
+    final = float(schedule.get("final", default_entropy_coef))
+    decay_episodes = max(int(schedule.get("decay_episodes", 1)), 1)
+    progress = min(max(episode - 1, 0) / decay_episodes, 1.0)
+    return float(initial + (final - initial) * progress)

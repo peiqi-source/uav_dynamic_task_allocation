@@ -65,6 +65,7 @@ class PPOAgent:
         torch.manual_seed(seed)
         # config: 配置。
         self.config = agent_config
+        self.entropy_coef = float(agent_config.entropy_coef)
         # device: 计算设备。
         self.device = torch.device(device)
         # network: 神经网络。
@@ -162,7 +163,7 @@ class PPOAgent:
                 loss = (
                     policy_loss
                     + self.config.value_loss_coef * value_loss
-                    - self.config.entropy_coef * entropy
+                    - self.entropy_coef * entropy
                 )
                 self.optimizer.zero_grad()
                 loss.backward()

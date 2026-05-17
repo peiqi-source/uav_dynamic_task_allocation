@@ -323,7 +323,7 @@ pso_feature_set_comparison:
     figure_dir: outputs/evaluation/figures
 target_clustering:
   method: ppo
-  num_clusters: 3
+  num_clusters: 6
   auto_adjust_num_clusters: true
   feature_names:
   - x
@@ -402,7 +402,7 @@ ppo_clusterer_training:
   feature_names:
   - x
   - y
-  num_clusters: 3
+  num_clusters: 6
   max_episodes: 500
   max_steps: 30
   device: cpu
@@ -411,10 +411,15 @@ ppo_clusterer_training:
     gamma: 0.99
     gae_lambda: 0.95
     clip_epsilon: 0.2
-    entropy_coef: 0.01
+    entropy_coef: 0.005
     value_loss_coef: 0.5
     batch_size: 64
     update_epochs: 4
+    entropy_coef_schedule:
+      enabled: true
+      initial: 0.01
+      final: 0.002
+      decay_episodes: 500
   network:
     hidden_dims:
     - 128
@@ -429,16 +434,52 @@ ppo_clusterer_training:
     move_penalty: -0.01
     improvement_bonus: 0.05
     patience: 8
+    reward_clip_min: -1.0
+    reward_clip_max: 1.0
+    use_reward_clipping: true
+    use_score_delta_reward: true
   scenario_generator:
     enabled: true
     base_source: real_csv_destroy_targets
     initial_clustering_method: pso
+    sampling_mode: curriculum
     probabilities:
       none: 0.25
       target_removed: 0.25
       target_added: 0.25
       target_value_changed: 0.15
       mixed: 0.10
+    curriculum:
+      stage_1:
+        episode_range:
+        - 0
+        - 150
+        probabilities:
+          none: 0.5
+          target_removed: 0.5
+          target_added: 0.0
+          target_value_changed: 0.0
+          mixed: 0.0
+      stage_2:
+        episode_range:
+        - 150
+        - 350
+        probabilities:
+          none: 0.2
+          target_removed: 0.25
+          target_added: 0.25
+          target_value_changed: 0.3
+          mixed: 0.0
+      stage_3:
+        episode_range:
+        - 350
+        - 999999
+        probabilities:
+          none: 0.15
+          target_removed: 0.2
+          target_added: 0.25
+          target_value_changed: 0.25
+          mixed: 0.15
     target_removed:
       min_remove: 1
       max_remove: 5
@@ -463,6 +504,10 @@ ppo_clusterer_training:
     reward_figure: outputs/evaluation/figures/ppo_training_reward.png
     score_figure: outputs/evaluation/figures/ppo_training_score.png
     losses_figure: outputs/evaluation/figures/ppo_training_losses.png
+    reward_smoothed_figure: outputs/evaluation/figures/ppo_training_reward_smoothed.png
+    score_smoothed_figure: outputs/evaluation/figures/ppo_training_score_smoothed.png
+    event_reward_boxplot: outputs/evaluation/figures/ppo_event_reward_boxplot.png
+    event_score_boxplot: outputs/evaluation/figures/ppo_event_score_boxplot.png
 ppo:
   learning_rate: 0.0003
   gamma: 0.99

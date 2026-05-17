@@ -1,2 +1,2 @@
-﻿compactness,count_balance,count_std,empty_cluster_count,entropy,episode,event_type,final_score,num_targets,policy_loss,scenario_id,total_reward,value_loss,workload_balance,workload_std
-0.8245802667259349,0.9240075406383572,1.699673171197595,0.0,0.0,0,target_value_changed,2.6597554882440004,62,0.0,0,0.0,0.0,0.9111676808797082,8.50243940972811
+﻿clipped_reward,compactness,count_balance,count_std,empty_cluster_count,entropy,entropy_coef,episode,event_type,final_score,moving_avg_reward_20,moving_avg_reward_50,moving_avg_score_20,moving_avg_score_50,num_targets,policy_loss,raw_reward,scenario_id,total_reward,value_loss,workload_balance,workload_std
+0.0,0.8845511902690336,0.6956341931278881,4.2295258468165065,0.0,0.0,0.0,0,target_removed,2.354583915334549,0.0,0.0,2.354583915334549,2.354583915334549,58,0.0,0.0,0,0.0,0.0,0.7743985319376271,11.944315244779277

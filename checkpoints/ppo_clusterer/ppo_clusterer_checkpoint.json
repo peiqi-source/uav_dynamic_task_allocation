@@ -2,7 +2,7 @@
   "algorithm": "ppo_clusterer",
   "status": "no_torch_fallback",
   "reason": "PyTorch is not available.",
-  "num_clusters": 3,
+  "num_clusters": 6,
   "feature_names": [
     "x",
     "y"

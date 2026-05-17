@@ -34,7 +34,9 @@ class PPOGroupingScenarioGeneratorConfig:
     feature_names: tuple[str, ...] = ("x", "y")
     num_clusters: int = 3
     random_seed: int = 42
+    sampling_mode: str = "random"
     probabilities: dict[str, float] | None = None
+    curriculum: dict[str, Any] | None = None
     target_removed: dict[str, int] | None = None
     target_added: dict[str, int] | None = None
     target_value_changed: dict[str, Any] | None = None
@@ -74,11 +76,14 @@ class PPOGroupingScenarioGenerator:
         self.config = config
         self.rng = np.random.default_rng(config.random_seed)
         self.probabilities = self._normalize_probabilities(config.probabilities)
+        self.curriculum = config.curriculum or {}
+        if config.sampling_mode not in {"random", "curriculum"}:
+            raise ValueError("sampling_mode must be 'random' or 'curriculum'.")
 
     def generate_episode_scenario(self, episode_id: int) -> PPOGroupingScenario:
         """Generate one reproducible dynamic episode scenario."""
         for _ in range(30):
-            event_type = self._sample_event_type()
+            event_type = self._sample_event_type(episode_id)
             targets, metadata = self._apply_event(event_type)
             if len(targets) >= self.config.num_clusters:
                 return self._build_scenario(
@@ -130,6 +135,7 @@ class PPOGroupingScenarioGenerator:
             "num_changed": metadata.get("num_changed", 0),
             "feature_names": list(self.config.feature_names),
             "initial_clustering_method": "pso",
+            "sampling_mode": self.config.sampling_mode,
         }
         return PPOGroupingScenario(
             scenario_id=episode_id,
@@ -271,10 +277,26 @@ class PPOGroupingScenarioGenerator:
         safe_ranges = np.where(np.abs(ranges) < 1e-12, 1.0, ranges)
         return (features - min_values) / safe_ranges
 
-    def _sample_event_type(self) -> str:
-        names = list(self.probabilities.keys())
-        probs = np.asarray([self.probabilities[name] for name in names], dtype=np.float64)
+    def _sample_event_type(self, episode_id: int) -> str:
+        probabilities = self._episode_probabilities(episode_id)
+        names = list(probabilities.keys())
+        probs = np.asarray([probabilities[name] for name in names], dtype=np.float64)
         return str(self.rng.choice(names, p=probs))
+
+    def _episode_probabilities(self, episode_id: int) -> dict[str, float]:
+        if self.config.sampling_mode != "curriculum":
+            return self.probabilities
+
+        for _, stage_config in sorted(self.curriculum.items()):
+            episode_range = stage_config.get("episode_range", [0, 999999])
+            start = int(episode_range[0])
+            end = int(episode_range[1])
+            if start <= episode_id < end:
+                return self._normalize_probabilities(
+                    stage_config.get("probabilities", self.probabilities)
+                )
+
+        return self.probabilities
 
     def _normalize_probabilities(
         self,

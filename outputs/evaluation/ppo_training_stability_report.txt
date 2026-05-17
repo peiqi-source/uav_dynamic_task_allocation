@@ -1,0 +1,22 @@
+PPO Training Stability Report
+metrics_csv: F:\项目\专利\uav_dynamic_task_allocation\outputs\metrics\ppo_clusterer_training_metrics.csv
+num_episodes: 500
+
+first_100_reward_mean: 0.076387
+first_100_reward_std: 0.187360
+last_100_reward_mean: 0.430915
+last_100_reward_std: 0.248482
+reward_improvement: 0.354528
+
+first_100_score_mean: 2.465351
+first_100_score_std: 0.080133
+last_100_score_mean: 2.603112
+last_100_score_std: 0.075449
+score_improvement: 0.137761
+
+By event type:
+event_type=mixed, count=23, reward_mean=0.473017, reward_std=0.319226, score_mean=2.605956, score_std=0.080467
+event_type=none, count=139, reward_mean=0.194399, reward_std=0.208282, score_mean=2.556749, score_std=0.089649
+event_type=target_added, count=71, reward_mean=0.306936, reward_std=0.253199, score_mean=2.538463, score_std=0.086321
+event_type=target_removed, count=159, reward_mean=0.220933, reward_std=0.264559, score_mean=2.502361, score_std=0.097566
+event_type=target_value_changed, count=108, reward_mean=0.355485, reward_std=0.165206, score_mean=2.606927, score_std=0.061247
