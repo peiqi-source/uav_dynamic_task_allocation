@@ -11,6 +11,6 @@ algorithm_policy:
   static:
     target_screening: source_aligned
     destroy_target_selection: random_forest
-    target_clustering: pso
+    target_clustering: ppo
     resource_allocation: rule_based
     strike_order_planning: attention_dqn

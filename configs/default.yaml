@@ -297,8 +297,32 @@ destroy_target_classifier_comparison:
     decision_tree_confusion_matrix_figure: outputs/evaluation/figures/decision_tree_confusion_matrix.png
     knn_confusion_matrix_figure: outputs/evaluation/figures/knn_confusion_matrix.png
     comparison_metrics_figure: outputs/evaluation/figures/classifier_comparison_metrics.png
+pso_feature_set_comparison:
+  feature_sets:
+    xy:
+    - x
+    - y
+    xy_score:
+    - x
+    - y
+    - score
+    xy_score_defense:
+    - x
+    - y
+    - score
+    - defense
+    xy_score_defense_significance:
+    - x
+    - y
+    - score
+    - defense
+    - significance
+  output:
+    comparison_csv: outputs/evaluation/pso_feature_set_comparison.csv
+    detail_dir: outputs/evaluation/pso_feature_sets
+    figure_dir: outputs/evaluation/figures
 target_clustering:
-  method: pso
+  method: ppo
   num_clusters: 3
   auto_adjust_num_clusters: true
   feature_names:
@@ -321,6 +345,12 @@ target_clustering:
     convergence_threshold: 1.0e-06
     initialize_with_high_value_targets: true
     random_seed: 42
+  ppo:
+    checkpoint_dir: checkpoints/ppo_clusterer
+    fallback_method: pso
+    max_inference_steps: 30
+    inference_mode: greedy
+    max_targets_per_cluster: 64
   output:
     debug_csv_path: outputs/intermediate/target_clustering.csv
 resource_allocation:
@@ -341,7 +371,7 @@ algorithms:
   destroy_selector:
     method: rf
   clustering:
-    initial_method: pso
+    initial_method: ppo
     dynamic_method: ppo
   resource_assessment:
     method: monte_carlo
@@ -366,6 +396,73 @@ pso:
     balance: 0.1
     value: 0.2
     defense: 0.2
+ppo_clusterer_training:
+  random_seed: 42
+  checkpoint_dir: checkpoints/ppo_clusterer
+  feature_names:
+  - x
+  - y
+  num_clusters: 3
+  max_episodes: 500
+  max_steps: 30
+  device: cpu
+  agent:
+    learning_rate: 0.0003
+    gamma: 0.99
+    gae_lambda: 0.95
+    clip_epsilon: 0.2
+    entropy_coef: 0.01
+    value_loss_coef: 0.5
+    batch_size: 64
+    update_epochs: 4
+  network:
+    hidden_dims:
+    - 128
+    - 128
+  env:
+    max_targets_per_cluster: 64
+    illegal_action_penalty: -1.0
+    count_balance_weight: 1.0
+    compactness_weight: 1.0
+    workload_balance_weight: 1.0
+    empty_cluster_penalty: -1.0
+    move_penalty: -0.01
+    improvement_bonus: 0.05
+    patience: 8
+  scenario_generator:
+    enabled: true
+    base_source: real_csv_destroy_targets
+    initial_clustering_method: pso
+    probabilities:
+      none: 0.25
+      target_removed: 0.25
+      target_added: 0.25
+      target_value_changed: 0.15
+      mixed: 0.10
+    target_removed:
+      min_remove: 1
+      max_remove: 5
+    target_added:
+      min_add: 1
+      max_add: 5
+    target_value_changed:
+      min_change: 1
+      max_change: 8
+      value_scale_range:
+      - 0.8
+      - 1.3
+      defense_scale_range:
+      - 0.8
+      - 1.3
+    mixed:
+      max_remove: 3
+      max_add: 3
+      max_change: 5
+  output:
+    training_metrics_csv: outputs/metrics/ppo_clusterer_training_metrics.csv
+    reward_figure: outputs/evaluation/figures/ppo_training_reward.png
+    score_figure: outputs/evaluation/figures/ppo_training_score.png
+    losses_figure: outputs/evaluation/figures/ppo_training_losses.png
 ppo:
   learning_rate: 0.0003
   gamma: 0.99
@@ -440,20 +537,20 @@ algorithm_policy:
   default:
     target_screening: source_aligned
     destroy_target_selection: weighted_kmeans
-    target_clustering: kmeans
+    target_clustering: ppo
     resource_allocation: rule_based
     strike_order_planning: attention_dqn
   static:
     target_screening: source_aligned
     destroy_target_selection: random_forest
-    target_clustering: pso
+    target_clustering: ppo
     resource_allocation: rule_based
     strike_order_planning: attention_dqn
   dynamic:
     initial_planning:
       target_screening: source_aligned
       destroy_target_selection: random_forest
-      target_clustering: pso
+      target_clustering: ppo
       resource_allocation: rule_based
       strike_order_planning: attention_dqn
     events:

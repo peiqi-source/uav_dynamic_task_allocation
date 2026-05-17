@@ -1,2 +1,2 @@
 ﻿event_time,event_type,affected_target_ids,affected_uav_ids,metadata
-0.0,resource_shortage,"[1, 2, 3, 6, 9, 11, 17]",[],"{'source': 'initial_monte_carlo_resource_assessment', 'risky_cluster_ids': [2, 0, 1], 'completion_threshold': 0.8}"
+0.0,resource_shortage,"[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 43, 57, 67, 68, 89, 104, 106, 117, 119, 124, 128, 136, 138, 141, 147, 149, 151, 167, 174, 196]",[],"{'source': 'initial_monte_carlo_resource_assessment', 'risky_cluster_ids': [2, 1, 0], 'completion_threshold': 0.8}"

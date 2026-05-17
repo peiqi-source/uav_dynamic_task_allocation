@@ -87,11 +87,25 @@ class PPOAgent:
         """
         obs = torch.as_tensor(observation, dtype=torch.float32, device=self.device).unsqueeze(0)
         mask = torch.as_tensor(action_mask, dtype=torch.bool, device=self.device).unsqueeze(0)
+        if not np.asarray(action_mask).any():
+            raise PPOAgentError("action_mask contains no legal action.")
+
         logits, value = self.network(obs)
         logits = logits.masked_fill(~mask, -1e9)
         dist = torch.distributions.Categorical(logits=logits)
         action = dist.sample()
         return int(action.item()), float(dist.log_prob(action).item()), float(value.item())
+
+    def select_greedy_action(self, observation: np.ndarray, action_mask: np.ndarray) -> int:
+        """Select the highest-probability legal action."""
+        if not np.asarray(action_mask).any():
+            raise PPOAgentError("action_mask contains no legal action.")
+        obs = torch.as_tensor(observation, dtype=torch.float32, device=self.device).unsqueeze(0)
+        mask = torch.as_tensor(action_mask, dtype=torch.bool, device=self.device).unsqueeze(0)
+        with torch.no_grad():
+            logits, _ = self.network(obs)
+            logits = logits.masked_fill(~mask, -1e9)
+            return int(torch.argmax(logits, dim=-1).item())
 
     def update(self, buffer: PPORolloutBuffer) -> dict[str, float]:
         """处理update 数据相关业务逻辑。
@@ -114,6 +128,13 @@ class PPOAgent:
         old_log_probs = torch.as_tensor(buffer.log_probs, dtype=torch.float32, device=self.device)
         returns_t = torch.as_tensor(returns, dtype=torch.float32, device=self.device)
         advantages_t = torch.as_tensor(advantages, dtype=torch.float32, device=self.device)
+        action_masks = None
+        if buffer.action_masks and np.asarray(buffer.action_masks[0]).shape[0] > 1:
+            action_masks = torch.as_tensor(
+                np.asarray(buffer.action_masks),
+                dtype=torch.bool,
+                device=self.device,
+            )
 
         num_samples = len(buffer)
         batch_size = min(self.config.batch_size, num_samples)
@@ -124,6 +145,8 @@ class PPOAgent:
             for start in range(0, num_samples, batch_size):
                 indices = permutation[start:start + batch_size]
                 logits, values = self.network(observations[indices])
+                if action_masks is not None:
+                    logits = logits.masked_fill(~action_masks[indices], -1e9)
                 dist = torch.distributions.Categorical(logits=logits)
                 log_probs = dist.log_prob(actions[indices])
                 ratios = torch.exp(log_probs - old_log_probs[indices])

@@ -95,6 +95,12 @@ class TargetClusteringConfig:
     ppo_checkpoint_dir: str = "checkpoints/ppo_clusterer"
     # ppo_fallback_method: PPO 算法fallbackmethod。
     ppo_fallback_method: str = "pso"
+    # ppo_max_inference_steps: PPO 推理最大调整步数。
+    ppo_max_inference_steps: int = 30
+    # ppo_inference_mode: PPO 推理动作选择模式。
+    ppo_inference_mode: str = "greedy"
+    # ppo_max_targets_per_cluster: PPO 环境每簇最大动作槽位数。
+    ppo_max_targets_per_cluster: int = 64
 
     # debug_csv_path: 调试 CSV 输出路径。
     debug_csv_path: str = "outputs/intermediate/target_clustering.csv"
@@ -638,6 +644,9 @@ class TargetClusterer:
             PPOClustererConfig(
                 checkpoint_dir=self.config.ppo_checkpoint_dir,
                 fallback_method=self.config.ppo_fallback_method,
+                max_inference_steps=self.config.ppo_max_inference_steps,
+                inference_mode=self.config.ppo_inference_mode,
+                max_targets_per_cluster=self.config.ppo_max_targets_per_cluster,
                 random_seed=self.config.pso_random_seed,
                 pso_config=PSOClustererConfig(
                     num_particles=self.config.pso_num_particles,
@@ -674,6 +683,8 @@ class TargetClusterer:
             "objective": result.metrics.get("mean_distance_to_center"),
             "ppo_metrics": result.metrics,
             "ppo_metadata": result.metadata,
+            "fallback_reason": result.fallback_reason,
+            "num_inference_steps": result.num_inference_steps,
         }
 
     def _pso_objective(
@@ -1074,15 +1085,44 @@ def load_target_clustering_config(
         ppo_checkpoint_dir=str(
             get_config_value(
                 config,
-                "ppo.checkpoint_dir",
-                default="checkpoints/ppo_clusterer",
+                f"{prefix}.ppo.checkpoint_dir",
+                default=get_config_value(
+                    config,
+                    "ppo.checkpoint_dir",
+                    default="checkpoints/ppo_clusterer",
+                ),
             )
         ),
         ppo_fallback_method=str(
             get_config_value(
                 config,
-                "ppo.fallback_method",
-                default="pso",
+                f"{prefix}.ppo.fallback_method",
+                default=get_config_value(config, "ppo.fallback_method", default="pso"),
+            )
+        ),
+        ppo_max_inference_steps=int(
+            get_config_value(
+                config,
+                f"{prefix}.ppo.max_inference_steps",
+                default=30,
+            )
+        ),
+        ppo_inference_mode=str(
+            get_config_value(
+                config,
+                f"{prefix}.ppo.inference_mode",
+                default="greedy",
+            )
+        ),
+        ppo_max_targets_per_cluster=int(
+            get_config_value(
+                config,
+                f"{prefix}.ppo.max_targets_per_cluster",
+                default=get_config_value(
+                    config,
+                    "ppo_clusterer_training.env.max_targets_per_cluster",
+                    default=64,
+                ),
             )
         ),
         debug_csv_path=str(

@@ -1,2 +1,2 @@
-﻿entropy,episode,method_used,policy_loss,total_reward,value_loss
-0.0,0,ppo_fallback_pso,0.0,1.9942877963260468,0.0
+﻿compactness,count_balance,count_std,empty_cluster_count,entropy,episode,event_type,final_score,num_targets,policy_loss,scenario_id,total_reward,value_loss,workload_balance,workload_std
+0.8245802667259349,0.9240075406383572,1.699673171197595,0.0,0.0,0,target_value_changed,2.6597554882440004,62,0.0,0,0.0,0.0,0.9111676808797082,8.50243940972811

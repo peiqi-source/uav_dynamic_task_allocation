@@ -22,6 +22,8 @@ class PPORolloutBuffer:
     dones: list[bool] = field(default_factory=list)
     # values: values 数据。
     values: list[float] = field(default_factory=list)
+    # action_masks: action masks used when the action was sampled.
+    action_masks: list[np.ndarray] = field(default_factory=list)
 
     def add(
         self,
@@ -31,6 +33,7 @@ class PPORolloutBuffer:
         reward: float,
         done: bool,
         value: float,
+        action_mask: np.ndarray | None = None,
     ) -> None:
         """处理add 数据相关业务逻辑。
 
@@ -51,6 +54,10 @@ class PPORolloutBuffer:
         self.rewards.append(float(reward))
         self.dones.append(bool(done))
         self.values.append(float(value))
+        if action_mask is None:
+            self.action_masks.append(np.ones(1, dtype=np.float32))
+        else:
+            self.action_masks.append(np.asarray(action_mask, dtype=np.float32))
 
     def clear(self) -> None:
         """处理clear 数据相关业务逻辑。
@@ -67,6 +74,7 @@ class PPORolloutBuffer:
         self.rewards.clear()
         self.dones.clear()
         self.values.clear()
+        self.action_masks.clear()
 
     def __len__(self) -> int:
         """处理len 数据相关业务逻辑。

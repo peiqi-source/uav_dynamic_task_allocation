@@ -1,24 +1,11 @@
 {
   "algorithm": "ppo_clusterer",
   "status": "no_torch_fallback",
-  "method_used": "ppo_fallback_pso",
-  "metrics_csv": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\metrics\\ppo_clusterer_training_metrics.csv",
-  "labels": [
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1
+  "reason": "PyTorch is not available.",
+  "num_clusters": 3,
+  "feature_names": [
+    "x",
+    "y"
   ],
-  "metrics": {
-    "mean_distance_to_center": 0.07117363280034497,
-    "max_distance_to_center": 0.10609220308559693,
-    "target_count_std": 0.0,
-    "target_count_balance_score": 1.0
-  },
-  "note": "PyTorch is not installed; dynamic regrouping falls back to PSO."
+  "training_metrics_csv": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\metrics\\ppo_clusterer_training_metrics.csv"
 }
