@@ -1,11 +1,62 @@
 {
   "algorithm": "ppo_clusterer",
-  "status": "no_torch_fallback",
-  "reason": "PyTorch is not available.",
+  "status": "trained",
+  "random_seed": 42,
   "num_clusters": 6,
   "feature_names": [
     "x",
     "y"
   ],
-  "training_metrics_csv": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\metrics\\ppo_clusterer_training_metrics.csv"
+  "observation_dim": 54,
+  "action_dim": 2304,
+  "hidden_dims": [
+    128,
+    128
+  ],
+  "max_targets_per_cluster": 64,
+  "env_config": {
+    "num_clusters": 6,
+    "max_steps": 30,
+    "max_targets_per_cluster": 64,
+    "illegal_action_penalty": -1.0,
+    "count_balance_weight": 1.0,
+    "compactness_weight": 1.0,
+    "workload_balance_weight": 1.0,
+    "empty_cluster_penalty": -1.0,
+    "move_penalty": -0.01,
+    "improvement_bonus": 0.05,
+    "patience": 8,
+    "reward_clip_min": -1.0,
+    "reward_clip_max": 1.0,
+    "use_reward_clipping": true,
+    "use_score_delta_reward": true,
+    "dynamic_event_bonus": null
+  },
+  "episodes": 500,
+  "training_metrics_csv": "F:\\项目\\专利\\uav_dynamic_task_allocation\\outputs\\metrics\\ppo_clusterer_training_metrics.csv",
+  "last_metrics": {
+    "episode": 500,
+    "scenario_id": 500,
+    "event_type": "target_added",
+    "num_targets": 63,
+    "total_reward": 0.5217679885169307,
+    "raw_reward": 0.5217679885169307,
+    "clipped_reward": 0.5217679885169307,
+    "final_score": 2.579602116742037,
+    "count_balance": 0.8472545699034286,
+    "compactness": 0.8542810655029741,
+    "workload_balance": 0.8780664813356343,
+    "count_std": 1.8929694486000912,
+    "workload_std": 6.110100926607787,
+    "empty_cluster_count": 0.0,
+    "policy_loss": -0.06241472437977791,
+    "value_loss": 0.016217699274420738,
+    "entropy": 0.9453123807907104,
+    "entropy_coef": 0.0020160000000000004,
+    "moving_avg_reward_20": 0.414673147516209,
+    "moving_avg_score_20": 2.566522040904361,
+    "moving_avg_reward_50": 0.4208840124214141,
+    "moving_avg_score_50": 2.597064732019326
+  },
+  "model_path": "F:\\项目\\专利\\uav_dynamic_task_allocation\\checkpoints\\ppo_clusterer\\ppo_clusterer.pt"
 }
